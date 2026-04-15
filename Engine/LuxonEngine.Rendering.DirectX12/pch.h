@@ -9,7 +9,6 @@
 
 // add headers that you want to pre-compile here
 #include <Platform/CommonWin.h>
-#include "framework.h"
 #include <d3d12.h>
 #include <dxcapi.h>
 #include <d3dcompiler.h>
