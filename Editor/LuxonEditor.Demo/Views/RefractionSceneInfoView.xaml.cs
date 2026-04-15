@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace QuantumEditor.Demo.Views
+namespace LuxonEditor.Demo.Views
 {
     /// <summary>
     /// Interaction logic for RefractionSceneInfoView.xaml

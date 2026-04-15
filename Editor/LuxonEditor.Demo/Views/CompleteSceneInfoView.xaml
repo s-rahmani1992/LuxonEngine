@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="QuantumEditor.Demo.Views.RefractionSceneInfoView"
+﻿<UserControl x:Class="LuxonEditor.Demo.Views.CompleteSceneInfoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:QuantumEditor.Demo.Views"
+             xmlns:local="clr-namespace:LuxonEditor.Demo.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -24,13 +24,14 @@
                     Padding="10" DockPanel.Dock="Top">
                     <FlowDocument FontFamily="{StaticResource Global_Font}">
                         <Paragraph Foreground="{StaticResource Title_Color}" TextAlignment="Center" FontSize="40">
-                            Refraction Scene
+                            Complete Scene
                         </Paragraph>
                         <Paragraph Margin="6 0 6 20" FontSize="25">
-                            This scene demonstrates the engine's refraction rendering. 
-                            It contains several objects, including two refractive bodies: a slab and a sphere, both using the same refraction material. 
-                            As a result, they share the same refraction constant.
-                            The lighting setup includes one directional light and one point light.
+                            This is a scene that renders lighting, reflection, refraction, and shadow effects simultaneously.
+                            The reflective objects include the sphere, the wall, and the pickup truck.
+                            The refractive objects are the sphere and the slab.
+                            All objects, except the refractive ones, are capable of casting and receiving shadows.
+                            The lighting setup consists of one directional light and one point light.
                         </Paragraph>
                         <Paragraph Margin="6" FontSize="30">
                             User Guide:
@@ -41,9 +42,7 @@
                             <Bold>W, A, S, D</Bold> keys along with mouse movement to navigate through the scene.
                         </Paragraph>
                         <Paragraph Margin="6" FontSize="25">
-                            2. Use the
-                            <Bold>-</Bold> and
-                            <Bold>+</Bold> Keys to adjust the refraction factor of the two refractive objects, ranging from 1.0 to 1.5 .
+                            2. Use Arrow Keys to move the reflective sphere object along the XZ plane.
                         </Paragraph>
                     </FlowDocument>
                 </RichTextBox>
@@ -69,10 +68,11 @@
                     <Run Text="Ray Tracing" Foreground="{StaticResource RayTracing_Color}"/>
                             </TextBlock>
                             <Button Style="{StaticResource Run_Button_Style}"
-                            Click="OnRefractionRayTracingDX12">
+                            Click="OnCompleteRayTracingDX12">
                                 Run
                             </Button>
                         </StackPanel>
+
                     </Border>
                     <Border Padding="10" Margin="10" BorderThickness="2" CornerRadius="10">
                         <Border.BorderBrush>
@@ -88,7 +88,7 @@
                     <Run Text="Ray Tracing" Foreground="{StaticResource RayTracing_Color}"/>
                             </TextBlock>
                             <Button Style="{StaticResource Run_Button_Style}"
-                            Click="OnRefractionRayTracingVK">
+                            Click="OnCompleteRayTracingVK">
                                 Run
                             </Button>
                         </StackPanel>

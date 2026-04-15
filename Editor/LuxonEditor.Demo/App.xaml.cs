@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace QuantumEditor.Demo
+namespace LuxonEditor.Demo
 {
     /// <summary>
     /// Interaction logic for App.xaml

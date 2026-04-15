@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Interop;
 
-namespace QuantumEditor.Demo.Views
+namespace LuxonEditor.Demo.Views
 {
     /// <summary>
     /// Interaction logic for ReflectionSceneInfoView.xaml

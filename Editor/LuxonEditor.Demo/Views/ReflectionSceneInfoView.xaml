@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="QuantumEditor.Demo.Views.ShadowSceneInfoView"
+﻿<UserControl x:Class="LuxonEditor.Demo.Views.ReflectionSceneInfoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:QuantumEditor.Demo.Views"
+             xmlns:local="clr-namespace:LuxonEditor.Demo.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -24,11 +24,17 @@
                     Padding="10" DockPanel.Dock="Top">
                     <FlowDocument FontFamily="{StaticResource Global_Font}">
                         <Paragraph Foreground="{StaticResource Title_Color}" TextAlignment="Center" FontSize="40">
-                            Shadow Scene
+                            Reflection Scene
                         </Paragraph>
                         <Paragraph Margin="6 0 6 20" FontSize="25">
-                            This scene demonstrates the engine’s shadow rendering. It contains several objects, all of which are capable of both casting and receiving shadows.
-                            The lighting setup includes one directional light and two point lights.
+                            This scene showcases the engine’s reflection rendering. It contains two reflective objects alongside several standard objects such as a car, a container, and the floor. 
+                            The lighting setup includes one directional light and one point light. 
+                            The engine supports multiple reflection ray tracing, and this scene demonstrates up to three levels of recursive reflections.
+                        </Paragraph>
+                        <Paragraph Margin="6 0 6 20" FontSize="25">
+                            One reflective object is a wall that uses a texture as a reflection map.
+                            other is a sphere implementing simple reflection rendering.
+                            In hybrid rendering mode, the reflection is implemented using G Buffer, Ray tracing and rasterization.
                         </Paragraph>
                         <Paragraph Margin="6" FontSize="30">
                             User Guide:
@@ -39,7 +45,9 @@
                             <Bold>W, A, S, D</Bold> keys along with mouse movement to navigate through the scene.
                         </Paragraph>
                         <Paragraph Margin="6" FontSize="25">
-                            2. Use Arrow Keys to move the drone object along the XZ plane.
+                            2. Use
+                            <Bold>-</Bold> and
+                            <Bold>+</Bold> Keys to change the sphere's reflectivity between 0 and 1
                         </Paragraph>
                     </FlowDocument>
                 </RichTextBox>
@@ -62,10 +70,50 @@
                             </TextBlock>
                             <TextBlock FontSize="25" TextAlignment="Center" Margin="5 5" FontFamily="{StaticResource Global_Font}">
                     <Run Text="Render Method:" Foreground="Black"/>
+                    <Run Text="Hybrid" Foreground="{StaticResource Hybrid_Color}"/>
+                            </TextBlock>
+                            <Button Style="{StaticResource Run_Button_Style}"
+                        Click="OnReflectionHybridDX12">
+                                Run
+                            </Button>
+                        </StackPanel>
+
+                    </Border>
+                    <Border Padding="10" Margin="10" BorderThickness="2" CornerRadius="10">
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="DarkGoldenrod"/>
+                        </Border.BorderBrush>
+                        <StackPanel HorizontalAlignment="Center" Width="350">
+                            <TextBlock FontSize="25" TextAlignment="Center" Margin="5 5" FontFamily="{StaticResource Global_Font}">
+                    <Run Text="Graphics API:" Foreground="Black"/>
+                    <Run Text=" DirectX 12" Foreground="{StaticResource DX12_Color}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="25" TextAlignment="Center" Margin="5 5" FontFamily="{StaticResource Global_Font}">
+                    <Run Text="Render Method:" Foreground="Black"/>
                     <Run Text="Ray Tracing" Foreground="{StaticResource RayTracing_Color}"/>
                             </TextBlock>
                             <Button Style="{StaticResource Run_Button_Style}"
-                        Click="OnShadowRayTracingDX12">
+                        Click="OnReflectionRayTracingDX12">
+                                Run
+                            </Button>
+                        </StackPanel>
+
+                    </Border>
+                    <Border Padding="10" Margin="10" BorderThickness="2" CornerRadius="10">
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="DarkGoldenrod"/>
+                        </Border.BorderBrush>
+                        <StackPanel HorizontalAlignment="Center" Width="350">
+                            <TextBlock FontSize="25" TextAlignment="Center" Margin="5 5" FontFamily="{StaticResource Global_Font}">
+                    <Run Text="Graphics API:" Foreground="Black"/>
+                    <Run Text=" Vulkan" Foreground="{StaticResource VK_Color}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="25" TextAlignment="Center" Margin="5 5" FontFamily="{StaticResource Global_Font}">
+                    <Run Text="Render Method:" Foreground="Black"/>
+                    <Run Text="Hybrid" Foreground="{StaticResource Hybrid_Color}"/>
+                            </TextBlock>
+                            <Button Style="{StaticResource Run_Button_Style}"
+                            Click="OnReflectionHybridVulkan">
                                 Run
                             </Button>
                         </StackPanel>
@@ -85,7 +133,7 @@
                     <Run Text="Ray Tracing" Foreground="{StaticResource RayTracing_Color}"/>
                             </TextBlock>
                             <Button Style="{StaticResource Run_Button_Style}"
-                            Click="OnShadowRayTracingVK">
+                            Click="OnReflectionRayTracingVulkan">
                                 Run
                             </Button>
                         </StackPanel>
@@ -96,4 +144,5 @@
 
         </ScrollViewer>
     </DockPanel>
+
 </UserControl>
