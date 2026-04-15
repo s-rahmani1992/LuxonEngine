@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <CoreProjectDir>$(SolutionDir)Engine\LuxonEngine.Core\</CoreProjectDir>
+  </PropertyGroup>
+</Project>

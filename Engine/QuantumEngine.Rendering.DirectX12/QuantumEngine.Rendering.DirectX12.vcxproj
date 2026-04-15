@@ -78,7 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -90,7 +90,7 @@
       <Command>XCOPY "$(ProjectDir)ExternalDLLs\DXC\*" "$(SolutionDir)Build\$(Configuration)" /E /Y /I</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -103,7 +103,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
       <Command>XCOPY "$(ProjectDir)ExternalDLLs\DXC\*" "$(SolutionDir)Build\$(Configuration)" /E /Y /I</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -128,7 +128,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -140,7 +140,7 @@
       <Command>XCOPY "$(ProjectDir)ExternalDLLs\DXC\*" "$(SolutionDir)Build\$(Configuration)" /E /Y /I</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,7 +153,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -167,7 +167,7 @@
       <Command>XCOPY "$(ProjectDir)ExternalDLLs\DXC\*" "$(SolutionDir)Build\$(Configuration)" /E /Y /I</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -239,7 +239,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QuantumEngine.Core\QuantumEngine.Core.vcxproj">
+    <ProjectReference Include="..\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
       <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
     </ProjectReference>
   </ItemGroup>

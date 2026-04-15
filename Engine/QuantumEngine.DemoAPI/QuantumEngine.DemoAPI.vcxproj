@@ -31,7 +31,7 @@
     <ClInclude Include="SceneBuilder.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QuantumEngine.Core\QuantumEngine.Core.vcxproj">
+    <ProjectReference Include="..\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
       <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
     </ProjectReference>
     <ProjectReference Include="..\QuantumEngine.Rendering.DirectX12\QuantumEngine.Rendering.DirectX12.vcxproj">
@@ -239,14 +239,14 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
     <PostBuildEvent>
@@ -263,14 +263,14 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
     <PostBuildEvent>
@@ -285,14 +285,14 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
     <PostBuildEvent>
@@ -309,14 +309,14 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(SolutionDir)Engine\QuantumEngine.Rendering.DirectX12;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
     <PostBuildEvent>

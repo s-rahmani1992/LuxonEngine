@@ -78,7 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -87,7 +87,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -100,7 +100,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -109,7 +109,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -120,7 +120,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -129,7 +129,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,7 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.Core;$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -151,7 +151,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)Engine\QuantumEngine.Core\ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;$(VK_SDK_PATH)\lib</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -222,7 +222,7 @@
     <ClCompile Include="VulkanSplinePipelineModule.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QuantumEngine.Core\QuantumEngine.Core.vcxproj">
+    <ProjectReference Include="..\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
       <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
     </ProjectReference>
   </ItemGroup>
