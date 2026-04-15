@@ -5,12 +5,12 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Texture2D;
 	enum class TextureFormat;
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	class DX12Texture2DController : public GPUTexture2DController
 	{
 	public:

@@ -2,7 +2,7 @@
 #include "SPIRVRasterizationProgram.h"
 #include "../Core/SPIRVShader.h"
 
-QuantumEngine::Rendering::Vulkan::Rasterization::SPIRVRasterizationProgram::SPIRVRasterizationProgram(const std::vector<ref<SPIRVShader>>& spirvShaders, const VkDevice device)
+LuxonEngine::Rendering::Vulkan::Rasterization::SPIRVRasterizationProgram::SPIRVRasterizationProgram(const std::vector<ref<SPIRVShader>>& spirvShaders, const VkDevice device)
 {
 	m_device = device;
 	for(auto& shader : spirvShaders)
@@ -52,7 +52,7 @@ QuantumEngine::Rendering::Vulkan::Rasterization::SPIRVRasterizationProgram::SPIR
 	m_reflection.CreatePipelineLayout(device, VK_SHADER_STAGE_ALL_GRAPHICS, m_sampler, &m_pipelineLayout, m_descriptorSetLayout.data());
 }
 
-QuantumEngine::Rendering::Vulkan::Rasterization::SPIRVRasterizationProgram::~SPIRVRasterizationProgram()
+LuxonEngine::Rendering::Vulkan::Rasterization::SPIRVRasterizationProgram::~SPIRVRasterizationProgram()
 {
 	vkDestroySampler(m_device, m_sampler, nullptr);
 	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);

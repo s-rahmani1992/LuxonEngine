@@ -3,13 +3,13 @@
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanBufferFactory.h"
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::VulkanBLAS()
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::VulkanBLAS()
 	:m_device(VulkanDeviceManager::Instance()->GetGraphicDevice())
 {
 	m_buildAccelerationStructurePtr = (PFN_vkCmdBuildAccelerationStructuresKHR)vkGetDeviceProcAddr(m_device, "vkCmdBuildAccelerationStructuresKHR");
 }
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::~VulkanBLAS()
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::~VulkanBLAS()
 {
 	auto vkDestroyAccelerationStructurePtr = (PFN_vkDestroyAccelerationStructureKHR)vkGetDeviceProcAddr(m_device, "vkDestroyAccelerationStructureKHR");
 	vkDestroyAccelerationStructurePtr(m_device, m_blas, nullptr);
@@ -17,7 +17,7 @@ QuantumEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::~VulkanBLAS()
 	vkFreeMemory(m_device, m_blasMemory, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::CreateCommand(VkCommandBuffer commandBuffer, VulkanBLASBuildInfo* buildInfo)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanBLAS::CreateCommand(VkCommandBuffer commandBuffer, VulkanBLASBuildInfo* buildInfo)
 {
 	auto bufferFactory = VulkanDeviceManager::Instance()->GetBufferFactory();
 

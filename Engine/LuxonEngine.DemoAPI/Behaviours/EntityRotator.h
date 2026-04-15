@@ -3,15 +3,15 @@
 #include <Core/Transform.h>
 #include <Core/Vector3.h>
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
-class EntityRotator : public QuantumEngine::Behaviour
+class EntityRotator : public LuxonEngine::Behaviour
 {
 public:
-	EntityRotator(ref<QuantumEngine::Transform>& transform, float speed);
+	EntityRotator(ref<LuxonEngine::Transform>& transform, float speed);
 	virtual void Update(Float deltaTime) override;
 private:
-	ref<QuantumEngine::Transform> m_transform;
+	ref<LuxonEngine::Transform> m_transform;
 	Float m_currentAngle;
 	Float m_speed;
 };

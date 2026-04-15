@@ -1,7 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	struct Vector2 {
 	public:
 		Vector2();

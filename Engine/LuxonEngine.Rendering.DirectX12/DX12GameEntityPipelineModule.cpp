@@ -10,7 +10,7 @@
 #include "Rasterization/HLSLRasterizationProgram.h"
 #include "Rasterization/DX12RasterizationMaterial.h"
 
-bool QuantumEngine::Rendering::DX12::DX12GameEntityPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device, const DX12MeshRendererGPUData& meshRendererData, DXGI_FORMAT depthFormat)
+bool LuxonEngine::Rendering::DX12::DX12GameEntityPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device, const DX12MeshRendererGPUData& meshRendererData, DXGI_FORMAT depthFormat)
 {
 	m_transformHeapHandle = meshRendererData.transformHandle;
 
@@ -25,7 +25,7 @@ bool QuantumEngine::Rendering::DX12::DX12GameEntityPipelineModule::Initialize(co
 
 	//Shader Part
 	m_material = meshRendererData.material;
-	auto program = std::dynamic_pointer_cast<QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(m_material->GetMaterial()->GetProgram());
+	auto program = std::dynamic_pointer_cast<LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(m_material->GetMaterial()->GetProgram());
 	m_rootSignature = program->GetRootSignature();
 	auto vertexShader = program->GetVertexShader();
 	auto pixelShader = program->GetPixelShader();
@@ -128,7 +128,7 @@ bool QuantumEngine::Rendering::DX12::DX12GameEntityPipelineModule::Initialize(co
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12GameEntityPipelineModule::Render(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle, D3D12_GPU_DESCRIPTOR_HANDLE lightHandle)
+void LuxonEngine::Rendering::DX12::DX12GameEntityPipelineModule::Render(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle, D3D12_GPU_DESCRIPTOR_HANDLE lightHandle)
 {
 	//Pipeline
 	commandList->SetGraphicsRootSignature(m_rootSignature.Get());

@@ -1,11 +1,11 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 }
 
-namespace QuantumEngine::Rendering::Vulkan::Rasterization {
+namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	class SPIRVRasterizationProgram;
 
 	class VulkanRasterizationMaterial {

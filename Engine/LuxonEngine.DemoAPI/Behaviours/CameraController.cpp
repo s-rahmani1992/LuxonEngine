@@ -3,7 +3,7 @@
 #include "Core/Transform.h"
 #include <string>
 
-CameraController::CameraController(ref<QuantumEngine::Camera>& camera)
+CameraController::CameraController(ref<LuxonEngine::Camera>& camera)
 	:m_camera(camera), m_moveSpeed(2.0f), m_rotateSpeed(10)
 {
 	POINT mousePos;

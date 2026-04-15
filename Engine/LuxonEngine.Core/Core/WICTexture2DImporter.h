@@ -8,7 +8,7 @@
 
 #pragma comment(lib, "WindowsCodecs.lib")
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class WICTexture2DImporter {
 	public:
 		static ref<Texture2D> Import(const std::wstring& fileName, std::string& error);

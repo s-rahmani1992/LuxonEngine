@@ -10,9 +10,9 @@
 #include "VulkanBufferFactory.h"
 #include <set>
 
-QuantumEngine::Rendering::Vulkan::VulkanDeviceManager* QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::s_instance;
+LuxonEngine::Rendering::Vulkan::VulkanDeviceManager* LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::s_instance;
 
-bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
+bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 {
 	// Get Supported Extensions
 	UInt32 extensionCount = 0;
@@ -239,7 +239,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	return true;
 }
 
-ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window)
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window);
 
@@ -249,7 +249,7 @@ ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::Vulkan::
 	return context;
 }
 
-ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CreateRayTracingContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window)
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<RayTracing::VulkanRayTracingContext> context = std::make_shared<RayTracing::VulkanRayTracingContext>(m_instance, m_surfaceQueueFamilyIndex, window);
 
@@ -259,7 +259,7 @@ ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::Vulkan::
 	return context;
 }
 
-ref<QuantumEngine::Rendering::GPUAssetManager> QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CreateAssetManager()
+ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateAssetManager()
 {
 	ref<VulkanAssetManager> assetManager = std::make_shared<VulkanAssetManager>(m_graphicDevice, m_physicalDevice);
 	
@@ -269,20 +269,20 @@ ref<QuantumEngine::Rendering::GPUAssetManager> QuantumEngine::Rendering::Vulkan:
 	return assetManager;
 }
 
-ref<QuantumEngine::Rendering::ShaderRegistery> QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CreateShaderRegistery()
+ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateShaderRegistery()
 {
 	ref<VulkanShaderRegistery> shaderRegistery = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);
 	shaderRegistery->Initialize();
 	return shaderRegistery;
 }
 
-ref<QuantumEngine::Rendering::MaterialFactory> QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CreateMaterialFactory()
+ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateMaterialFactory()
 {
 	ref<VulkanMaterialFactory> materialFactory = std::make_shared<VulkanMaterialFactory>();
 	return materialFactory;
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::~VulkanDeviceManager()
+LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::~VulkanDeviceManager()
 {
 #if defined(_DEBUG)
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -292,7 +292,7 @@ QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::~VulkanDeviceManager()
 	vkDestroyDevice(m_graphicDevice, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 }
-VkQueue QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::GetGraphicsQueue() const
+VkQueue LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::GetGraphicsQueue() const
 {
 	VkQueue graphicsQueue;
 	vkGetDeviceQueue(m_graphicDevice, m_graphicsQueueFamilyIndex, 0, &graphicsQueue);
@@ -315,7 +315,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL QuantumEngine::Rendering::Vulkan::VulkanDeviceMan
 
 #endif
 
-bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CheckQueueSupport(VkPhysicalDevice device)
+bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CheckQueueSupport(VkPhysicalDevice device)
 {
 	UInt32 targetFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
 	UInt32 flags = 0;
@@ -332,7 +332,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CheckQueueSupport(Vk
 	return flags == targetFlags;
 }
 
-Int32 QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::FindQueueFamilies(VkPhysicalDevice device, UInt32 flag)
+Int32 LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::FindQueueFamilies(VkPhysicalDevice device, UInt32 flag)
 {
 	UInt32 queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -347,7 +347,7 @@ Int32 QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::FindQueueFamilies(V
 	return -1;
 }
 
-Int32 QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::FindPresentFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+Int32 LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::FindPresentFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 	UInt32 queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -365,7 +365,7 @@ Int32 QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::FindPresentFamilies
 	return -1;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& requiredExtensions)
+bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& requiredExtensions)
 {
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -382,7 +382,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CheckDeviceExtension
 	return tempExtensions.empty();
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanDeviceManager::CheckDeviceSwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CheckDeviceSwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;

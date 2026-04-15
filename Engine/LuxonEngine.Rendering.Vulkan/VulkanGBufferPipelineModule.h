@@ -1,11 +1,11 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity;
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanMeshController;
 
 	namespace Rasterization {

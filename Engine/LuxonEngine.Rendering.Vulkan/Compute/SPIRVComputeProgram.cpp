@@ -1,7 +1,7 @@
 #include "vulkan-pch.h"
 #include "SPIRVComputeProgram.h"
 
-QuantumEngine::Rendering::Vulkan::Compute::SPIRVComputeProgram::SPIRVComputeProgram(Byte* bytecode, UInt64 codeSize, VkDevice device)
+LuxonEngine::Rendering::Vulkan::Compute::SPIRVComputeProgram::SPIRVComputeProgram(Byte* bytecode, UInt64 codeSize, VkDevice device)
 	:m_codeSize(codeSize)
 {
 	m_device = device;
@@ -37,7 +37,7 @@ QuantumEngine::Rendering::Vulkan::Compute::SPIRVComputeProgram::SPIRVComputeProg
 	m_reflection.CreatePipelineLayout(m_device, VK_SHADER_STAGE_COMPUTE_BIT, m_sampler, &m_pipelineLayout, m_descriptorSetLayout.data());
 }
 
-QuantumEngine::Rendering::Vulkan::Compute::SPIRVComputeProgram::~SPIRVComputeProgram()
+LuxonEngine::Rendering::Vulkan::Compute::SPIRVComputeProgram::~SPIRVComputeProgram()
 {
 	vkDestroySampler(m_device, m_sampler, nullptr);
 	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);

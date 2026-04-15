@@ -3,7 +3,7 @@
 #include "vulkan-pch.h"
 #include "Rendering/GPUDeviceManager.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	namespace Platform {
 		class GraphicWindow;
 	}
@@ -13,15 +13,15 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory;
 
 	class VulkanDeviceManager : public GPUDeviceManager
 	{
 	public:
 		virtual bool Initialize() override;
-		virtual ref<GraphicContext> CreateHybridContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window) override;
-		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window) override;
+		virtual ref<GraphicContext> CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
+		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GPUAssetManager> CreateAssetManager() override;
 		virtual ref<ShaderRegistery> CreateShaderRegistery() override;
 		virtual ref<MaterialFactory> CreateMaterialFactory() override;

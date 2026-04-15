@@ -3,7 +3,7 @@
 #include "SPIRVRayTracingProgramVariant.h"
 #include "Core/VulkanUtilities.h"
 
-QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTracingProgram(Byte* bytecode, UInt64 codeSize, VkDevice device)
+LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTracingProgram(Byte* bytecode, UInt64 codeSize, VkDevice device)
 	:m_codeSize(codeSize)
 {
 	m_device = device;
@@ -86,14 +86,14 @@ QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTr
 	}
 }
 
-QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::~SPIRVRayTracingProgram()
+LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::~SPIRVRayTracingProgram()
 {
 	vkDestroyShaderModule(m_device, m_rtModule, nullptr);
 
 	delete[] m_bytecode;
 }
 
-std::vector<VkPipelineShaderStageCreateInfo> QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::GetShaderStages()
+std::vector<VkPipelineShaderStageCreateInfo> LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::GetShaderStages()
 {
 	std::vector<VkPipelineShaderStageCreateInfo> stages;
 	if(m_rayGenEntryPoint) {
@@ -139,7 +139,7 @@ std::vector<VkPipelineShaderStageCreateInfo> QuantumEngine::Rendering::Vulkan::R
 	return stages;
 }
 
-ref<QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant> QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::CreateVariantForRT(UInt32& startBinding)
+ref<LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant> LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::CreateVariantForRT(UInt32& startBinding)
 {
 	Byte* variantByteCode = new Byte[m_codeSize];
 	std::memcpy(variantByteCode, m_bytecode, m_codeSize);
@@ -188,7 +188,7 @@ ref<QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant>
 	return std::make_shared<SPIRVRayTracingProgramVariant>(variantByteCode, m_codeSize);
 }
 
-UInt32 QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::GetShaderRecordSize()
+UInt32 LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::GetShaderRecordSize()
 {
 	if (m_shaderRecord == nullptr)
 		return 0;
@@ -201,7 +201,7 @@ UInt32 QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::Get
 	return size;
 }
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::HasHitGroup()
+bool LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::HasHitGroup()
 {
 	return m_closestHitEntryPoint != nullptr ||
 		m_anyHitEntryPoint != nullptr ||

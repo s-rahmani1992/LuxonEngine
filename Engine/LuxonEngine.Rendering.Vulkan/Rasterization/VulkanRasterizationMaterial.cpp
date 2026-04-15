@@ -5,7 +5,7 @@
 #include "Core/Texture2D.h"
 #include "Core/VulkanTexture2DController.h"
 
-QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::VulkanRasterizationMaterial(const ref<Material>& material, const VkDevice device)
+LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::VulkanRasterizationMaterial(const ref<Material>& material, const VkDevice device)
 	:m_material(material), m_device(device), m_program(std::dynamic_pointer_cast<SPIRVRasterizationProgram>(material->GetProgram()))
 {
 	m_pipelineLayout = m_program->GetPipelineLayout();
@@ -48,7 +48,7 @@ QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Vu
 	}
 }
 
-bool QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Initialize(const VkDescriptorPool pool)
+bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Initialize(const VkDescriptorPool pool)
 {
 	auto& layouts = m_program->GetDiscriptorLayouts();
 	m_descriptorSets.resize(layouts.size());
@@ -71,7 +71,7 @@ bool QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMateria
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::BindValues(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::BindValues(VkCommandBuffer commandBuffer)
 {
 	// Update Modified Textures
 	for (auto& modified : m_material->GetModifiedTextures()) {
@@ -105,12 +105,12 @@ void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMateria
 	}
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::BindDynamicValues(VkCommandBuffer commandBuffer, UInt32* offsets, UInt32 offsetCount)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::BindDynamicValues(VkCommandBuffer commandBuffer, UInt32* offsets, UInt32 offsetCount)
 {
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, (UInt32)m_descriptorSets.size(), m_descriptorSets.data(), offsetCount, offsets);
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::WriteBuffer(const std::string name, const VkBuffer buffer, UInt32 stride)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::WriteBuffer(const std::string name, const VkBuffer buffer, UInt32 stride)
 {
 	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);
 
@@ -139,7 +139,7 @@ void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMateria
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::SetImageView(const std::string& name, const VkImageView imageView)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::SetImageView(const std::string& name, const VkImageView imageView)
 {
 	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);
 

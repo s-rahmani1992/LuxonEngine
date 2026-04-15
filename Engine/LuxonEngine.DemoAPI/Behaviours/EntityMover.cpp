@@ -1,6 +1,6 @@
 #include "EntityMover.h"
 
-EntityMover::EntityMover(ref<QuantumEngine::Transform>& transform, Vector3 point1, Vector3 point2, float start, float speed)
+EntityMover::EntityMover(ref<LuxonEngine::Transform>& transform, Vector3 point1, Vector3 point2, float start, float speed)
 	:m_transform(transform), m_currentTargetIndex(0), m_currentPoint(start)
 {
 	m_points[0] = point1;

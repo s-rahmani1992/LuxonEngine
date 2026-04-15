@@ -3,7 +3,7 @@
 #include "Rendering/GPUAssetManager.h"
 #include <map>
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanTexture2DController;
 	class VulkanMeshController;
 	class VulkanBufferFactory;

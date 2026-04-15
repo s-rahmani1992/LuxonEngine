@@ -3,7 +3,7 @@
 #include "HLSLShader.h"
 #include <set>
 
-QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRasterizationProgram(const std::vector<ref<HLSLShader>>& shaders)
+LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRasterizationProgram(const std::vector<ref<HLSLShader>>& shaders)
 {
     std::set<std::string> keys;
     UInt8 rootParamIndex = 0;
@@ -27,7 +27,7 @@ QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRas
 	}
 }
 
-bool QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error)
+bool LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error)
 {
 	m_rootSignature = m_reflection.CreateRootSignature(device, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT, error);
 	

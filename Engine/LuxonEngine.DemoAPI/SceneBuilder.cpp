@@ -35,7 +35,7 @@
 #include "Behaviours/TextureSwitcher.h"
 #include "Behaviours/MaterialValueModifier.h"
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
 #define IMPORT_RETRO_CAR_MESH(MESH_VAR, ERROR_VAR)   \
     auto retroCarModelPath = root + L"\\Assets\\Models\\RetroCar.fbx";  \
@@ -140,17 +140,17 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
 
 	////// Importing Textures
 
-    auto retroCarTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
-    auto pickupTruckGreenTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-green.jpg", errorStr);
-    auto pickupTruckRedTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-red.jpg", errorStr);
-    auto pickupTruckSilverTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-silver.jpg", errorStr);
-    auto pedestalTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\tech_pedestal_COL.png", errorStr);
-    auto containerTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Sci-fi_Container_BaseColor.png", errorStr);
-    auto groundBrickTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
+    auto retroCarTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
+    auto pickupTruckGreenTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-green.jpg", errorStr);
+    auto pickupTruckRedTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-red.jpg", errorStr);
+    auto pickupTruckSilverTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-silver.jpg", errorStr);
+    auto pedestalTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\tech_pedestal_COL.png", errorStr);
+    auto containerTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Sci-fi_Container_BaseColor.png", errorStr);
+    auto groundBrickTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
 
 
-    auto rabbitStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
-    auto lionStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
+    auto rabbitStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
+    auto lionStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
     
     assetManager->UploadTextureToGPU(retroCarTex);
     assetManager->UploadTextureToGPU(pickupTruckGreenTex);
@@ -316,22 +316,22 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
     auto retroCarTransform = std::make_shared<Transform>(Vector3(-2.0f, 0.3f, -2.0f), Vector3(0.3f), Vector3(0.0f, 1.0f, 0.0f), -30);
     auto retroCarRenderer = std::make_shared<Render::MeshRenderer>(retroCarMesh, retroCarMaterial);
     auto retroCarRTComponent = std::make_shared<Render::RayTracingComponent>(retroCarMesh, retroCarRTMaterial);
-    auto retroCarEntity = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform, retroCarRenderer, retroCarRTComponent);
+    auto retroCarEntity = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform, retroCarRenderer, retroCarRTComponent);
 
     auto retroCarTransform1 = std::make_shared<Transform>(Vector3(2.0f, 0.3f, 2.0f), Vector3(0.3f), Vector3(0.0f, 1.0f, 0.0f), 100);
     auto retroCarRenderer1 = std::make_shared<Render::MeshRenderer>(retroCarMesh, retroCarMaterial);
     auto retroCarRTComponent1 = std::make_shared<Render::RayTracingComponent>(retroCarMesh, retroCarRTMaterial);
-    auto retroCarEntity1 = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform1, retroCarRenderer1, retroCarRTComponent1);
+    auto retroCarEntity1 = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform1, retroCarRenderer1, retroCarRTComponent1);
 
     auto pedestalTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.5f, 1.0f, 2.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto pedestalRenderer = std::make_shared<Render::MeshRenderer>(pedestalMesh, pedestalMaterial);
     auto pedestalRTComponent = std::make_shared<Render::RayTracingComponent>(pedestalMesh, pedestalRTMaterial);
-    auto pedestalEntity = std::make_shared<QuantumEngine::GameEntity>(pedestalTransform, pedestalRenderer, pedestalRTComponent);
+    auto pedestalEntity = std::make_shared<LuxonEngine::GameEntity>(pedestalTransform, pedestalRenderer, pedestalRTComponent);
 
     auto pickupTruckTransform = std::make_shared<Transform>(Vector3(0.0f, 0.14f, 0.0f), Vector3(0.23f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto pickupTruckRenderer = std::make_shared<Render::MeshRenderer>(pickupTruckMesh, pickupTruckMaterial);
     auto pickupTruckRTComponent = std::make_shared<Render::RayTracingComponent>(pickupTruckMesh, pickupTruckRTMaterial);
-    auto pickupTruckEntity = std::make_shared<QuantumEngine::GameEntity>(pickupTruckTransform, pickupTruckRenderer, pickupTruckRTComponent);
+    auto pickupTruckEntity = std::make_shared<LuxonEngine::GameEntity>(pickupTruckTransform, pickupTruckRenderer, pickupTruckRTComponent);
 
     auto pickupTruckRotator = std::make_shared<EntityRotator>(pickupTruckTransform, 15);
     auto pickupTruckTextureSwitcher = std::make_shared<TextureSwitcher>(pickupTruckMaterial, "mainTexture", std::vector<ref<Texture2D>>({pickupTruckGreenTex, pickupTruckRedTex, pickupTruckSilverTex}));
@@ -340,35 +340,35 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
     auto rabbitStatueTransform1 = std::make_shared<Transform>(Vector3(2.0f, 0.0f, -2.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), -90);
     auto meshRenderer2 = std::make_shared<Render::MeshRenderer>(rabbitStatueMesh1, rabbitStatueMaterial1);
 	auto rtComponent2 = std::make_shared<Render::RayTracingComponent>(rabbitStatueMesh1, rabbitStatueRTMaterial);
-    auto rabbitStatueEntity1 = std::make_shared<QuantumEngine::GameEntity>(rabbitStatueTransform1, meshRenderer2, rtComponent2);
+    auto rabbitStatueEntity1 = std::make_shared<LuxonEngine::GameEntity>(rabbitStatueTransform1, meshRenderer2, rtComponent2);
 
     auto lionStatueTransform1 = std::make_shared<Transform>(Vector3(0.0f, 1.5f, 2.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto meshRenderer3 = std::make_shared<Render::MeshRenderer>(lionStatueMesh1, lionStatueMaterial1);
     auto rtComponent3 = std::make_shared<Render::RayTracingComponent>(lionStatueMesh1, lionStatueRTMaterial);
-    auto lionStatueEntity1 = std::make_shared<QuantumEngine::GameEntity>(lionStatueTransform1, meshRenderer3, rtComponent3);
+    auto lionStatueEntity1 = std::make_shared<LuxonEngine::GameEntity>(lionStatueTransform1, meshRenderer3, rtComponent3);
 
     auto groundTransform1 = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto meshRenderer4 = std::make_shared<Render::MeshRenderer>(planeMesh, groundMaterial1);
     auto rtComponent4 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial);
-    auto grountEntity1 = std::make_shared<QuantumEngine::GameEntity>(groundTransform1, meshRenderer4, rtComponent4);
+    auto grountEntity1 = std::make_shared<LuxonEngine::GameEntity>(groundTransform1, meshRenderer4, rtComponent4);
 
     auto containerTransform = std::make_shared<Transform>(Vector3(-1.0f, 0.0f, 2.0f), Vector3(0.5f), Vector3(0.0f, 1.0f, 0.0f), 30);
     auto containerMeshRenderer = std::make_shared<Render::MeshRenderer>(containerMesh, containerMaterial);
     auto containerRTComponent = std::make_shared<Render::RayTracingComponent>(containerMesh, containerRTMaterial);
-    auto containerEntity1 = std::make_shared<QuantumEngine::GameEntity>(containerTransform, containerMeshRenderer, containerRTComponent);
+    auto containerEntity1 = std::make_shared<LuxonEngine::GameEntity>(containerTransform, containerMeshRenderer, containerRTComponent);
 
     auto containerTransform2 = std::make_shared<Transform>(Vector3(1.5f, 0.25f, -1.5f), Vector3(0.3f), Vector3(0.0f, 0.0f, 1.0f), 90);
     auto containerMeshRenderer2 = std::make_shared<Render::MeshRenderer>(containerMesh, containerMaterial);
     auto containerRTComponent2 = std::make_shared<Render::RayTracingComponent>(containerMesh, containerRTMaterial);
-    auto containerEntity2 = std::make_shared<QuantumEngine::GameEntity>(containerTransform2, containerMeshRenderer2, containerRTComponent2);
+    auto containerEntity2 = std::make_shared<LuxonEngine::GameEntity>(containerTransform2, containerMeshRenderer2, containerRTComponent2);
 
 	auto curveTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
 	auto curveRenderer = std::make_shared<Render::SplineRenderer>(curveMaterial, std::vector<Vector3>{ Vector3(-4.0f, 0.0f, -4.0f), Vector3(0.0f, 4.0f, 0.0f), Vector3(4.0f, 0.0f, 4.0f) }, 2.2f, 10);
-	auto curveEntity = std::make_shared<QuantumEngine::GameEntity>(curveTransform, curveRenderer, nullptr);
+	auto curveEntity = std::make_shared<LuxonEngine::GameEntity>(curveTransform, curveRenderer, nullptr);
     
     auto curveTransform1 = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
     auto curveRenderer1 = std::make_shared<Render::SplineRenderer>(curveMaterial, std::vector<Vector3>{ Vector3(-4.0f, 0.0f, 0.0f), Vector3(0.0f, 12.0f, 0.0f), Vector3(4.0f, 0.0f, 0.0f) }, 0.8f, 20);
-    auto curveEntity1 = std::make_shared<QuantumEngine::GameEntity>(curveTransform1, curveRenderer1, nullptr);
+    auto curveEntity1 = std::make_shared<LuxonEngine::GameEntity>(curveTransform1, curveRenderer1, nullptr);
 
     ////// Creating the lights
 
@@ -479,14 +479,14 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
 
     ////// Importing Textures
 
-    auto retroCarTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
-    auto rabbitStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
-    auto lionStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
-    auto chairTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\leather_chair_BaseColor.png", errorStr);
-    auto groundBrickTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
-    auto swampTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\swampTex.jpg", errorStr);
-    auto wallColorTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\CorrugatedGlassFrame_basecolor.png", errorStr);
-    auto wallReflectionMaskTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\CorrugatedGlassFrame_metallic.png", errorStr);
+    auto retroCarTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
+    auto rabbitStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
+    auto lionStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
+    auto chairTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\leather_chair_BaseColor.png", errorStr);
+    auto groundBrickTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
+    auto swampTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\swampTex.jpg", errorStr);
+    auto wallColorTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\CorrugatedGlassFrame_basecolor.png", errorStr);
+    auto wallReflectionMaskTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\CorrugatedGlassFrame_metallic.png", errorStr);
     assetManager->UploadTextureToGPU(retroCarTex);
     assetManager->UploadTextureToGPU(rabbitStatueTex1);
     assetManager->UploadTextureToGPU(lionStatueTex1);
@@ -636,34 +636,34 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
     auto retroCarTransform = std::make_shared<Transform>(Vector3(-4.0f, 0.5f, 0.0f), Vector3(0.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto retroCarMeshRenderer = std::make_shared<Render::MeshRenderer>(retroCarMesh, retroCarMaterial);
     auto retroCarRTComponent = std::make_shared<Render::RayTracingComponent>(retroCarMesh, retroCarRTMaterial);
-    auto retroCarEntity = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
+    auto retroCarEntity = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
 
     ref<EntityRotator> carRotator = std::make_shared<EntityRotator>(retroCarTransform, 30);
 
     auto rabbitStatueTransform1 = std::make_shared<Transform>(Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), -90);
     auto meshRenderer2 = std::make_shared<Render::MeshRenderer>(rabbitStatueMesh1, rabbitStatueMaterial1);
     auto rtComponent2 = std::make_shared<Render::RayTracingComponent>(rabbitStatueMesh1, rabbitStatueRTMaterial);
-    auto rabbitStatueEntity1 = std::make_shared<QuantumEngine::GameEntity>(rabbitStatueTransform1, meshRenderer2, rtComponent2);
+    auto rabbitStatueEntity1 = std::make_shared<LuxonEngine::GameEntity>(rabbitStatueTransform1, meshRenderer2, rtComponent2);
 
     auto lionStatueTransform = std::make_shared<Transform>(Vector3(3.0f, 1.5f, 0.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto lionStatueMeshRenderer = std::make_shared<Render::MeshRenderer>(lionStatueMesh, lionStatueMaterial1);
     auto lionStatueRTComponent = std::make_shared<Render::RayTracingComponent>(lionStatueMesh, lionStatueRTMaterial);
-    auto lionStatueEntity = std::make_shared<QuantumEngine::GameEntity>(lionStatueTransform, lionStatueMeshRenderer, lionStatueRTComponent);
+    auto lionStatueEntity = std::make_shared<LuxonEngine::GameEntity>(lionStatueTransform, lionStatueMeshRenderer, lionStatueRTComponent);
 
     auto groundTransform1 = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto meshRenderer4 = std::make_shared<Render::MeshRenderer>(planeMesh, groundMaterial1);
     auto rtComponent4 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial);
-    auto grountEntity1 = std::make_shared<QuantumEngine::GameEntity>(groundTransform1, meshRenderer4, rtComponent4);
+    auto grountEntity1 = std::make_shared<LuxonEngine::GameEntity>(groundTransform1, meshRenderer4, rtComponent4);
 
     auto chairTransform1 = std::make_shared<Transform>(Vector3(-1.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto meshRenderer5 = std::make_shared<Render::MeshRenderer>(chairMesh1, chairMaterial1);
     auto rtComponent5 = std::make_shared<Render::RayTracingComponent>(chairMesh1, chairRTMaterial);
-    auto chairEntity1 = std::make_shared<QuantumEngine::GameEntity>(chairTransform1, meshRenderer5, rtComponent5);
+    auto chairEntity1 = std::make_shared<LuxonEngine::GameEntity>(chairTransform1, meshRenderer5, rtComponent5);
 
     auto sphereTransform = std::make_shared<Transform>(Vector3(5.2f, 2.8f, -3.0f), Vector3(2.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto sphereGBufferRenderer = std::make_shared<Render::GBufferRTReflectionRenderer>(sphereMesh, sphereGBufferReflectionMaterial);
     auto sphereRTComponent = std::make_shared<Render::RayTracingComponent>(sphereMesh, sphereReflectionRTMaterial1);
-    auto sphereEntity = std::make_shared<QuantumEngine::GameEntity>(sphereTransform, sphereGBufferRenderer, sphereRTComponent);
+    auto sphereEntity = std::make_shared<LuxonEngine::GameEntity>(sphereTransform, sphereGBufferRenderer, sphereRTComponent);
 
     ref<MaterialValueModifier> sphereReflectionModifier = std::make_shared<MaterialValueModifier>(sphereReflectionRTMaterial1, "reflectivity", 1.0f, 0.0f, 1.0f);
     ref<MaterialValueModifier> sphereGBufferReflectionModifier = std::make_shared<MaterialValueModifier>(sphereGBufferReflectionMaterial, "reflectivity", 1.0f, 0.0f, 1.0f);
@@ -671,7 +671,7 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
     auto wallTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 3.0f), Vector3(15.0f), Vector3(1.0f, 0.0f, 0.0f), 90);
     auto wallGBufferRenderer = std::make_shared<Render::GBufferRTReflectionRenderer>(planeMesh, wallGBufferReflectionMaterial);
     auto wallRTComponent = std::make_shared<Render::RayTracingComponent>(planeMesh, wallReflectionRTMaterial);
-    auto wallEntity = std::make_shared<QuantumEngine::GameEntity>(wallTransform, wallGBufferRenderer, wallRTComponent);
+    auto wallEntity = std::make_shared<LuxonEngine::GameEntity>(wallTransform, wallGBufferRenderer, wallRTComponent);
 
     ////// Creating the lights
 
@@ -747,11 +747,11 @@ ref<Scene> SceneBuilder::BuildShadowScene(const ref<Render::GPUAssetManager>& as
 
     ////// Importing Textures
 
-    auto retroCarTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", error);
-    auto pickupTruckTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-green.jpg", error);
-    auto lionStatueTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", error);
-    auto droneTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\304_Drone_M_304_Drone_BaseColor.png", error);
-    auto groundBrickTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", error);
+    auto retroCarTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", error);
+    auto pickupTruckTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color-green.jpg", error);
+    auto lionStatueTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", error);
+    auto droneTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\304_Drone_M_304_Drone_BaseColor.png", error);
+    auto groundBrickTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", error);
     assetManager->UploadTextureToGPU(retroCarTex);
     assetManager->UploadTextureToGPU(pickupTruckTex);
     assetManager->UploadTextureToGPU(lionStatueTex);
@@ -832,29 +832,29 @@ ref<Scene> SceneBuilder::BuildShadowScene(const ref<Render::GPUAssetManager>& as
     auto retroCarTransform = std::make_shared<Transform>(Vector3(-2.0f, 0.7f, 3.0f), Vector3(0.65f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto retroCarMeshRenderer = std::make_shared<Render::MeshRenderer>(retroCarMesh, retroCarMaterial);
     auto retroCarRTComponent = std::make_shared<Render::RayTracingComponent>(retroCarMesh, retroCarRTMaterial);
-    auto retroCarEntity = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
+    auto retroCarEntity = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
 
     auto pickupTruckTransform = std::make_shared<Transform>(Vector3(1.0f, 0.0f, 3.5f), Vector3(0.5f), Vector3(0.0f, 1.0f, 0.0f), 180);
     auto pickupTruckMeshRenderer = std::make_shared<Render::MeshRenderer>(pickupTruckMesh, retroCarRTMaterial);
     auto pickupTruckRTComponent = std::make_shared<Render::RayTracingComponent>(pickupTruckMesh, pickupTruckRTMaterial);
-    auto pickupTruckEntity = std::make_shared<QuantumEngine::GameEntity>(pickupTruckTransform, pickupTruckMeshRenderer, pickupTruckRTComponent);
+    auto pickupTruckEntity = std::make_shared<LuxonEngine::GameEntity>(pickupTruckTransform, pickupTruckMeshRenderer, pickupTruckRTComponent);
 
     auto lionStatueTransform1 = std::make_shared<Transform>(Vector3(3.2f, 1.1f, 2.0f), Vector3(0.8f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto lionStatueMeshRenderer = std::make_shared<Render::MeshRenderer>(lionStatueMesh, retroCarRTMaterial);
     auto lionStatueRTComponent = std::make_shared<Render::RayTracingComponent>(lionStatueMesh, lionStatueRTMaterial);
-    auto lionStatueEntity1 = std::make_shared<QuantumEngine::GameEntity>(lionStatueTransform1, lionStatueMeshRenderer, lionStatueRTComponent);
+    auto lionStatueEntity1 = std::make_shared<LuxonEngine::GameEntity>(lionStatueTransform1, lionStatueMeshRenderer, lionStatueRTComponent);
 
     auto droneTransform = std::make_shared<Transform>(Vector3(2.2f, 3.4f, 1.0f), Vector3(1.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto droneMeshRenderer = std::make_shared<Render::MeshRenderer>(droneMesh, retroCarRTMaterial);
     auto droneRTComponent = std::make_shared<Render::RayTracingComponent>(droneMesh, droneRTMaterial);
-    auto droneEntity = std::make_shared<QuantumEngine::GameEntity>(droneTransform, droneMeshRenderer, droneRTComponent);
+    auto droneEntity = std::make_shared<LuxonEngine::GameEntity>(droneTransform, droneMeshRenderer, droneRTComponent);
 
     ref<EntityPositionController> droneController = std::make_shared<EntityPositionController>(droneTransform, 1.0f);
 
     auto groundTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto gBufferRenderer = std::make_shared<Render::MeshRenderer>(planeMesh, nullptr);
     auto rtComponent5 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundShadowMaterial1);
-    auto groundEntity1 = std::make_shared<QuantumEngine::GameEntity>(groundTransform, gBufferRenderer, rtComponent5);
+    auto groundEntity1 = std::make_shared<LuxonEngine::GameEntity>(groundTransform, gBufferRenderer, rtComponent5);
 
     ////// Creating the lights
 
@@ -951,11 +951,11 @@ ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>
 
     ////// Importing Textures
 
-    ref<QuantumEngine::Texture2D> carTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
-    ref<QuantumEngine::Texture2D> rabbitStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
-    ref<QuantumEngine::Texture2D> lionStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
-    ref<QuantumEngine::Texture2D> chairTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\leather_chair_BaseColor.png", errorStr);
-    ref<QuantumEngine::Texture2D> groundBrickTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
+    ref<LuxonEngine::Texture2D> carTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", errorStr);
+    ref<LuxonEngine::Texture2D> rabbitStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Rabbit_basecolor.jpg", errorStr);
+    ref<LuxonEngine::Texture2D> lionStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", errorStr);
+    ref<LuxonEngine::Texture2D> chairTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\leather_chair_BaseColor.png", errorStr);
+    ref<LuxonEngine::Texture2D> groundBrickTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
     assetManager->UploadTextureToGPU(carTex1);
     assetManager->UploadTextureToGPU(rabbitStatueTex1);
     assetManager->UploadTextureToGPU(lionStatueTex1);
@@ -1053,36 +1053,36 @@ ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>
     auto retroCarTransform = std::make_shared<Transform>(Vector3(-2.0f, 1.0f, 1.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto retroCarMeshRenderer = std::make_shared<Render::MeshRenderer>(retroCarMesh, carMaterial1);
     auto retroCarRTComponent = std::make_shared<Render::RayTracingComponent>(retroCarMesh, carRTMaterial);
-    auto retroCarEntity = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
+    auto retroCarEntity = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
 
     auto rabbitStatueTransform = std::make_shared<Transform>(Vector3(-0.5f, 0.0f, 1.0f), Vector3(2.0f), Vector3(0.0f, 1.0f, 0.0f), 180);
     auto rabbitStatueMeshRenderer = std::make_shared<Render::MeshRenderer>(rabbitStatueMesh1, carRTMaterial);
     auto rabbitStatueRTComponent = std::make_shared<Render::RayTracingComponent>(rabbitStatueMesh1, rabbitStatueRTMaterial);
-    auto rabbitStatueEntity = std::make_shared<QuantumEngine::GameEntity>(rabbitStatueTransform, rabbitStatueMeshRenderer, rabbitStatueRTComponent);
+    auto rabbitStatueEntity = std::make_shared<LuxonEngine::GameEntity>(rabbitStatueTransform, rabbitStatueMeshRenderer, rabbitStatueRTComponent);
 
     auto lionStatueTransform1 = std::make_shared<Transform>(Vector3(1.5f, 1.0f, 2.0f), Vector3(0.8f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto lionStatueMeshRenderer = std::make_shared<Render::MeshRenderer>(lionStatueMesh, carRTMaterial);
     auto lionStatueRTComponent = std::make_shared<Render::RayTracingComponent>(lionStatueMesh, lionStatueRTMaterial);
-    auto lionStatueEntity = std::make_shared<QuantumEngine::GameEntity>(lionStatueTransform1, lionStatueMeshRenderer, lionStatueRTComponent);
+    auto lionStatueEntity = std::make_shared<LuxonEngine::GameEntity>(lionStatueTransform1, lionStatueMeshRenderer, lionStatueRTComponent);
 
     auto chairTransform = std::make_shared<Transform>(Vector3(3.7f, 0.0f, 1.0f), Vector3(1.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto chairMeshRenderer = std::make_shared<Render::MeshRenderer>(chairMesh1, carRTMaterial);
     auto rtComponent4 = std::make_shared<Render::RayTracingComponent>(chairMesh1, chairRTMaterial);
-    auto chairEntity1 = std::make_shared<QuantumEngine::GameEntity>(chairTransform, chairMeshRenderer, rtComponent4);
+    auto chairEntity1 = std::make_shared<LuxonEngine::GameEntity>(chairTransform, chairMeshRenderer, rtComponent4);
 
     auto groundTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto groundGBufferRenderer = std::make_shared<Render::MeshRenderer>(planeMesh, carRTMaterial);
     auto groundRTComponent = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial1);
-    auto groundEntity = std::make_shared<QuantumEngine::GameEntity>(groundTransform, groundGBufferRenderer, groundRTComponent);
+    auto groundEntity = std::make_shared<LuxonEngine::GameEntity>(groundTransform, groundGBufferRenderer, groundRTComponent);
 
     auto slabTransform = std::make_shared<Transform>(Vector3(-0.2f, 0.4f, -3.0f), Vector3(2.0f, 5.0f, 0.5f), Vector3(0.0f, 0.0f, 1.0f), 90);
     auto slabRenderer = std::make_shared<Render::GBufferRTReflectionRenderer>(cubeMesh, carMaterial1);
     auto slabRTComponent = std::make_shared<Render::RayTracingComponent>(cubeMesh, refractionRTMaterial1);
-    auto slabEntity = std::make_shared<QuantumEngine::GameEntity>(slabTransform, slabRenderer, slabRTComponent);
+    auto slabEntity = std::make_shared<LuxonEngine::GameEntity>(slabTransform, slabRenderer, slabRTComponent);
 
     auto sphereTransform = std::make_shared<Transform>(Vector3(3.2f, 2.4f, -2.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto sphereRTComponent = std::make_shared<Render::RayTracingComponent>(sphereMesh, refractionRTMaterial1);
-    auto sphereEntity = std::make_shared<QuantumEngine::GameEntity>(sphereTransform, slabRenderer, sphereRTComponent);
+    auto sphereEntity = std::make_shared<LuxonEngine::GameEntity>(sphereTransform, slabRenderer, sphereRTComponent);
 
     ref<MaterialValueModifier> sphereReflectionModifier = std::make_shared<MaterialValueModifier>(refractionRTMaterial1, "refractionFactor", 0.2f, 1.0f, 1.5f);
 
@@ -1202,14 +1202,14 @@ ref<Scene> SceneBuilder::BuildComplexScene(const ref<Render::GPUAssetManager>& a
 
     ////// Importing Textures
 
-    auto pickupTruckColorTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color.jpg", error);
-    auto pickupTruckReflTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_refl.jpg", error);
-    auto pedestalTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\tech_pedestal_COL.png", error);
-    auto retroCarTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", error);
-    auto lionStatueTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", error);
-    auto groundBrickTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
-    auto waterTex1 = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\water.jpeg", errorStr);
-    auto skyBoxTex = QuantumEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\skybox.jpg", errorStr);
+    auto pickupTruckColorTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color.jpg", error);
+    auto pickupTruckReflTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_refl.jpg", error);
+    auto pedestalTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\tech_pedestal_COL.png", error);
+    auto retroCarTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\RetroCarAlbedo.png", error);
+    auto lionStatueTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\Lion_statue_raw_texture.jpg", error);
+    auto groundBrickTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\brickGround.png", errorStr);
+    auto waterTex1 = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\water.jpeg", errorStr);
+    auto skyBoxTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\skybox.jpg", errorStr);
 
     assetManager->UploadTextureToGPU(pickupTruckColorTex);
     assetManager->UploadTextureToGPU(pickupTruckReflTex);
@@ -1339,52 +1339,52 @@ ref<Scene> SceneBuilder::BuildComplexScene(const ref<Render::GPUAssetManager>& a
     auto pickupTruckTransform = std::make_shared<Transform>(Vector3(-1.0f, 0.0f, 1.0f), Vector3(0.6f), Vector3(0.0f, 1.0f, 0.0f), -45);
     auto pickupTruckMeshRenderer = std::make_shared<Render::MeshRenderer>(pickupTruckMesh, carMaterial1);
     auto pickupTruckRTComponent = std::make_shared<Render::RayTracingComponent>(pickupTruckMesh, pickupTruckRTMaterial);
-    auto pickupTruckEntity = std::make_shared<QuantumEngine::GameEntity>(pickupTruckTransform, pickupTruckMeshRenderer, pickupTruckRTComponent);
+    auto pickupTruckEntity = std::make_shared<LuxonEngine::GameEntity>(pickupTruckTransform, pickupTruckMeshRenderer, pickupTruckRTComponent);
     auto pickupTruckMover = std::make_shared<EntityMover>(pickupTruckTransform, Vector3(2, 0.0f, 2), Vector3(-3, 0.0f, -3), 0.3f, 3);
 
     auto lionStatueTransform = std::make_shared<Transform>(Vector3(3.0f, 1.2f, -3.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto lionStatueMeshRenderer = std::make_shared<Render::MeshRenderer>(lionStatueMesh, carMaterial1);
     auto lionStatueRTComponent = std::make_shared<Render::RayTracingComponent>(lionStatueMesh, lionStatueRTMaterial);
-    auto lionStatueEntity = std::make_shared<QuantumEngine::GameEntity>(lionStatueTransform, lionStatueMeshRenderer, lionStatueRTComponent);
+    auto lionStatueEntity = std::make_shared<LuxonEngine::GameEntity>(lionStatueTransform, lionStatueMeshRenderer, lionStatueRTComponent);
     auto lionRotator = std::make_shared<EntityRotator>(lionStatueTransform, -30);
 
     auto pedestalTransform = std::make_shared<Transform>(Vector3(-5.5f, 0.0f, 2.0f), Vector3(3.3f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto pedestalRTComponent1 = std::make_shared<Render::RayTracingComponent>(pedestalMesh, pedestalRTMaterial);
-    auto pedestalEntity = std::make_shared<QuantumEngine::GameEntity>(pedestalTransform, pickupTruckMeshRenderer, pedestalRTComponent1);
+    auto pedestalEntity = std::make_shared<LuxonEngine::GameEntity>(pedestalTransform, pickupTruckMeshRenderer, pedestalRTComponent1);
 
     auto retroCarTransform = std::make_shared<Transform>(Vector3(-5.5f, 1.0f, 2.0f), Vector3(0.5f), Vector3(0.0f, 1.0f, 0.0f), -90);
     auto retroCarMeshRenderer = std::make_shared<Render::MeshRenderer>(retroCarMesh, carMaterial1);
     auto retroCarRTComponent = std::make_shared<Render::RayTracingComponent>(retroCarMesh, retroCarRTMaterial);
-    auto retroCarEntity = std::make_shared<QuantumEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
+    auto retroCarEntity = std::make_shared<LuxonEngine::GameEntity>(retroCarTransform, retroCarMeshRenderer, retroCarRTComponent);
     auto retroCarRotator = std::make_shared<EntityRotator>(retroCarTransform, 10);
 
     auto groundTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto gBufferRenderer = std::make_shared<Render::MeshRenderer>(planeMesh, pickupTruckRTMaterial);
     auto rtComponent5 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial1);
-    auto groundEntity1 = std::make_shared<QuantumEngine::GameEntity>(groundTransform, gBufferRenderer, rtComponent5);
+    auto groundEntity1 = std::make_shared<LuxonEngine::GameEntity>(groundTransform, gBufferRenderer, rtComponent5);
 
     auto refractorTransform1 = std::make_shared<Transform>(Vector3(-3.2f, 0.4f, -7.0f), Vector3(2.0f, 5.0f, 0.2f), Vector3(0.0f, 1.0f, 0.0f), 90);
     auto Renderer = std::make_shared<Render::GBufferRTReflectionRenderer>(cubeMesh, carMaterial1);
     auto rtComponent6 = std::make_shared<Render::RayTracingComponent>(cubeMesh, refractionRTMaterial1);
-    auto glassEntity1 = std::make_shared<QuantumEngine::GameEntity>(refractorTransform1, Renderer, rtComponent6);
+    auto glassEntity1 = std::make_shared<LuxonEngine::GameEntity>(refractorTransform1, Renderer, rtComponent6);
 
     auto refractorTransform2 = std::make_shared<Transform>(Vector3(-8.2f, 2.7f, 0.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto rtComponent7 = std::make_shared<Render::RayTracingComponent>(sphereMesh, refractionRTMaterial1);
-    auto glassEntity2 = std::make_shared<QuantumEngine::GameEntity>(refractorTransform2, Renderer, rtComponent7);
+    auto glassEntity2 = std::make_shared<LuxonEngine::GameEntity>(refractorTransform2, Renderer, rtComponent7);
     auto glassMover = std::make_shared<EntityMover>(refractorTransform2, Vector3(-8.2f, 2.7f, -3), Vector3(-8.2f, 2.7f, 3), 0.3f, 2);
     
     auto sphereReflectTransform = std::make_shared<Transform>(Vector3(0.2f, 3.8f, 5.0f), Vector3(2.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto sphereReflectRTComponent = std::make_shared<Render::RayTracingComponent>(sphereMesh, reflectionRTMaterial1);
-    auto sphereReflectEntity = std::make_shared<QuantumEngine::GameEntity>(sphereReflectTransform, gBufferRenderer, sphereReflectRTComponent);
+    auto sphereReflectEntity = std::make_shared<LuxonEngine::GameEntity>(sphereReflectTransform, gBufferRenderer, sphereReflectRTComponent);
     auto sphereMover = std::make_shared<EntityPositionController>(sphereReflectTransform, 3.0f);
 
     auto wallTransform = std::make_shared<Transform>(Vector3(8.0f, 0.0f, 0.0f), Vector3(15.0f), Vector3(0.0f, 0.0f, 1.0f), -90);
     auto wallRTComponent = std::make_shared<Render::RayTracingComponent>(planeMesh, reflectionRTMaterial1);
-    auto mirrorEntity2 = std::make_shared<QuantumEngine::GameEntity>(wallTransform, gBufferRenderer, wallRTComponent);
+    auto mirrorEntity2 = std::make_shared<LuxonEngine::GameEntity>(wallTransform, gBufferRenderer, wallRTComponent);
 
     auto skyBoxTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(40.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
     auto rtComponent10 = std::make_shared<Render::RayTracingComponent>(skyBoxMesh, skyboxRTMaterial);
-    auto skyBoxEntity = std::make_shared<QuantumEngine::GameEntity>(skyBoxTransform, gBufferRenderer, rtComponent10);
+    auto skyBoxEntity = std::make_shared<LuxonEngine::GameEntity>(skyBoxTransform, gBufferRenderer, rtComponent10);
 
     ////// Creating the lights
 

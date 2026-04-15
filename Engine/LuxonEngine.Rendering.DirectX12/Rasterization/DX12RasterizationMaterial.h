@@ -6,14 +6,14 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	namespace Rendering {
 		class ShaderProgram;
 		class Material;
 	}
 }
 
-namespace QuantumEngine::Rendering::DX12::Rasterization {
+namespace LuxonEngine::Rendering::DX12::Rasterization {
 	class HLSLRasterizationProgram;
 
 	class DX12RasterizationMaterial {

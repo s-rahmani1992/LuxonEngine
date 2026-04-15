@@ -2,7 +2,7 @@
 #include "VulkanBufferFactory.h"
 #include "VulkanUtilities.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::VulkanBufferFactory(const VkDevice device, const VkPhysicalDevice physicalDevice)
+LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::VulkanBufferFactory(const VkDevice device, const VkPhysicalDevice physicalDevice)
 	:m_device(device), m_physicalDevice(physicalDevice),
 	m_uniformFlag(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
 {
@@ -11,7 +11,7 @@ QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::VulkanBufferFactory(const
 	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_memoryProperties);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffers, VkDeviceMemory* memory)
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffers, VkDeviceMemory* memory)
 {
 	VkBufferCreateInfo bufferCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -45,7 +45,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, UInt32 amount, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffer, VkDeviceMemory* memory, UInt32* stride)
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, UInt32 amount, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffer, VkDeviceMemory* memory, UInt32* stride)
 {
 	UInt32 alignment = 4;;
 
@@ -90,7 +90,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, const void* pAllocNext, VkBuffer* buffer, VkDeviceMemory* memory)
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, const void* pAllocNext, VkBuffer* buffer, VkDeviceMemory* memory)
 {
 	VkBufferCreateInfo bufferCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -120,7 +120,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(UInt32 
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateImage(const VkImageCreateInfo* imageCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkImage* image, VkDeviceMemory* memory)
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateImage(const VkImageCreateInfo* imageCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkImage* image, VkDeviceMemory* memory)
 {
 	vkCreateImage(m_device, imageCreateInfo, nullptr, image);
 
@@ -139,7 +139,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::CreateImage(const Vk
 	return true;
 }
 
-UInt32 QuantumEngine::Rendering::Vulkan::VulkanBufferFactory::GetMemoryTypeIndex(const VkMemoryRequirements* memoryRequirement, VkMemoryPropertyFlags targetFlags, const VkPhysicalDeviceMemoryProperties* memoryProperties)
+UInt32 LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::GetMemoryTypeIndex(const VkMemoryRequirements* memoryRequirement, VkMemoryPropertyFlags targetFlags, const VkPhysicalDeviceMemoryProperties* memoryProperties)
 {
 	for (UInt32 i = 0; i < memoryProperties->memoryTypeCount; i++) {
 		if ((memoryRequirement->memoryTypeBits & (1 << i)) && (memoryProperties->memoryTypes[i].propertyFlags & targetFlags) == targetFlags) {

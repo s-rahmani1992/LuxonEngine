@@ -8,20 +8,20 @@
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanBufferFactory.h"
 
-VkVertexInputBindingDescription QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_bindingDescriptions = {
+VkVertexInputBindingDescription LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_bindingDescriptions = {
 	.binding = 0,
 	.stride = sizeof(SplineVertex),
 	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
 };
 
-VkVertexInputAttributeDescription QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_attributeDescriptions[4] = {
+VkVertexInputAttributeDescription LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_attributeDescriptions[4] = {
 	{.location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(SplineVertex, position) },
 	{.location = 1, .binding = 0, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(SplineVertex, uv) },
 	{.location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(SplineVertex, normal) },
 	{.location = 3, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(SplineVertex, tangent) },
 };
 
-VkPipelineVertexInputStateCreateInfo QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_vertexInputInfo = {
+VkPipelineVertexInputStateCreateInfo LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::s_vertexInputInfo = {
 	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 	.pNext = nullptr,
 	.flags = 0,
@@ -31,12 +31,12 @@ VkPipelineVertexInputStateCreateInfo QuantumEngine::Rendering::Vulkan::VulkanSpl
 	.pVertexAttributeDescriptions = s_attributeDescriptions,
 };
 
-QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::VulkanSplinePipelineModule(const VkDevice device)
+LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::VulkanSplinePipelineModule(const VkDevice device)
 	:m_device(device)
 {
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::~VulkanSplinePipelineModule()
+LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::~VulkanSplinePipelineModule()
 {
 	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 
@@ -44,7 +44,7 @@ QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::~VulkanSplinePipel
 	vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::Initialize(const SplineEntityData& splineEntity, const VkRenderPass renderPass, const VkDescriptorPool pool)
+bool LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::Initialize(const SplineEntityData& splineEntity, const VkRenderPass renderPass, const VkDescriptorPool pool)
 {
 	m_splineRenderer = splineEntity.splineRenderer;
 	m_computeProgram = splineEntity.computeProgram;
@@ -61,7 +61,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::Initialize(co
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::ComputeCommand(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::ComputeCommand(VkCommandBuffer commandBuffer)
 {
 	if (m_splineRenderer->IsDirty()) {
 		m_splineParameters.startPoint = m_splineRenderer->GetCurve().m_point1;
@@ -78,7 +78,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::ComputeComman
 	}
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
 {
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 	VkDeviceSize offsets[] = { 0 };
@@ -91,7 +91,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::RenderCommand
 
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::WriteOffset(const std::string name, UInt32 offset)
+void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::WriteOffset(const std::string name, UInt32 offset)
 {
 	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);
 
@@ -101,7 +101,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::WriteOffset(c
 	m_offset[descriptorData->offsetIndex] = offset;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeVertexBuffer(const SplineEntityData& splineEntity)
+bool LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeVertexBuffer(const SplineEntityData& splineEntity)
 {
 	auto bufferFactory = VulkanDeviceManager::Instance()->GetBufferFactory();
 
@@ -111,7 +111,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeVer
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeComputePipeline(const SplineEntityData& splineEntity, const VkDescriptorPool pool)
+bool LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeComputePipeline(const SplineEntityData& splineEntity, const VkDescriptorPool pool)
 {
 	VkComputePipelineCreateInfo pipelineInfo{
 		.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -164,7 +164,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeCom
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeGraphicsPipeline(const SplineEntityData& splineEntity, const VkRenderPass renderPass)
+bool LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::InitializeGraphicsPipeline(const SplineEntityData& splineEntity, const VkRenderPass renderPass)
 {
 	m_program = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>(splineEntity.splineRenderer->GetMaterial()->GetProgram());
 	m_offset = std::vector<UInt32>(m_program->GetReflection().GetDynamicDescriptorCount(), 0);

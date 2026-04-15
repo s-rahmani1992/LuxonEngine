@@ -8,7 +8,7 @@
 #include "Model3DAsset.h"
 #include "../StringUtilities.h"
 
-ref<QuantumEngine::Model3DAsset> QuantumEngine::AssimpModel3DImporter::Import(const std::string& fileName, const ModelImportProperties& properties, std::string& error)
+ref<LuxonEngine::Model3DAsset> LuxonEngine::AssimpModel3DImporter::Import(const std::string& fileName, const ModelImportProperties& properties, std::string& error)
 {
 	Assimp::Importer Importer;
 
@@ -31,7 +31,7 @@ ref<QuantumEngine::Model3DAsset> QuantumEngine::AssimpModel3DImporter::Import(co
 	return std::make_shared<Model3DAsset>(meshes);
 }
 
-ref<QuantumEngine::Mesh> QuantumEngine::AssimpModel3DImporter::CreateMesh(const aiMesh* paiMesh, const ModelImportProperties& properties)
+ref<LuxonEngine::Mesh> LuxonEngine::AssimpModel3DImporter::CreateMesh(const aiMesh* paiMesh, const ModelImportProperties& properties)
 {
     std::vector<Vertex> vertices;
     std::vector<UInt32> indices;

@@ -18,7 +18,7 @@
 
 using namespace Microsoft::WRL;
 
-QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::VulkanShaderRegistery(VkDevice device)
+LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::VulkanShaderRegistery(VkDevice device)
 	: m_compileArguments(16), m_device(device)
 {
 	// Create compiler-related objects
@@ -52,18 +52,18 @@ QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::VulkanShaderRegistery(V
 	m_compileArguments[15] = (WCHAR*)L"_VK_RAY_TRACING_LOCAL";
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::~VulkanShaderRegistery()
+LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::~VulkanShaderRegistery()
 {
 	m_dxcCompiler->Release();
 	m_includeHandler->Release();
 	m_utils->Release();
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
+void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
 {
 }
 
-ref<QuantumEngine::Rendering::ShaderProgram> QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const std::wstring& fileName, std::string& error)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const std::wstring& fileName, std::string& error)
 {
 	// Read file into memory
 	std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
@@ -270,7 +270,7 @@ ref<QuantumEngine::Rendering::ShaderProgram> QuantumEngine::Rendering::Vulkan::V
 	return finalProgram;
 }
 
-ref<QuantumEngine::Rendering::Vulkan::SPIRVShaderProgram> QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::GetShaderPrograms(const std::string& name)
+ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetShaderPrograms(const std::string& name)
 {
 	auto it = m_specialPrograms.find(name);
 	if (it != m_specialPrograms.end())
@@ -278,7 +278,7 @@ ref<QuantumEngine::Rendering::Vulkan::SPIRVShaderProgram> QuantumEngine::Renderi
 	return nullptr;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
+void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
 {
 	std::wstring root = Platform::Application::GetExecutablePath();
 
@@ -303,7 +303,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
 	}
 }
 
-ref<QuantumEngine::Rendering::Vulkan::SPIRVShader> QuantumEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, Vulkan_Shader_Type shaderType, const std::string entryName, std::string& error)
+ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, Vulkan_Shader_Type shaderType, const std::string entryName, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
 

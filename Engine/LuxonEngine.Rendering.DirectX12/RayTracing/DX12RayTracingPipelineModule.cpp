@@ -14,7 +14,7 @@
 #include <Rendering/Material.h>
 #include "RayTracing/DX12RayTracingMaterial.h"
 
-bool QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::Initialize(const ComPtr<ID3D12GraphicsCommandList7>& commandList, const std::vector<DX12RayTracingGPUData>& entities, UInt32 width, UInt32 height, const ref<Material> globalRTMaterial, const ComPtr<ID3D12Resource2>& camera, const ComPtr<ID3D12Resource2>& light)
+bool LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::Initialize(const ComPtr<ID3D12GraphicsCommandList7>& commandList, const std::vector<DX12RayTracingGPUData>& entities, UInt32 width, UInt32 height, const ref<Material> globalRTMaterial, const ComPtr<ID3D12Resource2>& camera, const ComPtr<ID3D12Resource2>& light)
 {
 	m_raytraceDesc.Width = width;
 	m_raytraceDesc.Height = height;
@@ -164,7 +164,7 @@ bool QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::I
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::RenderCommand(ComPtr<ID3D12GraphicsCommandList7>& commandList, const ref<Camera>& camera)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::RenderCommand(ComPtr<ID3D12GraphicsCommandList7>& commandList, const ref<Camera>& camera)
 {
 	for (auto& mat : dxMaterialMap)
 		mat.second->UpdateModifiedParameters();
@@ -201,7 +201,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::R
 	commandList->ResourceBarrier(1, &outputEndRTBarrier);
 }
 
-bool QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::InitializeShaderTable(const std::vector<DX12RayTracingGPUData>& entities, UInt32 heapOffset)
+bool LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::InitializeShaderTable(const std::vector<DX12RayTracingGPUData>& entities, UInt32 heapOffset)
 {
 	UInt32 rayGenResordSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 	rayGenResordSize = SBT_SHADER_RECORD_ALIGHT(rayGenResordSize);
@@ -380,7 +380,7 @@ bool QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::I
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::InitializePipeline()
+bool LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingPipelineModule::InitializePipeline()
 {
 	std::vector<D3D12_STATE_SUBOBJECT> subobjects;
 	subobjects.reserve(20 + 20 * dxMaterialMap.size());

@@ -2,7 +2,7 @@
 #include "vulkan-pch.h"
 #include "Rendering/Shader.h"
 
-namespace QuantumEngine::Rendering::Vulkan{
+namespace LuxonEngine::Rendering::Vulkan{
 	enum Vulkan_Shader_Type {
 		Vulkan_Vertex = 0,
 		Vulkan_Fragment = 1,

@@ -2,7 +2,7 @@
 #include "SPIRVReflection.h"
 #include <algorithm>
 
-void QuantumEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const SpvReflectShaderModule* shaderReflectionModule, bool isRayTracing)
+void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const SpvReflectShaderModule* shaderReflectionModule, bool isRayTracing)
 {
 	UInt32 pc_count = 0;
 	spvReflectEnumeratePushConstantBlocks(shaderReflectionModule, &pc_count, nullptr);
@@ -123,7 +123,7 @@ void QuantumEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(cons
 
 }
 
-UInt32 QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorLayoutCount()
+UInt32 LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorLayoutCount()
 {
 	auto h = std::max_element(m_descripters.begin(), m_descripters.end()
 		, [](const DescriptableBufferData& desc1, const DescriptableBufferData& desc2) {
@@ -133,7 +133,7 @@ UInt32 QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorLayoutCou
 	return (*h).data.set + 1;
 }
 
-UInt32 QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetDynamicDescriptorCount()
+UInt32 LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDynamicDescriptorCount()
 {
 	auto h = std::count_if(m_descripters.begin(), m_descripters.end(), [](const DescriptableBufferData& desc) {
 		return (desc.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC || desc.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
@@ -141,7 +141,7 @@ UInt32 QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetDynamicDescriptorCo
 	return UInt32(h);
 }
 
-void QuantumEngine::Rendering::Vulkan::SPIRVReflection::CreatePipelineLayout(const VkDevice device, VkShaderStageFlags stageFlags, const VkSampler sampler, VkPipelineLayout* pipelineLayout, VkDescriptorSetLayout* descriptorSetLayout)
+void LuxonEngine::Rendering::Vulkan::SPIRVReflection::CreatePipelineLayout(const VkDevice device, VkShaderStageFlags stageFlags, const VkSampler sampler, VkPipelineLayout* pipelineLayout, VkDescriptorSetLayout* descriptorSetLayout)
 {
 	std::vector<VkPushConstantRange> pushConstantRanges;
 	pushConstantRanges.reserve(1);
@@ -219,7 +219,7 @@ void QuantumEngine::Rendering::Vulkan::SPIRVReflection::CreatePipelineLayout(con
 	vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, pipelineLayout);
 }
 
-QuantumEngine::Rendering::MaterialReflection QuantumEngine::Rendering::Vulkan::SPIRVReflection::CreateMaterialReflection()
+LuxonEngine::Rendering::MaterialReflection LuxonEngine::Rendering::Vulkan::SPIRVReflection::CreateMaterialReflection()
 {
 	UInt32 fieldIndex = 0;
 	MaterialReflection reflectionData;
@@ -260,7 +260,7 @@ QuantumEngine::Rendering::MaterialReflection QuantumEngine::Rendering::Vulkan::S
 	return reflectionData;
 }
 
-QuantumEngine::Rendering::Vulkan::PushConstantBlockData* QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetPushConstantBlockData(const std::string& name)
+LuxonEngine::Rendering::Vulkan::PushConstantBlockData* LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetPushConstantBlockData(const std::string& name)
 {
 	for (auto& block : m_pushConstant.blocks) {
 		auto varIt = std::find_if(block.variables.begin(), block.variables.end(), [name](const PushConstantVariableData& var) {
@@ -273,7 +273,7 @@ QuantumEngine::Rendering::Vulkan::PushConstantBlockData* QuantumEngine::Renderin
 	return nullptr;
 }
 
-QuantumEngine::Rendering::Vulkan::DescriptableBufferData* QuantumEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorData(const std::string name)
+LuxonEngine::Rendering::Vulkan::DescriptableBufferData* LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorData(const std::string name)
 {
 	auto it = std::find_if(m_descripters.begin(), m_descripters.end(), [name](const DescriptableBufferData& desc) {
 		return desc.name == name;
@@ -285,7 +285,7 @@ QuantumEngine::Rendering::Vulkan::DescriptableBufferData* QuantumEngine::Renderi
 	return &(*it);
 }
 
-void QuantumEngine::Rendering::Vulkan::SPIRVReflection::Initializes()
+void LuxonEngine::Rendering::Vulkan::SPIRVReflection::Initializes()
 {
 	if (m_descripters.size() == 0)
 		return;

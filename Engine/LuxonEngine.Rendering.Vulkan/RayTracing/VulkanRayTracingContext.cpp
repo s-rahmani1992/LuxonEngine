@@ -11,20 +11,20 @@
 #include "Core/Transform.h"
 #include "Core/VulkanUtilities.h"
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTracingContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTracingContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
 	: VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window),
 	m_rayTracingModule(std::make_shared<RayTracing::VulkanRayTracingPipelineModule>())
 {
 }
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::~VulkanRayTracingContext()
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::~VulkanRayTracingContext()
 {
     vkDestroyImageView(m_logicDevice, m_outputImageView, nullptr);
     vkDestroyImage(m_logicDevice, m_outputImage, nullptr);
     vkFreeMemory(m_logicDevice, m_outputImageMemory, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Initialize()
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Initialize()
 {
 	if (InitializeSwapChain(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == false)
 		return false;
@@ -62,7 +62,7 @@ bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Init
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::PrepareScene(const ref<Scene>& scene)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::PrepareScene(const ref<Scene>& scene)
 {
 	UploadMeshes(scene->entities);
 
@@ -93,7 +93,7 @@ bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Prep
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render()
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render()
 {
     UpdateCameraBuffer();
     UpdateTransforms();
@@ -246,7 +246,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Rend
     vkWaitForFences(m_logicDevice, 1, &m_fence, VK_TRUE, 20000);
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UploadMeshes(const std::vector<ref<GameEntity>>& entities)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UploadMeshes(const std::vector<ref<GameEntity>>& entities)
 {
 	std::set<ref<Mesh>> uniqueMeshes;
 
@@ -260,7 +260,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Uplo
 	m_assetManager->UploadMeshesToGPU(std::vector<ref<Mesh>>(uniqueMeshes.begin(), uniqueMeshes.end()));
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UpdateTransforms()
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UpdateTransforms()
 {
     void* data;
     vkMapMemory(m_logicDevice, m_transformBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);

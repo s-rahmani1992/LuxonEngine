@@ -8,7 +8,7 @@
 #include "DX12ShaderRegistery.h"
 #include "DX12MaterialFactory.h"
 
-bool QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
+bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 {
 	// Create Debug layer in Debug build
 #ifdef _DEBUG
@@ -47,7 +47,7 @@ bool QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 		return false;
 }
 
-ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateHybridContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window)
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window);
@@ -58,7 +58,7 @@ ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::DX12::DX
 	return nullptr;
 }
 
-ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateRayTracingContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window)
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window);
@@ -69,7 +69,7 @@ ref<QuantumEngine::Rendering::GraphicContext> QuantumEngine::Rendering::DX12::DX
 	return nullptr;
 }
 
-ref<QuantumEngine::Rendering::GPUAssetManager> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateAssetManager()
+ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateAssetManager()
 {
 	auto assetManager = std::make_shared<DX12AssetManager>();
 
@@ -79,19 +79,19 @@ ref<QuantumEngine::Rendering::GPUAssetManager> QuantumEngine::Rendering::DX12::D
 	return assetManager;
 }
 
-ref<QuantumEngine::Rendering::ShaderRegistery> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateShaderRegistery()
+ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateShaderRegistery()
 {
 	auto shaderReg = std::make_shared<DX12ShaderRegistery>();
 	shaderReg->Initialize(m_device);
 	return shaderReg;
 }
 
-ref<QuantumEngine::Rendering::MaterialFactory> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateMaterialFactory()
+ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateMaterialFactory()
 {
 	return std::make_shared<DX12MaterialFactory>();
 }
 
-QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::~DX12GPUDeviceManager()
+LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::~DX12GPUDeviceManager()
 {
 #ifdef _DEBUG
 	if (m_dxgi_debug) {
@@ -101,7 +101,7 @@ QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::~DX12GPUDeviceManager()
 #endif
 }
 
-ref<QuantumEngine::Rendering::DX12::DX12CommandExecuter> QuantumEngine::Rendering::DX12::DX12GPUDeviceManager::CreateCommandExecuter()
+ref<LuxonEngine::Rendering::DX12::DX12CommandExecuter> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateCommandExecuter()
 {
 	//Command Queue
 	ComPtr<ID3D12CommandQueue> cmdqueue;

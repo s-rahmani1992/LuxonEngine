@@ -8,7 +8,7 @@
 
 #define GLOBAL_HIT_GROUP_NAME L"GlobalHit"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity;
 	class Transform;
 
@@ -23,7 +23,7 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	using namespace Microsoft::WRL;
 	class DX12CommandExecuter;
 	class DX12MeshController;
@@ -45,7 +45,7 @@ namespace QuantumEngine::Rendering::DX12 {
 
 	struct DX12RayTracingGPUData {
 	public:
-		ref<QuantumEngine::Rendering::DX12::DX12MeshController> meshController;
+		ref<LuxonEngine::Rendering::DX12::DX12MeshController> meshController;
 		ref<Material> material;
 		ComPtr<ID3D12Resource2> transformResource;
 		ref<Transform> transform;
@@ -61,7 +61,7 @@ namespace QuantumEngine::Rendering::DX12 {
 	class DX12GraphicContext : public GraphicContext
 	{
 	public:
-		DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<QuantumEngine::Platform::GraphicWindow>& window);
+		DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window);
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) = 0;
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& mesh) override;
 		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
@@ -74,7 +74,7 @@ namespace QuantumEngine::Rendering::DX12 {
 		void UploadTexturesAndMeshes(const ref<Scene>& scene);
 		void UpdateDataHeaps();
 
-		ref<QuantumEngine::Platform::GraphicWindow> m_window;
+		ref<LuxonEngine::Platform::GraphicWindow> m_window;
 		ComPtr<ID3D12Device10> m_device;
 		ref<DX12CommandExecuter> m_commandExecuter; 
 		ComPtr<ID3D12CommandAllocator> m_commandAllocator;

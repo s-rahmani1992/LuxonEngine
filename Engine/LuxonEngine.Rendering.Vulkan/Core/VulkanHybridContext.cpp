@@ -23,12 +23,12 @@
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanMaterialFactory.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
+LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
 	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window)
 {
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
+LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 {
 	vkDestroyBuffer(m_logicDevice, m_transformBuffer, nullptr);
 	vkFreeMemory(m_logicDevice, m_transformBufferMemory, nullptr);
@@ -43,7 +43,7 @@ QuantumEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 	vkDestroyRenderPass(m_logicDevice, m_renderPass, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
 {
 	if (InitializeSwapChain(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == false)
 		return false;
@@ -88,7 +88,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref<Scene>& scene)
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref<Scene>& scene)
 {
 	UploadMeshesToGPU(scene->entities);
 
@@ -266,7 +266,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const r
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanHybridContext::Render()
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 {
 	UpdateCameraBuffer();
 	UpdateEntityTransforms();
@@ -465,7 +465,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	vkWaitForFences(m_logicDevice, 1, &m_fence, VK_TRUE, 20000);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)
 {
 	std::set<ref<Mesh>> uniqueMeshes;
 
@@ -485,7 +485,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(co
 	m_assetManager->UploadMeshesToGPU(std::vector<ref<Mesh>>(uniqueMeshes.begin(), uniqueMeshes.end()));
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::InitializeDepthBuffer()
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeDepthBuffer()
 {
 	// Create depth image
 	VkImageCreateInfo imgInfo{
@@ -518,7 +518,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::InitializeDepthBuffe
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
 {
 	VkAttachmentDescription colorAttachment{
 		.format = m_swapChainFormat.format,
@@ -595,7 +595,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms()
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms()
 {
 	void* data;
 	vkMapMemory(m_logicDevice, m_transformBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);

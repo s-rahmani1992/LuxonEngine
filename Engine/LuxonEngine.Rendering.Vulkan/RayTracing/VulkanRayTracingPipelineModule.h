@@ -3,21 +3,21 @@
 #include "Core/SPIRVReflection.h"
 #include <map>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	struct VKEntityGPUData;
 	class VulkanBufferFactory;
 	class VulkanMeshController;
 }
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	class VulkanBLAS;
 	class SPIRVRayTracingProgram;
 	class SPIRVRayTracingProgramVariant;

@@ -1,7 +1,7 @@
 #include "ShapeBuilder.h"
 #include "Mesh.h"
 
-ref<QuantumEngine::Mesh> QuantumEngine::ShapeBuilder::CreateCube(Float size)
+ref<LuxonEngine::Mesh> LuxonEngine::ShapeBuilder::CreateCube(Float size)
 {
     std::vector<Vertex> cubeVertices = {
         Vertex(size * Vector3(-1.0f, -1.0f, -1.0f), Vector2(0.0f, 1.0f), Vector3(-1.0f, -1.0f, -1.0f).Normalize()),
@@ -26,7 +26,7 @@ ref<QuantumEngine::Mesh> QuantumEngine::ShapeBuilder::CreateCube(Float size)
     return std::make_shared<Mesh>(cubeVertices, cubeIndices);
 }
 
-ref<QuantumEngine::Mesh> QuantumEngine::ShapeBuilder::CreateCompleteCube(Float size)
+ref<LuxonEngine::Mesh> LuxonEngine::ShapeBuilder::CreateCompleteCube(Float size)
 {
     std::vector<Vertex> cubeVertices = {
         Vertex(size * Vector3(-1.0f, -1.0f, -1.0f), Vector2(0.0f, 1.0f), Vector3(0.0f, 0.0f, -1.0f).Normalize()),
@@ -72,7 +72,7 @@ ref<QuantumEngine::Mesh> QuantumEngine::ShapeBuilder::CreateCompleteCube(Float s
     return std::make_shared<Mesh>(cubeVertices, cubeIndices);
 }
 
-ref<QuantumEngine::Mesh> QuantumEngine::ShapeBuilder::CreateSphere(Float radius, UInt32 hSegments, UInt32 vSegment)
+ref<LuxonEngine::Mesh> LuxonEngine::ShapeBuilder::CreateSphere(Float radius, UInt32 hSegments, UInt32 vSegment)
 {
 	std::vector<Vertex> sphereVertices;
 	for (int stacks = 0; stacks < hSegments; stacks++) {

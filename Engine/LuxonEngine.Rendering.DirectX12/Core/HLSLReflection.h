@@ -9,7 +9,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	struct RootConstantVariableData {
 		std::string name;
 		UInt32 index;

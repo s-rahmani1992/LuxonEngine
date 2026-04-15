@@ -9,7 +9,7 @@
 #include "Rendering/GBufferRTReflectionRenderer.h"
 #include "DX12HybridContext.h"
 
-bool QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device, const Vector2UInt& size, const ref<Rasterization::HLSLRasterizationProgram>& gBufferProgram)
+bool LuxonEngine::Rendering::DX12::DX12GBufferPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device, const Vector2UInt& size, const ref<Rasterization::HLSLRasterizationProgram>& gBufferProgram)
 {
 	m_program = gBufferProgram;
 	auto r = m_program->GetReflectionData();
@@ -192,7 +192,7 @@ bool QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::Initialize(const
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::RenderCommand(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle)
+void LuxonEngine::Rendering::DX12::DX12GBufferPipelineModule::RenderCommand(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle)
 {
 	//Set Render Target
 	D3D12_RESOURCE_BARRIER positionBeginBarrier
@@ -285,7 +285,7 @@ void QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::RenderCommand(Co
 	commandList->ResourceBarrier(1, &maskEndBarrier);
 }
 
-void QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::PrepareEntities(const std::vector<EntityGBufferData>& entities)
+void LuxonEngine::Rendering::DX12::DX12GBufferPipelineModule::PrepareEntities(const std::vector<EntityGBufferData>& entities)
 {
 	for(auto& entity : entities) {
 		m_entities.push_back(BufferEntityData{
@@ -295,7 +295,7 @@ void QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::PrepareEntities(
 	}
 }
 
-bool QuantumEngine::Rendering::DX12::DX12GBufferPipelineModule::CreatePipelineState(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12GBufferPipelineModule::CreatePipelineState(const ComPtr<ID3D12Device10>& device)
 {
 	/////// Create Pipeline State Object
 

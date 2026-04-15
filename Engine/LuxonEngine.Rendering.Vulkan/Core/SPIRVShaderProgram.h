@@ -3,7 +3,7 @@
 #include "Rendering/ShaderProgram.h"
 #include "Core/SPIRVReflection.h"
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class SPIRVShaderProgram : public ShaderProgram {
 	public:
 		virtual ~SPIRVShaderProgram() = default;

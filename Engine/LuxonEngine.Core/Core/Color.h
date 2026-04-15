@@ -1,7 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Color {
 	public:
 		Color(Float r, Float g, Float b, Float a);

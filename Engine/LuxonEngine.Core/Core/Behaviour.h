@@ -1,7 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Behaviour {
 	public:
 		virtual ~Behaviour() = default;

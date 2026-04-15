@@ -4,7 +4,7 @@
 #include <vector>
 #include "Shader.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 
 	/// <summary>
 	/// base class for integration of shaders making up a complete shader program pipeline

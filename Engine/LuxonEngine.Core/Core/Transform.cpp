@@ -1,29 +1,29 @@
 #include "Transform.h"
 #include "Matrix4.h"
 
-QuantumEngine::Transform::Transform(const Vector3& position, const Vector3& scale, const Vector3& axis, Float angleDeg)
+LuxonEngine::Transform::Transform(const Vector3& position, const Vector3& scale, const Vector3& axis, Float angleDeg)
 	:m_position(position), m_scale(scale), m_axis(axis), m_angle(angleDeg)
 {
 	UpdateDirections();
 	UpdateMatrix();
 }
 
-QuantumEngine::Transform::Transform()
+LuxonEngine::Transform::Transform()
 	:Transform(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 1.0f), 0)
 {
 }
 
-void QuantumEngine::Transform::MoveForward(Float delta)
+void LuxonEngine::Transform::MoveForward(Float delta)
 {
 	SetPosition(m_position + (delta * m_forward));
 }
 
-void QuantumEngine::Transform::MoveRight(Float delta)
+void LuxonEngine::Transform::MoveRight(Float delta)
 {
 	SetPosition(m_position + (delta * m_right));
 }
 
-void QuantumEngine::Transform::RotateAround(const Vector3& axis, Float angleDeg)
+void LuxonEngine::Transform::RotateAround(const Vector3& axis, Float angleDeg)
 {
 	Matrix4 scaleTranslate{
 		m_scale.x, 0.0f, 0.0f, m_position.x,
@@ -47,12 +47,12 @@ void QuantumEngine::Transform::RotateAround(const Vector3& axis, Float angleDeg)
 	m_angle = atan2f(sT, cT) * ( 180 / PI);
 }
 
-void QuantumEngine::Transform::Translate(const Vector3& delta)
+void LuxonEngine::Transform::Translate(const Vector3& delta)
 {
 	SetPosition(m_position + delta);
 }
 
-void QuantumEngine::Transform::UpdateDirections()
+void LuxonEngine::Transform::UpdateDirections()
 {
 	Matrix4 mat = Matrix4::Rotate(m_axis, m_angle);
 	m_forward = mat * Vector3(0.0f, 0.0f, 1.0f);
@@ -60,7 +60,7 @@ void QuantumEngine::Transform::UpdateDirections()
 	m_right = mat * Vector3(1.0f, 0.0f, 0.0f);
 }
 
-void QuantumEngine::Transform::UpdateMatrix()
+void LuxonEngine::Transform::UpdateMatrix()
 {
 	Matrix4 ST{
 		m_scale.x, 0.0f, 0.0f, m_position.x,

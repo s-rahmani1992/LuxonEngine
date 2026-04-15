@@ -5,7 +5,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Transform;
 	struct Matrix4;
 
@@ -14,7 +14,7 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine::Rendering::DX12::RayTracing {
+namespace LuxonEngine::Rendering::DX12::RayTracing {
 	struct EntityBLASDesc {
 		UInt32 hitGroupIndex;
 		ref<DX12MeshController> mesh;

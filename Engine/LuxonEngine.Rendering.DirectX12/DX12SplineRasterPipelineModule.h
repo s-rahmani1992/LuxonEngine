@@ -6,11 +6,11 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering{
+namespace LuxonEngine::Rendering{
 	class SplineRenderer;
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	struct SplineRendererData;
 
 	namespace Compute {

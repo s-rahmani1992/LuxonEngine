@@ -4,7 +4,7 @@
 #include <memory>
 #include "BasicTypes.h"
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	using namespace Microsoft::WRL;
 	struct DX12MeshRendererGPUData;
 	class DX12MeshController;

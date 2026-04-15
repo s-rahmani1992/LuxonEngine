@@ -6,7 +6,7 @@
 #include "DX12Texture2DController.h"
 #include <DX12Utilities.h>
 
-QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::DX12RasterizationMaterial(const ref<Material>& material, const ref<DX12::Rasterization::HLSLRasterizationProgram>& program)
+LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::DX12RasterizationMaterial(const ref<Material>& material, const ref<DX12::Rasterization::HLSLRasterizationProgram>& program)
 	:m_material(material), m_program(program) 
 {
 	program->GetRootSignature()->GetDevice(IID_PPV_ARGS(&m_device));
@@ -63,7 +63,7 @@ QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::DX12Ra
 	}
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindDescriptorToResources(const ComPtr<ID3D12DescriptorHeap>& descriptorHeap, UInt32 offset)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindDescriptorToResources(const ComPtr<ID3D12DescriptorHeap>& descriptorHeap, UInt32 offset)
 {
     auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -86,7 +86,7 @@ void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::B
     }
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindParameters(ComPtr<ID3D12GraphicsCommandList7>& commandList)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindParameters(ComPtr<ID3D12GraphicsCommandList7>& commandList)
 {
 	// Update Modified Textures
     for(auto& modified : m_material->GetModifiedTextures()) {
@@ -117,28 +117,28 @@ void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::B
 	}
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindTransformDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& transformHeapHandle)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindTransformDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& transformHeapHandle)
 {
     if(m_transformRootIndex == -1)
         return;
 	commandList->SetGraphicsRootDescriptorTable(m_transformRootIndex, transformHeapHandle);
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindCameraDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& cameraHeapHandle)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindCameraDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& cameraHeapHandle)
 {
     if(m_cameraRootIndex == -1)
         return;
 	commandList->SetGraphicsRootDescriptorTable(m_cameraRootIndex, cameraHeapHandle);
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindLightDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& lightHeapHandle)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::BindLightDescriptor(ComPtr<ID3D12GraphicsCommandList7>& commandList, const D3D12_GPU_DESCRIPTOR_HANDLE& lightHeapHandle)
 {
     if(m_lightRootIndex == -1)
         return;
 	commandList->SetGraphicsRootDescriptorTable(m_lightRootIndex, lightHeapHandle);
 }
 
-void QuantumEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::SetDescriptorHandles(const std::string& fieldName, const D3D12_GPU_DESCRIPTOR_HANDLE& handle)
+void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::SetDescriptorHandles(const std::string& fieldName, const D3D12_GPU_DESCRIPTOR_HANDLE& handle)
 {
 	auto it = std::find_if(
 		m_heapValues.begin(),

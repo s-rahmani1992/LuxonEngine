@@ -2,11 +2,11 @@
 
 #include "../BasicTypes.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUTexture2DController;
 }
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	enum class TextureFormat { //TODO Add More Formats
 		Unknown,
 		RGBA32,

@@ -1,7 +1,7 @@
 #include "EntityPositionController.h"
 #include "Platform/CommonWin.h"
 
-EntityPositionController::EntityPositionController(ref<QuantumEngine::Transform>& transform, float speed)
+EntityPositionController::EntityPositionController(ref<LuxonEngine::Transform>& transform, float speed)
 	:m_transform(transform), m_speed(speed)
 {
 }

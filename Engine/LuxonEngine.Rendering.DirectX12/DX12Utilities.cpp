@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "DX12Utilities.h"
 
-namespace DirectX12 = QuantumEngine::Rendering::DX12;
+namespace DirectX12 = LuxonEngine::Rendering::DX12;
 
 const D3D12_HEAP_PROPERTIES DirectX12::DescriptorUtilities::CommonUploadHeapProps = D3D12_HEAP_PROPERTIES{
 	.Type = D3D12_HEAP_TYPE_UPLOAD,
@@ -19,7 +19,7 @@ const D3D12_HEAP_PROPERTIES DirectX12::DescriptorUtilities::CommonDefaultHeapPro
 	.VisibleNodeMask = 0,
 };
 
-D3D12_RESOURCE_DESC QuantumEngine::Rendering::DX12::ResourceUtilities::GetCommonBufferResourceDesc(UInt32 size, D3D12_RESOURCE_FLAGS flag)
+D3D12_RESOURCE_DESC LuxonEngine::Rendering::DX12::ResourceUtilities::GetCommonBufferResourceDesc(UInt32 size, D3D12_RESOURCE_FLAGS flag)
 {
 	D3D12_RESOURCE_DESC resourceDesc;
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;

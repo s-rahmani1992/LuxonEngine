@@ -5,14 +5,14 @@
 #include "../Core/Camera/Camera.h"
 #include <vector>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 	class GameEntity;
 	struct SceneLightData;
 	class Scene;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUAssetManager;
 	class ShaderProgram;
 	class ShaderRegistery;

@@ -6,7 +6,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 
 	namespace Platform {
@@ -18,7 +18,7 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	class DX12CommandExecuter;
 	class DX12MeshController;
 
@@ -26,8 +26,8 @@ namespace QuantumEngine::Rendering::DX12 {
 	{
 	public:
 		virtual bool Initialize() override;
-		virtual ref<GraphicContext> CreateHybridContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window) override;
-		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<QuantumEngine::Platform::GraphicWindow>& window) override;
+		virtual ref<GraphicContext> CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
+		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GPUAssetManager> CreateAssetManager() override;
 		virtual ref<ShaderRegistery> CreateShaderRegistery() override;
 		virtual ref<MaterialFactory> CreateMaterialFactory() override;

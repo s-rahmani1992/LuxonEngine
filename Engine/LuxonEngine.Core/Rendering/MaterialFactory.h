@@ -2,7 +2,7 @@
 
 #include "../BasicTypes.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class ShaderProgram;
 	class Material;
 

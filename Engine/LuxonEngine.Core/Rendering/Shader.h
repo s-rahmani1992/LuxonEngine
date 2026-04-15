@@ -1,7 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Shader {
 	public:
 		Shader(Byte* byteCode, UInt64 codeSize, Int32 shaderTypeId)

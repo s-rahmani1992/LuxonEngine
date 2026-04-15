@@ -2,9 +2,9 @@
 #include "HLSLRayTracingProgram.h"
 #include "StringUtilities.h"
 
-UInt32 QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::m_programCounter = 0;
+UInt32 LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::m_programCounter = 0;
 
-QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingProgram(Byte* byteCode, UInt64 codeLength, const HLSLRayTracingProgramProperties& properties, ComPtr<ID3D12LibraryReflection>& libraryReflection)
+LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingProgram(Byte* byteCode, UInt64 codeLength, const HLSLRayTracingProgramProperties& properties, ComPtr<ID3D12LibraryReflection>& libraryReflection)
 	:m_codeLength(codeLength)
 {
 	m_programCounter++;
@@ -97,7 +97,7 @@ QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracin
 	m_dxilData.pExports = m_exportDescs.data();
 }
 
-bool QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error)
+bool LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error)
 {
 	std::string errorMessage;
 	D3D12_ROOT_SIGNATURE_FLAGS flag = m_rayGenOriginalName.empty() ? D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE : D3D12_ROOT_SIGNATURE_FLAG_NONE;
@@ -110,7 +110,7 @@ bool QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::Initiali
 	return true;
 }
 
-std::wstring& QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetRayGenExportName()
+std::wstring& LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetRayGenExportName()
 {
 	static std::wstring empty;
 	if (m_rayGenOriginalName.empty())
@@ -118,7 +118,7 @@ std::wstring& QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram:
 	return m_rayGenExportName;
 }
 
-std::wstring& QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetMissExportName()
+std::wstring& LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetMissExportName()
 {
 	static std::wstring empty;
 	if (m_missOriginalName.empty())
@@ -126,7 +126,7 @@ std::wstring& QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram:
 	return m_missExportName;
 }
 
-std::vector<LPCWSTR> QuantumEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetExportNames() const
+std::vector<LPCWSTR> LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::GetExportNames() const
 {
 	std::vector<LPCWSTR> names;
 

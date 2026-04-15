@@ -3,18 +3,18 @@
 #include "Core/Texture2D.h"
 #include "DX12Utilities.h"
 
-const std::map<QuantumEngine::TextureFormat, DXGI_FORMAT> QuantumEngine::Rendering::DX12::DX12Texture2DController::m_texFormatMaps{
-	{QuantumEngine::TextureFormat::Unknown, DXGI_FORMAT_UNKNOWN},
-	{QuantumEngine::TextureFormat::RGBA32, DXGI_FORMAT_R8G8B8A8_UNORM},
-	{QuantumEngine::TextureFormat::BGRA32, DXGI_FORMAT_B8G8R8A8_UNORM},
+const std::map<LuxonEngine::TextureFormat, DXGI_FORMAT> LuxonEngine::Rendering::DX12::DX12Texture2DController::m_texFormatMaps{
+	{LuxonEngine::TextureFormat::Unknown, DXGI_FORMAT_UNKNOWN},
+	{LuxonEngine::TextureFormat::RGBA32, DXGI_FORMAT_R8G8B8A8_UNORM},
+	{LuxonEngine::TextureFormat::BGRA32, DXGI_FORMAT_B8G8R8A8_UNORM},
 };
 
-QuantumEngine::Rendering::DX12::DX12Texture2DController::DX12Texture2DController(const ref<Texture2D>& texture)
+LuxonEngine::Rendering::DX12::DX12Texture2DController::DX12Texture2DController(const ref<Texture2D>& texture)
 	:m_texture(texture)
 {
 }
 
-bool QuantumEngine::Rendering::DX12::DX12Texture2DController::Initialize(const ComPtr<ID3D12Device10>& device) {
+bool LuxonEngine::Rendering::DX12::DX12Texture2DController::Initialize(const ComPtr<ID3D12Device10>& device) {
 	m_dxFormat = m_texFormatMaps.at(m_texture->GetFormat());
 	
 	D3D12_RESOURCE_DESC bufferDesc
@@ -58,7 +58,7 @@ bool QuantumEngine::Rendering::DX12::DX12Texture2DController::Initialize(const C
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12Texture2DController::UploadToGPU(ComPtr<ID3D12GraphicsCommandList7>& uploadCommandList, const ComPtr<ID3D12Resource2>& uploadTextureBuffer)
+void LuxonEngine::Rendering::DX12::DX12Texture2DController::UploadToGPU(ComPtr<ID3D12GraphicsCommandList7>& uploadCommandList, const ComPtr<ID3D12Resource2>& uploadTextureBuffer)
 {
 	auto meshData = m_texture->GetData();
 	auto size = m_texture->GetTotalSize();
@@ -95,7 +95,7 @@ void QuantumEngine::Rendering::DX12::DX12Texture2DController::UploadToGPU(ComPtr
 	uploadCommandList->CopyTextureRegion(&destTexLocation, 0, 0, 0, &srcTexLocation, &srcBox);
 }
 
-void QuantumEngine::Rendering::DX12::DX12Texture2DController::Release() {
+void LuxonEngine::Rendering::DX12::DX12Texture2DController::Release() {
 	m_tectureResource->Release();
 	m_textureHeap->Release();
 }

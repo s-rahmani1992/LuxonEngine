@@ -21,11 +21,11 @@
 #define RAY_TRACING "RayTracing"
 #define COMPUTE "Compute"
 
-namespace Render = QuantumEngine::Rendering;
-namespace HLSL = QuantumEngine::Rendering::DX12::Rasterization;
-namespace Compute = QuantumEngine::Rendering::DX12::Compute;
+namespace Render = LuxonEngine::Rendering;
+namespace HLSL = LuxonEngine::Rendering::DX12::Rasterization;
+namespace Compute = LuxonEngine::Rendering::DX12::Compute;
 
-QuantumEngine::Rendering::DX12::DX12ShaderRegistery::DX12ShaderRegistery()
+LuxonEngine::Rendering::DX12::DX12ShaderRegistery::DX12ShaderRegistery()
 	:m_minArguments(10), m_compileArguments(15)
 {
 	// Create compiler-related objects
@@ -56,14 +56,14 @@ QuantumEngine::Rendering::DX12::DX12ShaderRegistery::DX12ShaderRegistery()
 	m_compileArguments[11] = (WCHAR*)L"";
 }
 
-QuantumEngine::Rendering::DX12::DX12ShaderRegistery::~DX12ShaderRegistery()
+LuxonEngine::Rendering::DX12::DX12ShaderRegistery::~DX12ShaderRegistery()
 {
 	m_dxcCompiler->Release();
 	m_includeHandler->Release();
 	m_utils->Release();
 }
 
-void QuantumEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<ID3D12Device10>& device)
+void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;
 	std::wstring root = Platform::Application::GetExecutablePath();
@@ -87,7 +87,7 @@ void QuantumEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPt
 	}
 }
 
-ref<QuantumEngine::Rendering::DX12::HLSLShaderProgram> QuantumEngine::Rendering::DX12::DX12ShaderRegistery::GetShaderProgram(const std::string& name)
+ref<LuxonEngine::Rendering::DX12::HLSLShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetShaderProgram(const std::string& name)
 {
 	auto it = m_specialShaders.find(name);
 	if (it != m_specialShaders.end())
@@ -95,7 +95,7 @@ ref<QuantumEngine::Rendering::DX12::HLSLShaderProgram> QuantumEngine::Rendering:
 	return nullptr;
 }
 
-void QuantumEngine::Rendering::DX12::DX12ShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
+void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
 {
 	ref<HLSLShaderProgram> hlslProgram = std::dynamic_pointer_cast<HLSLShaderProgram>(program);
 
@@ -104,7 +104,7 @@ void QuantumEngine::Rendering::DX12::DX12ShaderRegistery::RegisterShaderProgram(
 	}
 }
 
-ref<QuantumEngine::Rendering::ShaderProgram> QuantumEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const std::wstring& hlslFile, std::string& error)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const std::wstring& hlslFile, std::string& error)
 {
 	// Read file into memory
 	std::ifstream shaderFile(hlslFile, std::ios::binary | std::ios::ate);
@@ -289,7 +289,7 @@ ref<QuantumEngine::Rendering::ShaderProgram> QuantumEngine::Rendering::DX12::DX1
 	return finalProgram;
 }
 
-ref<QuantumEngine::Rendering::DX12::HLSLShader> QuantumEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, DX12_Shader_Type shaderType, std::string& error)
+ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, DX12_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
 	ComPtr<IUnknown> shaderRefl;
@@ -303,7 +303,7 @@ ref<QuantumEngine::Rendering::DX12::HLSLShader> QuantumEngine::Rendering::DX12::
 	return std::make_shared<HLSLShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, pShaderReflection);
 }
 
-bool QuantumEngine::Rendering::DX12::DX12ShaderRegistery::CompileInternal(const DxcBuffer* sourceBuffer, ComPtr<IDxcBlob>& pshaderData, ComPtr<IUnknown>& reflection, UInt32 argumentCount, std::string& error)
+bool LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileInternal(const DxcBuffer* sourceBuffer, ComPtr<IDxcBlob>& pshaderData, ComPtr<IUnknown>& reflection, UInt32 argumentCount, std::string& error)
 {
 	ComPtr<IDxcResult> compileResult;
 	HRESULT result;

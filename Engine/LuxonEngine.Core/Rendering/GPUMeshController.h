@@ -1,6 +1,6 @@
 #pragma once
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUMeshController {
 	public:
 		virtual ~GPUMeshController() {}

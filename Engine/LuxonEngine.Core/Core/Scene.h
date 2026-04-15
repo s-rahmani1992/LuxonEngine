@@ -8,7 +8,7 @@
 #include "Behaviour.h"
 #include <vector>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	namespace Rendering {
 		class Material;
 	}

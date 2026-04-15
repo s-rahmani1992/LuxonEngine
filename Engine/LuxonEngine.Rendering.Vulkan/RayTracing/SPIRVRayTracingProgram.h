@@ -2,7 +2,7 @@
 #include "vulkan-pch.h"
 #include "Core/SPIRVShaderProgram.h"
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	class SPIRVRayTracingProgramVariant;
 
 	struct ShaderRecordVariableData {

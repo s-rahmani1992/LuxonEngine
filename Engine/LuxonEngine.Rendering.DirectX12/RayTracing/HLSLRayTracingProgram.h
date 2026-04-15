@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "HLSLShaderProgram.h"
 
-namespace QuantumEngine::Rendering::DX12::RayTracing {
+namespace LuxonEngine::Rendering::DX12::RayTracing {
 	struct HLSLRayTracingProgramProperties;
 
 	struct HLSLRayTracingProgramProperties {

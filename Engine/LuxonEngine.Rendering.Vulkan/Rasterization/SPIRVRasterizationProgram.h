@@ -4,11 +4,11 @@
 #include "Core/SPIRVShaderProgram.h"
 #include "../Core/SPIRVReflection.h"
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class SPIRVShader;
 }
 
-namespace QuantumEngine::Rendering::Vulkan::Rasterization {
+namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	class SPIRVRasterizationProgram : public SPIRVShaderProgram
 	{
 	public:

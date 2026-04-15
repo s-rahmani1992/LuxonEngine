@@ -6,12 +6,12 @@
 #include "RayTracing/VulkanBLAS.h"
 #include "Core/VulkanBufferFactory.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanMeshController::VulkanMeshController(const ref<Mesh>& mesh, const VkDevice device)
+LuxonEngine::Rendering::Vulkan::VulkanMeshController::VulkanMeshController(const ref<Mesh>& mesh, const VkDevice device)
 	: m_mesh(mesh), m_device(device)
 {
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanMeshController::Initialize(const ref<VulkanBufferFactory>& bufferFactory)
+bool LuxonEngine::Rendering::Vulkan::VulkanMeshController::Initialize(const ref<VulkanBufferFactory>& bufferFactory)
 {
 	VkMemoryAllocateFlagsInfo flags{
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
@@ -31,7 +31,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanMeshController::Initialize(const re
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanMeshController::CopyCommand(VkCommandBuffer commandBuffer, VkBuffer stageBuffer, UInt32 offset)
+void LuxonEngine::Rendering::Vulkan::VulkanMeshController::CopyCommand(VkCommandBuffer commandBuffer, VkBuffer stageBuffer, UInt32 offset)
 {
 	VkBufferCopy copyRegion{};
 	copyRegion.srcOffset = offset;
@@ -43,7 +43,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanMeshController::CopyCommand(VkComma
 	vkCmdCopyBuffer(commandBuffer, stageBuffer, m_indexBuffer, 1, &copyRegion);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanMeshController::GetBLASBuildInfo(RayTracing::VulkanBLASBuildInfo* blasBuildInfo)
+void LuxonEngine::Rendering::Vulkan::VulkanMeshController::GetBLASBuildInfo(RayTracing::VulkanBLASBuildInfo* blasBuildInfo)
 {
 	VkBufferDeviceAddressInfo vbAddrInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
@@ -104,7 +104,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanMeshController::GetBLASBuildInfo(Ra
 	);
 }
 
-VkBuffer QuantumEngine::Rendering::Vulkan::VulkanMeshController::CreateVertexStorageBuffer()
+VkBuffer LuxonEngine::Rendering::Vulkan::VulkanMeshController::CreateVertexStorageBuffer()
 {
 	VkBufferCreateInfo info{};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -119,7 +119,7 @@ VkBuffer QuantumEngine::Rendering::Vulkan::VulkanMeshController::CreateVertexSto
 	return vertexStorageBuffer;
 }
 
-VkBuffer QuantumEngine::Rendering::Vulkan::VulkanMeshController::CreateIndexStorageBuffer()
+VkBuffer LuxonEngine::Rendering::Vulkan::VulkanMeshController::CreateIndexStorageBuffer()
 {
 	VkBufferCreateInfo info{};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -134,7 +134,7 @@ VkBuffer QuantumEngine::Rendering::Vulkan::VulkanMeshController::CreateIndexStor
 	return indexStorageBuffer;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanMeshController::Release()
+void LuxonEngine::Rendering::Vulkan::VulkanMeshController::Release()
 {
 	vkDestroyBuffer(m_device, m_vertexBuffer, nullptr);
 	vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);

@@ -9,19 +9,19 @@
 #include "VulkanRasterizationMaterial.h"
 #include "SPIRVRasterizationProgram.h"
 
-VkVertexInputBindingDescription QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_bindingDescriptions = {
+VkVertexInputBindingDescription LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_bindingDescriptions = {
 	.binding = 0,
 	.stride = sizeof(Vertex),
 	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
 };
 
-VkVertexInputAttributeDescription QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_attributeDescriptions[3] = {
+VkVertexInputAttributeDescription LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_attributeDescriptions[3] = {
 	{ .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(Vertex, position) },
 	{ .location = 1, .binding = 0, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(Vertex, uv) },
 	{ .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(Vertex, normal) },
 };
 
-VkPipelineVertexInputStateCreateInfo QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_vertexInputInfo = {
+VkPipelineVertexInputStateCreateInfo LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_vertexInputInfo = {
 	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 	.pNext = nullptr,
 	.flags = 0,
@@ -31,17 +31,17 @@ VkPipelineVertexInputStateCreateInfo QuantumEngine::Rendering::Vulkan::Rasteriza
 	.pVertexAttributeDescriptions = s_attributeDescriptions,
 };
 
-QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::VulkanRasterizationPipelineModule(const VkDevice device)
+LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::VulkanRasterizationPipelineModule(const VkDevice device)
 	:m_device(device)
 {
 }
 
-QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::~VulkanRasterizationPipelineModule()
+LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::~VulkanRasterizationPipelineModule()
 {
 	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
 {
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 	VkDeviceSize offsets[] = { 0 };
@@ -54,7 +54,7 @@ void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelin
 	vkCmdDrawIndexed(commandBuffer, m_mesh->GetIndexCount(), 1, 0, 0, 0);
 }
 
-bool QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<GameEntity>& entity, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
+bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<GameEntity>& entity, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
 {
 	m_program = std::dynamic_pointer_cast<SPIRVRasterizationProgram>(entity->GetRenderer()->GetMaterial()->GetProgram());
 	m_offset = std::vector<UInt32>(m_program->GetReflection().GetDynamicDescriptorCount(), 0);
@@ -185,7 +185,7 @@ bool QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelin
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::SetDescriptorOffset(const std::string& name, UInt32 offset)
+void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::SetDescriptorOffset(const std::string& name, UInt32 offset)
 {
 	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);
 

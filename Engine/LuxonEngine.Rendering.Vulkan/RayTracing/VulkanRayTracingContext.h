@@ -2,7 +2,7 @@
 #include "vulkan-pch.h"
 #include "Core/VulkanGraphicContext.h"
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	class VulkanRayTracingPipelineModule;
 
 	class VulkanRayTracingContext : public VulkanGraphicContext {

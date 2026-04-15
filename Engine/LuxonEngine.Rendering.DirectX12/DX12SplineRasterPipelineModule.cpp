@@ -12,19 +12,19 @@
 #define SPLINE_WIDTH_FIELD_NAME "_width"
 #define SPLINE_WIDTH_BUFFER_NAME "_CurveProperties"
 
-D3D12_INPUT_ELEMENT_DESC QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::s_inputElementDescs[4] = {
+D3D12_INPUT_ELEMENT_DESC LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::s_inputElementDescs[4] = {
 	{ "position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "normal", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
-D3D12_INPUT_LAYOUT_DESC QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::s_layoutDesc = {
+D3D12_INPUT_LAYOUT_DESC LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::s_layoutDesc = {
 	.pInputElementDescs = s_inputElementDescs,
 	.NumElements = 4,
 };
 
-QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::DX12SplineRasterPipelineModule(const SplineRendererData& splineData, DXGI_FORMAT depthFormat, const ref<Compute::HLSLComputeProgram>& computeProgram)
+LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::DX12SplineRasterPipelineModule(const SplineRendererData& splineData, DXGI_FORMAT depthFormat, const ref<Compute::HLSLComputeProgram>& computeProgram)
 	:m_splineRenderer(splineData.renderer), m_transformHeapHandle(splineData.transformHandle), 
 	m_material(splineData.material), m_depthFormat(depthFormat), m_splineWidth(splineData.renderer->GetWidth()),
 	m_computeProgram(computeProgram)
@@ -71,7 +71,7 @@ QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::DX12SplineRaster
 	m_splineParams.length = m_splineRenderer->GetCurve().InterpolateLength(1.0f);
 }
 
-bool QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(const ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;
 	//Create vertex buffer
@@ -110,7 +110,7 @@ bool QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(
 
 	//Shader Part
 
-	auto program = std::dynamic_pointer_cast<QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(m_material->GetMaterial()->GetProgram());
+	auto program = std::dynamic_pointer_cast<LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(m_material->GetMaterial()->GetProgram());
 	m_rootSignature = program->GetRootSignature();
 	auto vertexShader = program->GetVertexShader();
 	auto pixelShader = program->GetPixelShader();
@@ -214,7 +214,7 @@ bool QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Render(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle, D3D12_GPU_DESCRIPTOR_HANDLE lightHandle)
+void LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Render(ComPtr<ID3D12GraphicsCommandList7>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE camHandle, D3D12_GPU_DESCRIPTOR_HANDLE lightHandle)
 {
 	if (m_splineRenderer->IsDirty()) {
 		m_splineParams.startPoint = m_splineRenderer->GetCurve().m_point1;
@@ -269,7 +269,7 @@ void QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Render(ComP
 	commandList->DrawInstanced(m_splineRenderer->GetSegments() + 1, 1, 0, 0);
 }
 
-UInt32 QuantumEngine::Rendering::DX12::DX12SplineRasterPipelineModule::BindDescriptorToResources(const ComPtr<ID3D12DescriptorHeap>& descriptorHeap, UInt32 offset)
+UInt32 LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::BindDescriptorToResources(const ComPtr<ID3D12DescriptorHeap>& descriptorHeap, UInt32 offset)
 {
 	auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = descriptorHeap->GetCPUDescriptorHandleForHeapStart();

@@ -4,7 +4,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering::DX12::Compute {
+namespace LuxonEngine::Rendering::DX12::Compute {
 	class HLSLComputeProgram : public HLSLShaderProgram
 	{
 	public:

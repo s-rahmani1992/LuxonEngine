@@ -1,10 +1,10 @@
 #pragma once
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 
 	class Renderer {

@@ -3,11 +3,11 @@
 #include "Vector3.h"
 #include <vector>
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUMeshController;
 }
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	struct Vertex {
 		Vector3 position;
 		Vector2 uv;

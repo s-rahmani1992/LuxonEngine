@@ -6,11 +6,11 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GBufferRTReflectionRenderer;
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	class DX12MeshController;
 	class HLSLMaterial;
 	struct EntityGBufferData;

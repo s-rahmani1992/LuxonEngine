@@ -1,12 +1,12 @@
 #include "Matrix4.h"
 #include "Vector3.h"
 
-QuantumEngine::Matrix4::Matrix4(const std::initializer_list<Float>& values)
+LuxonEngine::Matrix4::Matrix4(const std::initializer_list<Float>& values)
 {
 	std::copy(values.begin(), values.end(), m_values);
 }
 
-QuantumEngine::Matrix4::Matrix4()
+LuxonEngine::Matrix4::Matrix4()
 	:Matrix4({
 	1.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
@@ -16,7 +16,7 @@ QuantumEngine::Matrix4::Matrix4()
 {
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::operator*(const Matrix4& matrixB)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::operator*(const Matrix4& matrixB)
 {
 	Float newMat[16];
 
@@ -39,14 +39,14 @@ QuantumEngine::Matrix4 QuantumEngine::Matrix4::operator*(const Matrix4& matrixB)
 	return mat;
 }
 
-QuantumEngine::Vector3 QuantumEngine::Matrix4::operator*(const Vector3& vector)
+LuxonEngine::Vector3 LuxonEngine::Matrix4::operator*(const Vector3& vector)
 {
 	return Vector3(m_values[0] * vector.x + m_values[1] * vector.y + m_values[2] * vector.z,
 		m_values[4] * vector.x + m_values[5] * vector.y + m_values[6] * vector.z,
 		m_values[8] * vector.x + m_values[9] * vector.y + m_values[10] * vector.z);
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::Scale(const Vector3& scale)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::Scale(const Vector3& scale)
 {
 	return Matrix4{
 		scale.x, 0.0f, 0.0f, 0.0f,
@@ -56,7 +56,7 @@ QuantumEngine::Matrix4 QuantumEngine::Matrix4::Scale(const Vector3& scale)
 	};
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::Translate(const Vector3& translate)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::Translate(const Vector3& translate)
 {
 	return Matrix4{
 		1.0f, 0.0f, 0.0f, translate.x,
@@ -66,7 +66,7 @@ QuantumEngine::Matrix4 QuantumEngine::Matrix4::Translate(const Vector3& translat
 	};
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::Rotate(const Vector3& axis, Float angleDeg)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::Rotate(const Vector3& axis, Float angleDeg)
 {
 	float cT = cosf(angleDeg * (PI / 180));
 	float sT = sinf(angleDeg * (PI / 180));
@@ -79,7 +79,7 @@ QuantumEngine::Matrix4 QuantumEngine::Matrix4::Rotate(const Vector3& axis, Float
 	};
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::PerspectiveProjection(Float near, Float far, Float aspect, Float FOV)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::PerspectiveProjection(Float near, Float far, Float aspect, Float FOV)
 {
 	float tanT = 1.0f / tanf(FOV * (PI / 360));
 	return Matrix4{
@@ -90,7 +90,7 @@ QuantumEngine::Matrix4 QuantumEngine::Matrix4::PerspectiveProjection(Float near,
 	};
 }
 
-QuantumEngine::Matrix4 QuantumEngine::Matrix4::InversePerspectiveProjection(Float near, Float far, Float aspect, Float FOV)
+LuxonEngine::Matrix4 LuxonEngine::Matrix4::InversePerspectiveProjection(Float near, Float far, Float aspect, Float FOV)
 {
 	float tanT = 1.0f / tanf(FOV * (PI / 360));
 	return Matrix4{

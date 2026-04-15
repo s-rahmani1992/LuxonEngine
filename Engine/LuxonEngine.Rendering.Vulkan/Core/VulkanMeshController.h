@@ -2,11 +2,11 @@
 #include "vulkan-pch.h"
 #include "Rendering/GPUMeshController.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	namespace RayTracing {
 		struct VulkanBLASBuildInfo;
 	}

@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Behaviour.h"
 
-class FrameRateLogger : public QuantumEngine::Behaviour
+class FrameRateLogger : public LuxonEngine::Behaviour
 {
 public:
 	virtual void Update(Float deltaTime) override;

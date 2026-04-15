@@ -9,7 +9,7 @@
 #include "VulkanShaderRegistery.h"
 #include "Core/VulkanDeviceManager.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::VulkanGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
+LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::VulkanGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
 	:m_instance(vkInstance), 
 	m_logicDevice(VulkanDeviceManager::Instance()->GetGraphicDevice()),
 	m_physicalDevice(VulkanDeviceManager::Instance()->GetPhysicalDevice()),
@@ -20,7 +20,7 @@ QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::VulkanGraphicContext(con
 	vkGetDeviceQueue(m_logicDevice, surfaceQueueFamilyIndex, 0, &m_presentQueue);
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
+LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
 {
 	vkDestroyBuffer(m_logicDevice, m_lightBuffer, nullptr);
 	vkFreeMemory(m_logicDevice, m_lightBufferMemory, nullptr);
@@ -40,17 +40,17 @@ QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)
 {
 	m_assetManager = std::dynamic_pointer_cast<VulkanAssetManager>(assetManager);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
 {
 	m_shaderRegistery = std::dynamic_pointer_cast<VulkanShaderRegistery>(shaderRegistery);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuffer(const SceneLightData& lightData)
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuffer(const SceneLightData& lightData)
 {
 	UInt32 lightSize = 10 * (sizeof(DirectionalLight) + sizeof(PointLight)) + 2 * sizeof(UInt32);
 	bool result =  m_bufferFactory->CreateBuffer(lightSize, 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -75,7 +75,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuff
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::UpdateCameraBuffer()
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::UpdateCameraBuffer()
 {
 	void* data;
 	m_cameraGPU.inverseProjectionMatrix = m_camera->GetTransform()->Matrix() * m_camera->InverseProjectionMatrix();
@@ -87,7 +87,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::UpdateCameraBuffer(
 	vkUnmapMemory(m_logicDevice, m_cameraBufferMemory);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag)
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag)
 {
 	// Create Surface
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo
@@ -179,7 +179,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCommandObjects()
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCommandObjects()
 {
 	// Create Command Pool and Command Buffer
 	VkCommandPoolCreateInfo poolInfo{
@@ -208,7 +208,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCommandOb
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeFencesAndSemaphores()
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeFencesAndSemaphores()
 {
 	// Create Fences and Semaphores
 	VkSemaphoreCreateInfo semaphoreInfo{
@@ -238,7 +238,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeFencesAnd
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCameraBuffer(const ref<Camera>& camera)
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCameraBuffer(const ref<Camera>& camera)
 {
 	// Create Uniform Buffer for Camera
 	m_bufferFactory->CreateBuffer(sizeof(CameraGPU), 1

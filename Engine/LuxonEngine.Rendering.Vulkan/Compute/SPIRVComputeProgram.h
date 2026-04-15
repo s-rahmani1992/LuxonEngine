@@ -2,7 +2,7 @@
 #include "vulkan-pch.h"
 #include "Core/SPIRVShaderProgram.h"
 
-namespace QuantumEngine::Rendering::Vulkan::Compute {
+namespace LuxonEngine::Rendering::Vulkan::Compute {
 	class SPIRVComputeProgram : public SPIRVShaderProgram {
 	public:
 		SPIRVComputeProgram(Byte* bytecode, UInt64 codeSize, VkDevice device);

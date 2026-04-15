@@ -2,7 +2,7 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
-namespace QuantumEngine::Core {
+namespace LuxonEngine::Core {
 class BezierCurve{
     public:
         BezierCurve(const Vector3& point1, const Vector3& point2, const Vector3& point3);

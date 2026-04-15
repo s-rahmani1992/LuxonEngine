@@ -5,7 +5,7 @@
 
 struct aiMesh;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Model3DAsset;
 	class Mesh;
 

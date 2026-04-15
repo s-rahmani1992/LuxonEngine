@@ -4,14 +4,14 @@
 #include <map>
 #include <set>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 	class Texture2D;
 }
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	class DX12MeshController;
 	class DX12CommandExecuter;
 	class DX12Texture2DController;

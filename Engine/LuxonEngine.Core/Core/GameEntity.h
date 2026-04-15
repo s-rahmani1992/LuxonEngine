@@ -1,7 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 	class Transform;
 
@@ -11,7 +11,7 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity {
 	public:
 		GameEntity(const ref<Transform>& transform

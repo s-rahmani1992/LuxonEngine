@@ -2,7 +2,7 @@
 #include "vulkan-pch.h"
 #include <Rendering/Material.h>
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	struct PushConstantVariableData {
 		std::string name;
 		SpvReflectBlockVariable variableDesc;

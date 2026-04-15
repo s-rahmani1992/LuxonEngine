@@ -12,7 +12,7 @@
 #include "Core/Scene.h"
 #include "DX12LightManager.h"
 
-bool QuantumEngine::Rendering::DX12::DX12RayTracingContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
+bool LuxonEngine::Rendering::DX12::DX12RayTracingContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
 	if (InitializeCommandObjects(device) == false)
 		return false;
@@ -23,7 +23,7 @@ bool QuantumEngine::Rendering::DX12::DX12RayTracingContext::Initialize(const Com
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12RayTracingContext::PrepareScene(const ref<Scene>& scene)
+bool LuxonEngine::Rendering::DX12::DX12RayTracingContext::PrepareScene(const ref<Scene>& scene)
 {
 	if (InitializeCamera(scene->mainCamera) == false)
 		return false;
@@ -37,7 +37,7 @@ bool QuantumEngine::Rendering::DX12::DX12RayTracingContext::PrepareScene(const r
     return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12RayTracingContext::Render()
+void LuxonEngine::Rendering::DX12::DX12RayTracingContext::Render()
 {
 	UpdateDataHeaps();
 
@@ -114,7 +114,7 @@ void QuantumEngine::Rendering::DX12::DX12RayTracingContext::Render()
 	m_swapChain->Present(1, 0);
 }
 
-void QuantumEngine::Rendering::DX12::DX12RayTracingContext::PrepareRayTracingPipeline(const ref<Material>& rtGlobalMaterial)
+void LuxonEngine::Rendering::DX12::DX12RayTracingContext::PrepareRayTracingPipeline(const ref<Material>& rtGlobalMaterial)
 {
 	for (auto& entity : m_entityGPUData) {
 		auto rtComponent = entity.gameEntity->GetRayTracingComponent();

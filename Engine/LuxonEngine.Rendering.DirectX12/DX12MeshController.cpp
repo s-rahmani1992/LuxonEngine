@@ -3,23 +3,23 @@
 #include "Core/Mesh.h"
 #include "DX12Utilities.h"
 
-D3D12_INPUT_ELEMENT_DESC QuantumEngine::Rendering::DX12::DX12MeshController::s_inputElementDescs[3] = {
+D3D12_INPUT_ELEMENT_DESC LuxonEngine::Rendering::DX12::DX12MeshController::s_inputElementDescs[3] = {
 	{ "position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "normal", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
-D3D12_INPUT_LAYOUT_DESC QuantumEngine::Rendering::DX12::DX12MeshController::s_layoutDesc = {
+D3D12_INPUT_LAYOUT_DESC LuxonEngine::Rendering::DX12::DX12MeshController::s_layoutDesc = {
 	.pInputElementDescs = s_inputElementDescs,
 	.NumElements = 3,
 };
 
-QuantumEngine::Rendering::DX12::DX12MeshController::DX12MeshController(const ref<Mesh>& mesh)
+LuxonEngine::Rendering::DX12::DX12MeshController::DX12MeshController(const ref<Mesh>& mesh)
 	:m_mesh(mesh)
 {
 }
 
-D3D12_SHADER_RESOURCE_VIEW_DESC QuantumEngine::Rendering::DX12::DX12MeshController::GetVertexSRVDesc()
+D3D12_SHADER_RESOURCE_VIEW_DESC LuxonEngine::Rendering::DX12::DX12MeshController::GetVertexSRVDesc()
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC vertexView{
 	.Format = DXGI_FORMAT_UNKNOWN,
@@ -36,7 +36,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC QuantumEngine::Rendering::DX12::DX12MeshControll
 	return vertexView;
 }
 
-D3D12_SHADER_RESOURCE_VIEW_DESC QuantumEngine::Rendering::DX12::DX12MeshController::GetIndexSRVDesc()
+D3D12_SHADER_RESOURCE_VIEW_DESC LuxonEngine::Rendering::DX12::DX12MeshController::GetIndexSRVDesc()
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC indexView{
 	.Format = DXGI_FORMAT_UNKNOWN,
@@ -53,7 +53,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC QuantumEngine::Rendering::DX12::DX12MeshControll
 	return indexView;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12MeshController::Initialize(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12MeshController::Initialize(const ComPtr<ID3D12Device10>& device)
 {
 	//Create upload and vertex buffers
 	D3D12_HEAP_PROPERTIES uploadHeapProps
@@ -143,7 +143,7 @@ bool QuantumEngine::Rendering::DX12::DX12MeshController::Initialize(const ComPtr
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12MeshController::CopyToGPU(const ComPtr<ID3D12Resource2>& uploadBuffer, ComPtr<ID3D12GraphicsCommandList7>& uploadCommandList, UInt32 offset, Byte* mapData)
+void LuxonEngine::Rendering::DX12::DX12MeshController::CopyToGPU(const ComPtr<ID3D12Resource2>& uploadBuffer, ComPtr<ID3D12GraphicsCommandList7>& uploadCommandList, UInt32 offset, Byte* mapData)
 {
 	UInt32 vertexSize = sizeof(Vertex) * m_mesh->GetVertexCount();
 	UInt32 indexSize = sizeof(UInt32) * m_mesh->GetIndexCount();
@@ -154,7 +154,7 @@ void QuantumEngine::Rendering::DX12::DX12MeshController::CopyToGPU(const ComPtr<
 	uploadCommandList->CopyBufferRegion(m_indexBuffer, 0, uploadBuffer.Get(), offset + vertexSize, indexSize);
 }
 
-ComPtr<ID3D12Resource2> QuantumEngine::Rendering::DX12::DX12MeshController::CreateBLASResource(const ComPtr<ID3D12GraphicsCommandList7>& commandList, ComPtr<ID3D12Resource2>& scratchBuffer)
+ComPtr<ID3D12Resource2> LuxonEngine::Rendering::DX12::DX12MeshController::CreateBLASResource(const ComPtr<ID3D12GraphicsCommandList7>& commandList, ComPtr<ID3D12Resource2>& scratchBuffer)
 {
 	ComPtr<ID3D12Device10> device;
 
@@ -212,14 +212,14 @@ ComPtr<ID3D12Resource2> QuantumEngine::Rendering::DX12::DX12MeshController::Crea
 	return BLASBuffer;
 }
 
-void QuantumEngine::Rendering::DX12::DX12MeshController::Release() {
+void LuxonEngine::Rendering::DX12::DX12MeshController::Release() {
 	m_vertexHeap->Release();
 	m_indexHeap->Release();
 	m_vertexBuffer->Release();
 	m_indexBuffer->Release();
 }
 
-D3D12_RAYTRACING_GEOMETRY_DESC QuantumEngine::Rendering::DX12::DX12MeshController::GetRTGeometryDesc() const
+D3D12_RAYTRACING_GEOMETRY_DESC LuxonEngine::Rendering::DX12::DX12MeshController::GetRTGeometryDesc() const
 {
 	return D3D12_RAYTRACING_GEOMETRY_DESC {
 		.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES,

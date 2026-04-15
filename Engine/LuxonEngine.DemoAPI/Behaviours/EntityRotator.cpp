@@ -1,6 +1,6 @@
 #include "EntityRotator.h"
 
-EntityRotator::EntityRotator(ref<QuantumEngine::Transform>& transform, float speed)
+EntityRotator::EntityRotator(ref<LuxonEngine::Transform>& transform, float speed)
 	:m_transform(transform), m_speed(speed), m_currentAngle(0)
 {
 }

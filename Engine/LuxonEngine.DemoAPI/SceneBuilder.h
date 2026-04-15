@@ -2,7 +2,7 @@
 #include <BasicTypes.h>
 #include <string>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Scene;
 
 	namespace Rendering {
@@ -17,9 +17,9 @@ namespace QuantumEngine {
 	}
 }
 
-using namespace QuantumEngine;
-namespace Render = QuantumEngine::Rendering;
-namespace Platform = QuantumEngine::Platform;
+using namespace LuxonEngine;
+namespace Render = LuxonEngine::Rendering;
+namespace Platform = LuxonEngine::Platform;
 
 class SceneBuilder
 {

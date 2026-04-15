@@ -2,12 +2,12 @@
 #include "../BasicTypes.h"
 #include <vector>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 	class Texture2D;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUAssetManager {
 	public:
 		virtual void UploadMeshToGPU(const ref<Mesh>& mesh) = 0;

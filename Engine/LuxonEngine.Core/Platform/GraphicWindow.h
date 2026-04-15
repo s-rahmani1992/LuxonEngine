@@ -3,7 +3,7 @@
 #include "CommonWin.h"
 #include <string>
 
-namespace QuantumEngine::Platform {
+namespace LuxonEngine::Platform {
 	/// <summary>
 	/// Properties used for window creation
 	/// </summary>

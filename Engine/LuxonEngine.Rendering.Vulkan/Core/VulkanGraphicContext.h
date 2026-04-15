@@ -3,13 +3,13 @@
 #include "vulkan-pch.h"
 #include "Rendering/GraphicContext.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	namespace Platform {
 		class GraphicWindow;
 	}
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory;
 	class VulkanAssetManager;
 	class VulkanShaderRegistery;
@@ -33,7 +33,7 @@ namespace QuantumEngine::Rendering::Vulkan {
 
 	private:
 
-		ref<QuantumEngine::Platform::GraphicWindow> m_window;		
+		ref<LuxonEngine::Platform::GraphicWindow> m_window;		
 		VkInstance m_instance;
 		VkPhysicalDevice m_physicalDevice;
 		

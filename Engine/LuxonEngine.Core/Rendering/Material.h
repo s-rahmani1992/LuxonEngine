@@ -6,14 +6,14 @@
 #include "../Core/Color.h"
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Texture2D;
 	namespace Rendering {
 		class ShaderProgram;
 	}
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	struct MaterialValueData {
 		UInt32 fieldIndex;
 		UInt32 size;

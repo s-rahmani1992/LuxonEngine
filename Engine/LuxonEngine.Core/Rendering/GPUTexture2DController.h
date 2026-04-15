@@ -1,6 +1,6 @@
 #pragma once
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GPUTexture2DController {
 	public:
 		virtual ~GPUTexture2DController(){}

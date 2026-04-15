@@ -2,14 +2,14 @@
 #include "vulkan-pch.h"
 #include "VulkanGraphicContext.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	namespace Rendering
 	{
 		class SplineRenderer;
 	}
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanSplinePipelineModule;
 	class VulkanGBufferPipelineModule;
 

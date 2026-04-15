@@ -7,11 +7,11 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 }
 
-namespace QuantumEngine::Rendering::DX12::RayTracing {
+namespace LuxonEngine::Rendering::DX12::RayTracing {
 	class DX12RayTracingMaterial {
 	public:
 		DX12RayTracingMaterial(const ref<Material>& material, const ref<RayTracing::HLSLRayTracingProgram>& program);

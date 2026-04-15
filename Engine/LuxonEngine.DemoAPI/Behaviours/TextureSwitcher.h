@@ -5,9 +5,9 @@
 #include <Core/Vector3.h>
 #include <Rendering/Material.h>
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
-class TextureSwitcher : public QuantumEngine::Behaviour
+class TextureSwitcher : public LuxonEngine::Behaviour
 {
 public:
 	TextureSwitcher(ref<Rendering::Material>& material, const std::string& fieldName, const std::vector<ref<Texture2D>>& textures);

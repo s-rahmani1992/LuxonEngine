@@ -2,7 +2,7 @@
 #include "../BasicTypes.h"
 #include <string>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 
 	/// <summary>
 	/// struct representing a 3D vector
@@ -66,4 +66,4 @@ namespace QuantumEngine {
 	};
 }
 
-QuantumEngine::Vector3 operator*(Float fValue, const QuantumEngine::Vector3& vector);
+LuxonEngine::Vector3 operator*(Float fValue, const LuxonEngine::Vector3& vector);

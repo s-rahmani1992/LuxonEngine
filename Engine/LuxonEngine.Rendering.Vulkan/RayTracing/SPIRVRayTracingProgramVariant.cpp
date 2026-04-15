@@ -2,7 +2,7 @@
 #include "SPIRVRayTracingProgramVariant.h"
 #include "Core/VulkanDeviceManager.h"
 
-QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::SPIRVRayTracingProgramVariant(Byte* byteCode, UInt32 codesize)
+LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::SPIRVRayTracingProgramVariant(Byte* byteCode, UInt32 codesize)
 	:m_byteCode(byteCode), m_codeSize(codesize),
 	m_device(VulkanDeviceManager::Instance()->GetGraphicDevice())
 {
@@ -20,13 +20,13 @@ QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::SPI
 	auto shaderStageFlags = 0;
 }
 
-QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::~SPIRVRayTracingProgramVariant()
+LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::~SPIRVRayTracingProgramVariant()
 {
 	vkDestroyShaderModule(m_device, m_rtModule, nullptr);
 	delete[] m_byteCode;
 }
 
-std::vector<VkPipelineShaderStageCreateInfo> QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::GetStages()
+std::vector<VkPipelineShaderStageCreateInfo> LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::GetStages()
 {
 	SpvReflectEntryPoint* rayGenEntryPoint = nullptr;
 	SpvReflectEntryPoint* missEntryPoint = nullptr;
@@ -105,7 +105,7 @@ std::vector<VkPipelineShaderStageCreateInfo> QuantumEngine::Rendering::Vulkan::R
 	return stages;
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::GetBindingAndSet(const std::string& name, UInt32* binding, UInt32* set)
+void LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgramVariant::GetBindingAndSet(const std::string& name, UInt32* binding, UInt32* set)
 {
 	uint32_t binding_count = 0;
 	spvReflectEnumerateDescriptorBindings(&m_reflectionModule, &binding_count, nullptr);

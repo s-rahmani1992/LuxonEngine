@@ -2,7 +2,7 @@
 #include "../BasicTypes.h"
 #include"../Platform/GraphicWindow.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	using namespace Platform;
 
 	class GraphicContext;

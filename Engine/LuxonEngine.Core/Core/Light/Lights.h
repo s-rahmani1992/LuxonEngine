@@ -3,7 +3,7 @@
 #include "../Color.h"
 #include "../Vector2.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	struct Attenuation {
 		Float c0 = 0.0f;
 		Float c1 = 0.0f;

@@ -2,7 +2,7 @@
 #include <initializer_list>
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	struct Vector3;
 
 	struct Matrix4 {

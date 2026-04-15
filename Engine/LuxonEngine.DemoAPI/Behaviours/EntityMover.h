@@ -4,15 +4,15 @@
 #include <Core/Transform.h>
 #include <Core/Vector3.h>
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
-class EntityMover : public QuantumEngine::Behaviour
+class EntityMover : public LuxonEngine::Behaviour
 {
 public:
-	EntityMover(ref<QuantumEngine::Transform>& transform, Vector3 point1, Vector3 point2, float start, float speed);
+	EntityMover(ref<LuxonEngine::Transform>& transform, Vector3 point1, Vector3 point2, float start, float speed);
 	virtual void Update(Float deltaTime) override;
 private:
-	ref<QuantumEngine::Transform> m_transform;
+	ref<LuxonEngine::Transform> m_transform;
 	Vector3 m_points[2];
 	Vector3 m_currentPosition;
 	UInt8 m_currentTargetIndex;

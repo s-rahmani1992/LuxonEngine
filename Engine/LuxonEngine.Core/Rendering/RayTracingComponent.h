@@ -1,11 +1,11 @@
 #pragma once
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 
 	class RayTracingComponent {

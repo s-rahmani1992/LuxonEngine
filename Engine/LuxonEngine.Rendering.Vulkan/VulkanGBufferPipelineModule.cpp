@@ -10,7 +10,7 @@
 #include "Core/VulkanMeshController.h"
 #include "Core/VulkanUtilities.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::VulkanGBufferPipelineModule()
+LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::VulkanGBufferPipelineModule()
 	:m_device(VulkanDeviceManager::Instance()->GetGraphicDevice()),
 	m_positionFormat(VK_FORMAT_R16G16B16A16_SFLOAT), 
 	m_normalFormat(VK_FORMAT_R16G16B16A16_UNORM), 
@@ -18,7 +18,7 @@ QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::VulkanGBufferPipe
 {
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::~VulkanGBufferPipelineModule()
+LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::~VulkanGBufferPipelineModule()
 {
 	vkDestroyImageView(m_device, m_positionImageView, nullptr);
 	vkDestroyImage(m_device, m_positionImage, nullptr);
@@ -37,7 +37,7 @@ QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::~VulkanGBufferPip
 	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::InitializePipeline(const std::vector<VKEntityGPUData>& entities, const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram, UInt32 width, UInt32 height, VkImageView depthView)
+bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::InitializePipeline(const std::vector<VKEntityGPUData>& entities, const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram, UInt32 width, UInt32 height, VkImageView depthView)
 {
 	m_gBufferProgram = gBufferProgram;
 	m_depthView = depthView;
@@ -68,7 +68,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::InitializePi
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::WriteBuffer(const std::string& name, VkBuffer buffer, UInt32 stride)
+void LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::WriteBuffer(const std::string& name, VkBuffer buffer, UInt32 stride)
 {
 	auto descriptorData = m_gBufferProgram->GetReflection().GetDescriptorData(name);
 
@@ -97,7 +97,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::WriteBuffer(
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
 {
 	vkCmdBeginRenderPass(commandBuffer, &m_renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -134,7 +134,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::RenderComman
 	vkCmdEndRenderPass(commandBuffer);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRenderPass()
+bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRenderPass()
 {
 	VkAttachmentDescription attachments[4] = {};
 
@@ -207,7 +207,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRender
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateFrameBuffers(UInt32 width, UInt32 height)
+bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateFrameBuffers(UInt32 width, UInt32 height)
 {
 	m_width = width;
 	m_height = height;
@@ -301,7 +301,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateFrameB
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRasterPipeline()
+bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRasterPipeline()
 {
 	VkVertexInputBindingDescription bindingDescriptions = {
 	.binding = 0,
@@ -454,7 +454,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRaster
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateDescriptorSets(const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram)
+bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateDescriptorSets(const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram)
 {
 	std::vector<VkDescriptorPoolSize> poolSizes;
 	poolSizes.reserve(20);

@@ -5,15 +5,15 @@
 #include "../Rendering/GPUDeviceManager.h"
 #include <vector>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Behaviour;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class GraphicContext;
 }
 
-namespace QuantumEngine::Platform {
+namespace LuxonEngine::Platform {
 	struct WindowProperties;
 	class GraphicWindow;
 

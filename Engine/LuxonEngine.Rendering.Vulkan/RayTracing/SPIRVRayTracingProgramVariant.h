@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	class SPIRVRayTracingProgramVariant {
 	public:
 		SPIRVRayTracingProgramVariant(Byte* byteCode, UInt32 codesize);

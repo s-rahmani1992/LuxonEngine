@@ -1,11 +1,11 @@
 #pragma once
 #include "DX12GraphicContext.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class SplineRenderer;
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	namespace RayTracing {
 		class DX12RayTracingPipelineModule;
 	}
@@ -43,7 +43,7 @@ namespace QuantumEngine::Rendering::DX12 {
 	class DX12HybridContext : public DX12GraphicContext
 	{
 	public:
-		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<QuantumEngine::Platform::GraphicWindow>& window)
+		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window)
 			: DX12GraphicContext(bufferCount, m_commandExecuter, window) {
 		}
 

@@ -20,14 +20,14 @@
 #include "Core/Texture2D.h"
 #include "Core/VulkanTexture2DController.h"
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::VulkanRayTracingPipelineModule()
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::VulkanRayTracingPipelineModule()
 	: m_device(VulkanDeviceManager::Instance()->GetGraphicDevice()),
 	m_bufferFactory(VulkanDeviceManager::Instance()->GetBufferFactory()),
 	m_graphicsQueue(VulkanDeviceManager::Instance()->GetGraphicsQueue())
 {
 }
 
-QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::~VulkanRayTracingPipelineModule()
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::~VulkanRayTracingPipelineModule()
 {
 	vkDestroyBuffer(m_device, m_scratchBuffer, nullptr);
 	vkFreeMemory(m_device, m_scratchMemory, nullptr);
@@ -42,7 +42,7 @@ QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::~V
 	vkFreeMemory(m_device, m_SBTMemory, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, VkBuffer transformBuffer, const VkExtent2D& extent)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, VkBuffer transformBuffer, const VkExtent2D& extent)
 {
 	m_extent = extent;
 	VkCommandPool commandPool;
@@ -419,7 +419,7 @@ bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModul
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
 {
 	for (auto& [variantProgram, matResourceData]  : m_resourceMaps) {
 		for (auto& [material, index] : matResourceData.materialIndexMap) {
@@ -481,7 +481,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModul
 	vkCmdTraceRaysPtr(commandBuffer, &m_rayGenRegion, &m_missRegion, &m_hitRegion, &m_callableRegion, m_extent.width, m_extent.height, 1);
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::UpdateTLAS(VkCommandBuffer commandBuffer)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::UpdateTLAS(VkCommandBuffer commandBuffer)
 {
 	Matrix4 m;
 
@@ -522,7 +522,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModul
 	buildAccelerationStructurePtr(commandBuffer, 1, &buildCmdInfo, &pRangeInfo);
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetImage(const std::string& name, const VkImageView imageView)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetImage(const std::string& name, const VkImageView imageView)
 {
 	auto descriptorData = m_reflection.GetDescriptorData(name);
 
@@ -543,7 +543,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModul
 	}
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteBuffers(const std::string name, const VkBuffer buffer)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteBuffers(const std::string name, const VkBuffer buffer)
 {
 	auto descriptorData = m_reflection.GetDescriptorData(name);
 
@@ -572,7 +572,7 @@ void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModul
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteArrayBuffer(const std::string name, const std::vector<VkBuffer>& buffers)
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteArrayBuffer(const std::string name, const std::vector<VkBuffer>& buffers)
 {
 	auto descriptorData = m_reflection.GetDescriptorData(name);
 

@@ -8,9 +8,9 @@
 #include "SceneBuilder.h"
 #include <Core/Scene.h>
 
-namespace OS = QuantumEngine::Platform; 
-namespace DX12 = QuantumEngine::Rendering::DX12;
-namespace VK = QuantumEngine::Rendering::Vulkan;
+namespace OS = LuxonEngine::Platform; 
+namespace DX12 = LuxonEngine::Rendering::DX12;
+namespace VK = LuxonEngine::Rendering::Vulkan;
 
 bool Run_Simple_Scene(HWND parentWindow, Graphics_API graphicApi, RenderMode renderMode)
 {

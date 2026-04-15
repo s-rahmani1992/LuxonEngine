@@ -1,7 +1,7 @@
 #pragma once
 #include "DX12GraphicContext.h"
 
-namespace QuantumEngine::Rendering::DX12
+namespace LuxonEngine::Rendering::DX12
 {
 	namespace RayTracing {
 		class DX12RayTracingPipelineModule;
@@ -10,7 +10,7 @@ namespace QuantumEngine::Rendering::DX12
 	class DX12RayTracingContext : public DX12GraphicContext
 	{
 	public:
-		DX12RayTracingContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<QuantumEngine::Platform::GraphicWindow>& window) 
+		DX12RayTracingContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window) 
 			: DX12GraphicContext(bufferCount, m_commandExecuter, window) {}
 		
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) override;

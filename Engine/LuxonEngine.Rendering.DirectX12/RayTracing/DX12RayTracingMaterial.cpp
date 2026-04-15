@@ -6,7 +6,7 @@
 #include "Core/Texture2D.h"
 #include "DX12Texture2DController.h"
 
-QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::DX12RayTracingMaterial(const ref<Material>& material, const ref<RayTracing::HLSLRayTracingProgram>& program)
+LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::DX12RayTracingMaterial(const ref<Material>& material, const ref<RayTracing::HLSLRayTracingProgram>& program)
 	: m_material(material), m_program(program)
 {
 	program->GetRootSignature()->GetDevice(IID_PPV_ARGS(&m_device));
@@ -79,12 +79,12 @@ QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::DX12RayTraci
 	}
 }
 
-QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::~DX12RayTracingMaterial()
+LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::~DX12RayTracingMaterial()
 {
 	delete[] m_internalData;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::GetNonGlobalResourceCounts()
+UInt32 LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::GetNonGlobalResourceCounts()
 {
 	UInt32 count = 0;
 	auto& resourceVariables = std::dynamic_pointer_cast<HLSLRayTracingProgram>(m_material->GetProgram())->GetReflectionData()->GetResourceVariables();
@@ -103,7 +103,7 @@ UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::GetNo
 	return count;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkMaterialToDescriptorHeap(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
+UInt32 LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkMaterialToDescriptorHeap(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
 {
 	auto cpuHandleStart = heap->GetCPUDescriptorHandleForHeapStart();
 	auto gpuHandleStart = heap->GetGPUDescriptorHandleForHeapStart();
@@ -133,7 +133,7 @@ UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkM
 	return boundResourceCount;
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetDescriptorHandle(const std::string& fieldName, const D3D12_GPU_DESCRIPTOR_HANDLE& handle)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetDescriptorHandle(const std::string& fieldName, const D3D12_GPU_DESCRIPTOR_HANDLE& handle)
 {
 	auto it = std::find_if(
 		m_heapValues.begin(),
@@ -147,7 +147,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetDesc
 		(*it).gpuHandle = handle;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkUserMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
+UInt32 LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkUserMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
 {
 	auto cpuHandleStart = heap->GetCPUDescriptorHandleForHeapStart();
 	auto gpuHandleStart = heap->GetGPUDescriptorHandleForHeapStart();
@@ -176,7 +176,7 @@ UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkU
 	return boundResourceCount;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkInternalMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
+UInt32 LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkInternalMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
 {
 	auto cpuHandleStart = heap->GetCPUDescriptorHandleForHeapStart();
 	auto gpuHandleStart = heap->GetGPUDescriptorHandleForHeapStart();
@@ -205,7 +205,7 @@ UInt32 QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkI
 	return boundResourceCount;
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetCBV(const std::string& name, const D3D12_CONSTANT_BUFFER_VIEW_DESC& cbv)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetCBV(const std::string& name, const D3D12_CONSTANT_BUFFER_VIEW_DESC& cbv)
 {
 	auto it = std::find_if(m_heapValues.begin(), m_heapValues.end(), [name](const HeapData& h) {
 		return h.fieldName == name;
@@ -215,7 +215,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetCBV(
 		m_device->CreateConstantBufferView(&cbv, (*it).cpuHandle);
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetSRV(const std::string& name, const ComPtr<ID3D12Resource2>& resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& srv)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetSRV(const std::string& name, const ComPtr<ID3D12Resource2>& resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& srv)
 {
 	auto it = std::find_if(m_heapValues.begin(), m_heapValues.end(), [name](const HeapData& h) {
 		return h.fieldName == name;
@@ -225,7 +225,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetSRV(
 		m_device->CreateShaderResourceView(resource.Get(), &srv, (*it).cpuHandle);
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::CopyVariableData(Byte* dst)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::CopyVariableData(Byte* dst)
 {
 	auto reflectionData = m_program->GetReflectionData();
 	auto& rootConstantList = reflectionData->GetRootConstants();
@@ -251,7 +251,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::CopyVar
 	}
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::BindParameters(ComPtr<ID3D12GraphicsCommandList7>& commandList)
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::BindParameters(ComPtr<ID3D12GraphicsCommandList7>& commandList)
 {
 	for (auto& rField : m_constantRegisterValues)
 		commandList->SetComputeRoot32BitConstants(m_constantRootParameterIndex, rField.size/4, rField.dataLocation, rField.offset32Bits);
@@ -261,7 +261,7 @@ void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::BindPar
 	}
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::UpdateModifiedParameters()
+void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::UpdateModifiedParameters()
 {
 	// Update Modified Textures
 	for (auto& modified : m_material->GetModifiedTextures()) {

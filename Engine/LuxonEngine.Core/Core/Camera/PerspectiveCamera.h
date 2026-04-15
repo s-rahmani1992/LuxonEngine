@@ -1,7 +1,7 @@
 #pragma once
 #include "Camera.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class PerspectiveCamera : public Camera {
 	public:
 		PerspectiveCamera(const ref<Transform>& transform, Float nearZ, Float farZ, Float aspect, Float fovAngleDeg);

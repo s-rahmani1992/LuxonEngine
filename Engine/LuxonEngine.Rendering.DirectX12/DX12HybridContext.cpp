@@ -25,7 +25,7 @@
 #include "DX12MaterialFactory.h"
 #include "RayTracing/DX12RayTracingMaterial.h"
 
-bool QuantumEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
 	if (InitializeCommandObjects(device) == false)
 		return false;
@@ -39,7 +39,7 @@ bool QuantumEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Scene>& scene)
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Scene>& scene)
 {
 	if (InitializeCamera(scene->mainCamera) == false)
 		return false;
@@ -53,7 +53,7 @@ bool QuantumEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<S
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12HybridContext::Render()
+void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 {
 	UpdateDataHeaps();
 
@@ -139,7 +139,7 @@ void QuantumEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_swapChain->Present(1, 0);
 }
 
-bool QuantumEngine::Rendering::DX12::DX12HybridContext::InitializeDepthBuffer()
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeDepthBuffer()
 {
 	// Create Depth Buffer
 	D3D12_RESOURCE_DESC depthResourceDesc;
@@ -190,7 +190,7 @@ bool QuantumEngine::Rendering::DX12::DX12HybridContext::InitializeDepthBuffer()
 	return true;
 }
 
-void QuantumEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
+void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 {
 	UInt32 rasterHeapSize = m_entityGPUData.size() + 1 + 1 + 1; // entity transforms + camera + light + gbuffer output?
 	std::map<ref<Material>, ref<Rasterization::DX12RasterizationMaterial>> usedMaterials;
@@ -201,7 +201,7 @@ void QuantumEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		if (usedMaterials.emplace(material, nullptr).second == false)
 			continue;
 		
-		auto program = std::dynamic_pointer_cast<QuantumEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(material->GetProgram());
+		auto program = std::dynamic_pointer_cast<LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram>(material->GetProgram());
 		auto rasterMaterial = std::make_shared<Rasterization::DX12RasterizationMaterial>(material, program);
 		usedMaterials[material] = rasterMaterial;
 		rasterHeapSize += material->GetTextureFieldCount();

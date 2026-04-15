@@ -3,12 +3,12 @@
 #include "Rendering/GPUTexture2DController.h"
 #include <map>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Texture2D;
 	enum class TextureFormat;
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanTexture2DController : public GPUTexture2DController {
 	public:
 		VulkanTexture2DController(const ref<Texture2D>& texture, const VkDevice device);

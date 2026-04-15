@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory {
 	public:
 		VulkanBufferFactory(const VkDevice device, const VkPhysicalDevice physicalDevice);

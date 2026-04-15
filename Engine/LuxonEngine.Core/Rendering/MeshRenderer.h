@@ -2,11 +2,11 @@
 #include "../BasicTypes.h"
 #include "Renderer.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 }
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 
 	class MeshRenderer : public Renderer 

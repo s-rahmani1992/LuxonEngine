@@ -3,7 +3,7 @@
 #include <BasicTypes.h>
 #include "DX12Utilities.h"
 
-bool QuantumEngine::Rendering::DX12::DX12LightManager::Initialize(const SceneLightData& lights, const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12LightManager::Initialize(const SceneLightData& lights, const ComPtr<ID3D12Device10>& device)
 {
 	UInt32 lightSize = CONSTANT_BUFFER_ALIGHT(10 * (sizeof(DirectionalLight) + sizeof(PointLight)) + 2 * sizeof(UInt32));
 

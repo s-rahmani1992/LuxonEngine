@@ -13,24 +13,24 @@
 #include "Rendering/RayTracingComponent.h"
 #include "Core/Scene.h"
 
-QuantumEngine::Rendering::DX12::DX12GraphicContext::DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& commandExecuter, ref<QuantumEngine::Platform::GraphicWindow>& window)
+LuxonEngine::Rendering::DX12::DX12GraphicContext::DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window)
 	:m_bufferCount(bufferCount), m_commandExecuter(commandExecuter), m_window(window),
 	m_renderBuffers(std::vector<ComPtr<ID3D12Resource2>>(bufferCount)),
 	m_rtvHandles(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>(bufferCount))
 {
 }
 
-void QuantumEngine::Rendering::DX12::DX12GraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)
 {
 	m_assetManager = std::dynamic_pointer_cast<DX12AssetManager>(assetManager);
 }
 
-void QuantumEngine::Rendering::DX12::DX12GraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
 {
 	m_shaderRegistery = std::dynamic_pointer_cast<DX12ShaderRegistery>(shaderRegistery);
 }
 
-bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeCommandObjects(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeCommandObjects(const ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;
 
@@ -45,7 +45,7 @@ bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeCommandObject
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeSwapChain(const ComPtr<IDXGIFactory7>& factory)
+bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeSwapChain(const ComPtr<IDXGIFactory7>& factory)
 {
 	//Create Swap Chain
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc1
@@ -115,7 +115,7 @@ bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeSwapChain(con
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeCamera(const ref<Camera>& camera)
+bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeCamera(const ref<Camera>& camera)
 {
 	m_camera = camera;
 	m_camData.projectionMatrix = camera->ProjectionMatrix();
@@ -148,12 +148,12 @@ bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeCamera(const 
 	return true;
 }
 
-bool QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeLight(const SceneLightData& lights)
+bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeLight(const SceneLightData& lights)
 {
 	return m_lightManager.Initialize(lights, m_device);
 }
 
-void QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeEntityGPUData(const std::vector<ref<GameEntity>>& gameEntities)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeEntityGPUData(const std::vector<ref<GameEntity>>& gameEntities)
 {
 	auto transformResourceDesc = ResourceUtilities::GetCommonBufferResourceDesc(CONSTANT_BUFFER_ALIGHT(sizeof(TransformGPU)), D3D12_RESOURCE_FLAG_NONE);
 
@@ -174,7 +174,7 @@ void QuantumEngine::Rendering::DX12::DX12GraphicContext::InitializeEntityGPUData
 	}
 }
 
-void QuantumEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes(const ref<Scene>& scene)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes(const ref<Scene>& scene)
 {
 	std::set<ref<Mesh>> uniqueMeshes;
 
@@ -195,7 +195,7 @@ void QuantumEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes
 	m_assetManager->UploadMeshesToGPU(std::vector<ref<Mesh>>(uniqueMeshes.begin(), uniqueMeshes.end()));
 }
 
-void QuantumEngine::Rendering::DX12::DX12GraphicContext::UpdateDataHeaps()
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::UpdateDataHeaps()
 {
 	m_camData.inverseProjectionMatrix = m_camera->GetTransform()->Matrix() * m_camera->InverseProjectionMatrix();
 	m_camData.viewMatrix = m_camera->ViewMatrix();

@@ -3,9 +3,9 @@
 #include <Rendering/Material.h>
 #include <Core/Vector3.h>
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
-class MaterialValueModifier : public QuantumEngine::Behaviour
+class MaterialValueModifier : public LuxonEngine::Behaviour
 {
 public:
 	MaterialValueModifier(ref<Rendering::Material>& material, const std::string& fieldName, Float speed, Float minValue, Float maxValue);

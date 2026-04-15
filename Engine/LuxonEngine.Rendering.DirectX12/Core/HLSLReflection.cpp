@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "HLSLReflection.h"
 
-void QuantumEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12ShaderReflection* shaderReflection)
+void LuxonEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12ShaderReflection* shaderReflection)
 {
     D3D12_SHADER_DESC desc;
     shaderReflection->GetDesc(&desc);
@@ -13,7 +13,7 @@ void QuantumEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12S
     }
 }
 
-void QuantumEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12FunctionReflection* functionReflection)
+void LuxonEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12FunctionReflection* functionReflection)
 {
     D3D12_FUNCTION_DESC funcDesc;
     functionReflection->GetDesc(&funcDesc);
@@ -25,7 +25,7 @@ void QuantumEngine::Rendering::DX12::HLSLReflection::AddShaderReflection(ID3D12F
     }
 }
 
-ComPtr<ID3D12RootSignature> QuantumEngine::Rendering::DX12::HLSLReflection::CreateRootSignature(const ComPtr<ID3D12Device10>& device, D3D12_ROOT_SIGNATURE_FLAGS flag, std::string& errorStr)
+ComPtr<ID3D12RootSignature> LuxonEngine::Rendering::DX12::HLSLReflection::CreateRootSignature(const ComPtr<ID3D12Device10>& device, D3D12_ROOT_SIGNATURE_FLAGS flag, std::string& errorStr)
 {
     std::vector<D3D12_ROOT_PARAMETER> rootParameters(m_resourceVariables.size() + (m_rootConstantBuffer.blocks.size() > 0 ? 1 : 0));
     std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
@@ -131,7 +131,7 @@ ComPtr<ID3D12RootSignature> QuantumEngine::Rendering::DX12::HLSLReflection::Crea
     return rootSignature;
 }
 
-QuantumEngine::Rendering::MaterialReflection QuantumEngine::Rendering::DX12::HLSLReflection::CreateMaterialReflection(bool rtField)
+LuxonEngine::Rendering::MaterialReflection LuxonEngine::Rendering::DX12::HLSLReflection::CreateMaterialReflection(bool rtField)
 {
     UInt32 fieldIndex = 0;
     MaterialReflection reflectionData;
@@ -177,7 +177,7 @@ QuantumEngine::Rendering::MaterialReflection QuantumEngine::Rendering::DX12::HLS
     return reflectionData;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::HLSLReflection::GetRootParameterIndexByName(const std::string& name) const
+UInt32 LuxonEngine::Rendering::DX12::HLSLReflection::GetRootParameterIndexByName(const std::string& name) const
 {
     if (m_rootConstantBuffer.name == name)
         return m_rootConstantBuffer.rootParameterIndex;
@@ -197,7 +197,7 @@ UInt32 QuantumEngine::Rendering::DX12::HLSLReflection::GetRootParameterIndexByNa
     return -1; // invalid index
 }
 
-QuantumEngine::Rendering::DX12::ResourceVariableData* QuantumEngine::Rendering::DX12::HLSLReflection::GetResourceVariableByRootIndex(UInt32 rootParameterIndex)
+LuxonEngine::Rendering::DX12::ResourceVariableData* LuxonEngine::Rendering::DX12::HLSLReflection::GetResourceVariableByRootIndex(UInt32 rootParameterIndex)
 {
     for (auto& rv : m_resourceVariables) {
         if (rv.rootParameterIndex == rootParameterIndex) {
@@ -208,7 +208,7 @@ QuantumEngine::Rendering::DX12::ResourceVariableData* QuantumEngine::Rendering::
     return nullptr;
 }
 
-QuantumEngine::Rendering::DX12::RootConstantBufferData* QuantumEngine::Rendering::DX12::HLSLReflection::GetRootConstantByRootIndex(UInt32 rootParameterIndex)
+LuxonEngine::Rendering::DX12::RootConstantBufferData* LuxonEngine::Rendering::DX12::HLSLReflection::GetRootConstantByRootIndex(UInt32 rootParameterIndex)
 {
     if (m_rootConstantBuffer.rootParameterIndex == rootParameterIndex)
         return &m_rootConstantBuffer;
@@ -216,7 +216,7 @@ QuantumEngine::Rendering::DX12::RootConstantBufferData* QuantumEngine::Rendering
     return nullptr;
 }
 
-UInt32 QuantumEngine::Rendering::DX12::HLSLReflection::GetTotalVariableSize()
+UInt32 LuxonEngine::Rendering::DX12::HLSLReflection::GetTotalVariableSize()
 {
     UInt32 variableSize = 0;
 
@@ -230,7 +230,7 @@ UInt32 QuantumEngine::Rendering::DX12::HLSLReflection::GetTotalVariableSize()
     return UInt32();
 }
 
-QuantumEngine::Rendering::DX12::RootConstantVariableData* QuantumEngine::Rendering::DX12::HLSLReflection::GetRootConstantVariableByName(const std::string& name)
+LuxonEngine::Rendering::DX12::RootConstantVariableData* LuxonEngine::Rendering::DX12::HLSLReflection::GetRootConstantVariableByName(const std::string& name)
 {
     for (auto& rootConstantBlock : m_rootConstantBuffer.blocks) {
         for (auto& rootVariable : rootConstantBlock.variables) {

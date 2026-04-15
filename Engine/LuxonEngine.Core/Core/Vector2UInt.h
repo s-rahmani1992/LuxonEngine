@@ -2,7 +2,7 @@
 
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	struct Vector2UInt {
 	public:
 		Vector2UInt();

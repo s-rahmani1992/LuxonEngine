@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	struct VulkanBLASBuildInfo {
 		VkAccelerationStructureGeometryKHR geometryInfo;
 		VkAccelerationStructureBuildGeometryInfoKHR buildInfo;

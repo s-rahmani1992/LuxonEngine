@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity;
 	class Transform;
 	class GPUAssetManager;
@@ -20,12 +20,12 @@ namespace QuantumEngine {
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	struct DX12RayTracingGPUData;
 	//class HLSLShaderProgram;
 }
 
-namespace QuantumEngine::Rendering::DX12::RayTracing {
+namespace LuxonEngine::Rendering::DX12::RayTracing {
 	class RTAccelarationStructure;
 	struct EntityBLASDesc;
 	class HLSLRayTracingProgram;

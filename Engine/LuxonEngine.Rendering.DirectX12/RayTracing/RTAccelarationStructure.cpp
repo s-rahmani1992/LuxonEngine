@@ -5,7 +5,7 @@
 #include "../DX12MeshController.h"
 #include "../DX12Utilities.h"
 
-bool QuantumEngine::Rendering::DX12::RayTracing::RTAccelarationStructure::Initialize(const ComPtr<ID3D12GraphicsCommandList7>& commandList, const std::vector<EntityBLASDesc>& entities)
+bool LuxonEngine::Rendering::DX12::RayTracing::RTAccelarationStructure::Initialize(const ComPtr<ID3D12GraphicsCommandList7>& commandList, const std::vector<EntityBLASDesc>& entities)
 {
 	ComPtr<ID3D12Device10> device;
 
@@ -123,7 +123,7 @@ bool QuantumEngine::Rendering::DX12::RayTracing::RTAccelarationStructure::Initia
 	commandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
 }
 
-void QuantumEngine::Rendering::DX12::RayTracing::RTAccelarationStructure::UpdateTransforms(const ComPtr<ID3D12GraphicsCommandList7>& commandList, Matrix4& viewMatrix)
+void LuxonEngine::Rendering::DX12::RayTracing::RTAccelarationStructure::UpdateTransforms(const ComPtr<ID3D12GraphicsCommandList7>& commandList, Matrix4& viewMatrix)
 {
 	Matrix4 m;
 

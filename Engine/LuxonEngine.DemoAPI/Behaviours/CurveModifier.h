@@ -4,9 +4,9 @@
 #include <Core/Vector3.h>
 #include "Rendering/SplineRenderer.h"
 
-using namespace QuantumEngine;
+using namespace LuxonEngine;
 
-class CurveModifier : public QuantumEngine::Behaviour
+class CurveModifier : public LuxonEngine::Behaviour
 {
 public:
 	CurveModifier(const ref<Rendering::SplineRenderer>& spline, float speed);

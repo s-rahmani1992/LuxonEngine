@@ -6,23 +6,23 @@
 //TODO Move icon to common resource file
 #define IDI_QUANTUMENGINETEST           129
 
-QuantumEngine::Platform::Application QuantumEngine::Platform::Application::m_instance = {};
+LuxonEngine::Platform::Application LuxonEngine::Platform::Application::m_instance = {};
 
-void QuantumEngine::Platform::Application::CreateApplication(HINSTANCE hInstance)
+void LuxonEngine::Platform::Application::CreateApplication(HINSTANCE hInstance)
 {
     m_instance = Application();
     m_instance.m_app_instance = hInstance;
     m_instance.CreateWindowClass();
 }
 
-ref<QuantumEngine::Platform::GraphicWindow> QuantumEngine::Platform::Application::CreateGraphicWindow(const WindowProperties& properties)
+ref<LuxonEngine::Platform::GraphicWindow> LuxonEngine::Platform::Application::CreateGraphicWindow(const WindowProperties& properties)
 {
     m_instance.hostWindow = properties.parentWinHandle;
     EnableWindow(m_instance.hostWindow, FALSE);
 	return std::make_shared<GraphicWindow>(properties, m_instance.winClass);
 }
 
-std::wstring QuantumEngine::Platform::Application::GetExecutablePath()
+std::wstring LuxonEngine::Platform::Application::GetExecutablePath()
 {
     LPWSTR rootF = new WCHAR[500];
     DWORD size;
@@ -39,7 +39,7 @@ std::wstring QuantumEngine::Platform::Application::GetExecutablePath()
     return root;
 }
 
-void QuantumEngine::Platform::Application::Run(const ref<QuantumEngine::Platform::GraphicWindow>& win, const ref<QuantumEngine::Rendering::GraphicContext>& renderer, const std::vector<ref<Behaviour>>& behaviours)
+void LuxonEngine::Platform::Application::Run(const ref<LuxonEngine::Platform::GraphicWindow>& win, const ref<LuxonEngine::Rendering::GraphicContext>& renderer, const std::vector<ref<Behaviour>>& behaviours)
 {
     Int64 countsPerSecond = 0;
     QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSecond);
@@ -65,7 +65,7 @@ void QuantumEngine::Platform::Application::Run(const ref<QuantumEngine::Platform
     }
 }
 
-void QuantumEngine::Platform::Application::RunFixed(const ref<GraphicWindow>& win, const ref<Rendering::GraphicContext>& renderer, const std::vector<ref<Behaviour>>& behaviours, UInt32 fps)
+void LuxonEngine::Platform::Application::RunFixed(const ref<GraphicWindow>& win, const ref<Rendering::GraphicContext>& renderer, const std::vector<ref<Behaviour>>& behaviours, UInt32 fps)
 {
     Int64 countsPerSecond = 0;
     QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSecond);
@@ -95,7 +95,7 @@ void QuantumEngine::Platform::Application::RunFixed(const ref<GraphicWindow>& wi
     }
 }
 
-void QuantumEngine::Platform::Application::Release()
+void LuxonEngine::Platform::Application::Release()
 {
     EnableWindow(m_instance.hostWindow, TRUE);
     SetForegroundWindow(m_instance.hostWindow);
@@ -103,7 +103,7 @@ void QuantumEngine::Platform::Application::Release()
     UnregisterClass((LPCTSTR)m_instance.winClass, m_instance.m_app_instance);
 }
 
-void QuantumEngine::Platform::Application::CreateWindowClass()
+void LuxonEngine::Platform::Application::CreateWindowClass()
 {
     WNDCLASSEXW wcex;
     wcex.cbSize = sizeof(wcex); //allocation for this window class
@@ -121,7 +121,7 @@ void QuantumEngine::Platform::Application::CreateWindowClass()
     winClass = RegisterClassExW(&wcex);
 }
 
-LRESULT QuantumEngine::Platform::Application::OnWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT LuxonEngine::Platform::Application::OnWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     GraphicWindow* window = reinterpret_cast<GraphicWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     switch (msg)

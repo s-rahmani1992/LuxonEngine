@@ -13,7 +13,7 @@
 #define HLSL_VERTEX_SRV_NAME "_vertexBuffer"
 #define HLSL_INDEX_SRV_NAME "_indexBuffer"
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	using namespace Microsoft::WRL;
 
 	class DescriptorUtilities

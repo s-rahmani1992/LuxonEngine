@@ -3,11 +3,11 @@
 #include "Core/Vector3.h"
 #include "vulkan-pch.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class SplineRenderer;
 }
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 
 	namespace Compute {
 		class SPIRVComputeProgram;

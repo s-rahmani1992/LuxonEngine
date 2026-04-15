@@ -7,7 +7,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine::Rendering::Vulkan {
+namespace LuxonEngine::Rendering::Vulkan {
 	class SPIRVShader;
 	class SPIRVShaderProgram;
 	enum Vulkan_Shader_Type;

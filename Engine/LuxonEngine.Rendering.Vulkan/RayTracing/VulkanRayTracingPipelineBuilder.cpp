@@ -7,7 +7,7 @@
 #include "Rendering/Material.h"
 #include "Core/VulkanBufferFactory.h"
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingPipeline(const ref<SPIRVRayTracingProgram>& globalRTProgram, const std::vector<ref<SPIRVRayTracingProgram>>& localPrograms, RayTracePipelineBuildResult& pipelineResult)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingPipeline(const ref<SPIRVRayTracingProgram>& globalRTProgram, const std::vector<ref<SPIRVRayTracingProgram>>& localPrograms, RayTracePipelineBuildResult& pipelineResult)
 {
 	auto device = VulkanDeviceManager::Instance()->GetGraphicDevice();
 
@@ -194,7 +194,7 @@ bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuild
 	return true;
 }
 
-bool QuantumEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(const ref<Material>& globalRTMaterial, const std::vector<ref<Material>>& localMaterials, const RayTracePipelineBuildResult& pipelineData, RayTraceSBTBuildResult& sbtResult)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(const ref<Material>& globalRTMaterial, const std::vector<ref<Material>>& localMaterials, const RayTracePipelineBuildResult& pipelineData, RayTraceSBTBuildResult& sbtResult)
 {
 	auto device = VulkanDeviceManager::Instance()->GetGraphicDevice();
 

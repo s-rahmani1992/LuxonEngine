@@ -1,7 +1,7 @@
 #include "vulkan-pch.h"
 #include "SPIRVShaderProgram.h"
 
-void QuantumEngine::Rendering::Vulkan::SPIRVShaderProgram::InitializeSampler()
+void LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram::InitializeSampler()
 {
 	VkSamplerCreateInfo samplerCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

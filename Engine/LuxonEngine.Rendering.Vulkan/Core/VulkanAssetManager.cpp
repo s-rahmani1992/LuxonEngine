@@ -9,19 +9,19 @@
 #include "VulkanBufferFactory.h"
 #include "VulkanDeviceManager.h"
 
-QuantumEngine::Rendering::Vulkan::VulkanAssetManager::VulkanAssetManager(const VkDevice device, VkPhysicalDevice physicalDevice)
+LuxonEngine::Rendering::Vulkan::VulkanAssetManager::VulkanAssetManager(const VkDevice device, VkPhysicalDevice physicalDevice)
 	: m_device(device), m_physicalDevice(physicalDevice),
 	m_bufferFactory(VulkanDeviceManager::Instance()->GetBufferFactory())
 {
 	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &m_memoryProperties);
 }
 
-QuantumEngine::Rendering::Vulkan::VulkanAssetManager::~VulkanAssetManager()
+LuxonEngine::Rendering::Vulkan::VulkanAssetManager::~VulkanAssetManager()
 {
 	vkDestroyCommandPool(m_device, m_commandPool, nullptr);
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanAssetManager::Initializes(UInt32 familyIndex)
+bool LuxonEngine::Rendering::Vulkan::VulkanAssetManager::Initializes(UInt32 familyIndex)
 {
 	// Create Queue, Command Pool and Command Buffer
 	vkGetDeviceQueue(m_device, familyIndex, 0, &m_graphicsQueue);
@@ -51,12 +51,12 @@ bool QuantumEngine::Rendering::Vulkan::VulkanAssetManager::Initializes(UInt32 fa
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshToGPU(const ref<Mesh>& mesh)
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshToGPU(const ref<Mesh>& mesh)
 {
 	UploadMeshesToGPU({ mesh });
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UploadTextureToGPU(const ref<Texture2D>& texture)
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UploadTextureToGPU(const ref<Texture2D>& texture)
 {
 	if(m_texturePairs.find(texture) != m_texturePairs.end())
 		return;
@@ -100,7 +100,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UploadTextureToGPU(co
 	vkFreeMemory(m_device, stageBufferMemory, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes)
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes)
 {
 	std::map<ref<Mesh>, ref<VulkanMeshController>> meshPairs;
 	UInt32 totalVBSize = 0;
@@ -182,7 +182,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshesToGPU(con
 	vkFreeMemory(m_device, stageBufferMemory, nullptr);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanAssetManager::UnloadAssets()
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UnloadAssets()
 {
 	for(auto& [texture, gpuTexture] : m_texturePairs)
 	{

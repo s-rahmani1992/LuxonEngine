@@ -4,11 +4,11 @@
 
 using namespace Microsoft::WRL;
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 }
 
-namespace QuantumEngine::Rendering::DX12 {
+namespace LuxonEngine::Rendering::DX12 {
 	class DX12MeshController : public GPUMeshController
 	{
 	public:

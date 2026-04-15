@@ -3,12 +3,12 @@
 
 using namespace Microsoft::WRL;
 
-const GuidMap<QuantumEngine::TextureFormat> QuantumEngine::WICTexture2DImporter::m_texFormatMaps{
-	{GUID_WICPixelFormat32bppRGBA, QuantumEngine::TextureFormat::RGBA32},
-	{GUID_WICPixelFormat32bppBGRA, QuantumEngine::TextureFormat::BGRA32},
+const GuidMap<LuxonEngine::TextureFormat> LuxonEngine::WICTexture2DImporter::m_texFormatMaps{
+	{GUID_WICPixelFormat32bppRGBA, LuxonEngine::TextureFormat::RGBA32},
+	{GUID_WICPixelFormat32bppBGRA, LuxonEngine::TextureFormat::BGRA32},
 };
 
-const GuidMap<GUID> QuantumEngine::WICTexture2DImporter::m_convertFormatMaps{
+const GuidMap<GUID> LuxonEngine::WICTexture2DImporter::m_convertFormatMaps{
 	{GUID_WICPixelFormat24bppRGB, GUID_WICPixelFormat32bppRGBA},
 	{GUID_WICPixelFormat24bppBGR, GUID_WICPixelFormat32bppBGRA},
 	{GUID_WICPixelFormat48bppRGB, GUID_WICPixelFormat32bppRGBA},
@@ -18,7 +18,7 @@ const GuidMap<GUID> QuantumEngine::WICTexture2DImporter::m_convertFormatMaps{
 	{GUID_WICPixelFormat16bppGray, GUID_WICPixelFormat32bppRGBA},
 };
 
-ref<QuantumEngine::Texture2D> QuantumEngine::WICTexture2DImporter::Import(const std::wstring& filePath, std::string& error)
+ref<LuxonEngine::Texture2D> LuxonEngine::WICTexture2DImporter::Import(const std::wstring& filePath, std::string& error)
 {
 	ComPtr<IWICImagingFactory> wicImageFactory;
 	ComPtr<IWICFormatConverter> wicConverter;

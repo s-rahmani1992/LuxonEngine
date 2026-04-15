@@ -7,12 +7,12 @@
 #include "Core/Mesh.h"
 #include "DX12Utilities.h"
 
-void QuantumEngine::Rendering::DX12::DX12AssetManager::UploadMeshToGPU(const ref<Mesh>& mesh)
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UploadMeshToGPU(const ref<Mesh>& mesh)
 {
 	UploadMeshesToGPU({ mesh });
 }
 
-void QuantumEngine::Rendering::DX12::DX12AssetManager::UploadTextureToGPU(const ref<Texture2D>& texture)
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UploadTextureToGPU(const ref<Texture2D>& texture)
 {
 	if (m_textures.find(texture) != m_textures.end()) { // mesh has already been uploaded
 		return;
@@ -42,7 +42,7 @@ void QuantumEngine::Rendering::DX12::DX12AssetManager::UploadTextureToGPU(const 
 	m_textures.insert({ texture, texture2DController });
 }
 
-void QuantumEngine::Rendering::DX12::DX12AssetManager::UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes)
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes)
 {
 	UInt32 totalSize = 0;
 	std::set<ref<Mesh>> meshesToUpload;
@@ -96,7 +96,7 @@ void QuantumEngine::Rendering::DX12::DX12AssetManager::UploadMeshesToGPU(const s
 	m_meshUploadCommandExecuter->ExecuteAndWait(m_uploadCommandList.Get());
 }
 
-void QuantumEngine::Rendering::DX12::DX12AssetManager::UnloadAssets()
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UnloadAssets()
 {
 	for(auto& [texture, textureGPU] : m_textures) {
 		texture->Release();
@@ -109,7 +109,7 @@ void QuantumEngine::Rendering::DX12::DX12AssetManager::UnloadAssets()
 	}
 }
 
-bool QuantumEngine::Rendering::DX12::DX12AssetManager::Initialize(ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12AssetManager::Initialize(ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;
 

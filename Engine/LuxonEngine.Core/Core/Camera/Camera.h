@@ -2,7 +2,7 @@
 #include "../../BasicTypes.h"
 #include "../Matrix4.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Transform;
 
 	class Camera {

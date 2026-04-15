@@ -5,7 +5,7 @@
 #include <vector>
 #include "../Core/BezierCurve.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 
 	class SplineRenderer : public Renderer

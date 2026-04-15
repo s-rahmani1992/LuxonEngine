@@ -3,11 +3,11 @@
 #include <map>
 #include "Core/SPIRVReflection.h"
 
-namespace QuantumEngine::Rendering {
+namespace LuxonEngine::Rendering {
 	class Material;
 }
 
-namespace QuantumEngine::Rendering::Vulkan::RayTracing {
+namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	class SPIRVRayTracingProgram;
 	class SPIRVRayTracingProgramVariant;
 

@@ -4,7 +4,7 @@
 #include <string>
 #include "../BasicTypes.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class Mesh;
 
 	class Model3DAsset {

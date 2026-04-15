@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 
-namespace QuantumEngine {
+namespace LuxonEngine {
 	class GameEntity;
 	class Mesh;
 
@@ -10,7 +10,7 @@ namespace QuantumEngine {
 	}
 }
 
-namespace QuantumEngine::Rendering::Vulkan::Rasterization {
+namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	class VulkanRasterizationMaterial;
 	class SPIRVRasterizationProgram;
 

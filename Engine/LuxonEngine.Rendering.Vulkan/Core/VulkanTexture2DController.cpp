@@ -3,18 +3,18 @@
 #include "Core/Texture2D.h"
 #include "VulkanUtilities.h"
 
-const std::map<QuantumEngine::TextureFormat, VkFormat> QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::s_texFormatMaps{
-	{QuantumEngine::TextureFormat::Unknown, VK_FORMAT_UNDEFINED},
-	{QuantumEngine::TextureFormat::RGBA32, VK_FORMAT_R8G8B8A8_UNORM},
-	{QuantumEngine::TextureFormat::BGRA32, VK_FORMAT_B8G8R8A8_UNORM},
+const std::map<LuxonEngine::TextureFormat, VkFormat> LuxonEngine::Rendering::Vulkan::VulkanTexture2DController::s_texFormatMaps{
+	{LuxonEngine::TextureFormat::Unknown, VK_FORMAT_UNDEFINED},
+	{LuxonEngine::TextureFormat::RGBA32, VK_FORMAT_R8G8B8A8_UNORM},
+	{LuxonEngine::TextureFormat::BGRA32, VK_FORMAT_B8G8R8A8_UNORM},
 };
 
-QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::VulkanTexture2DController(const ref<Texture2D>& texture, const VkDevice device)
+LuxonEngine::Rendering::Vulkan::VulkanTexture2DController::VulkanTexture2DController(const ref<Texture2D>& texture, const VkDevice device)
 	:m_texture(texture), m_device(device)
 {
 }
 
-bool QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::Initialize(const VkPhysicalDeviceMemoryProperties& memoryProperties)
+bool LuxonEngine::Rendering::Vulkan::VulkanTexture2DController::Initialize(const VkPhysicalDeviceMemoryProperties& memoryProperties)
 {
 	VkImageCreateInfo imageInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -67,7 +67,7 @@ bool QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::Initialize(con
 	return true;
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::CopyCommand(VkCommandBuffer commandBuffer, VkBuffer stageBuffer)
+void LuxonEngine::Rendering::Vulkan::VulkanTexture2DController::CopyCommand(VkCommandBuffer commandBuffer, VkBuffer stageBuffer)
 {
 	VkImageMemoryBarrier imageCopyBarrier{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -112,7 +112,7 @@ void QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::CopyCommand(Vk
 	vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageEndCopyBarrier);
 }
 
-void QuantumEngine::Rendering::Vulkan::VulkanTexture2DController::Release()
+void LuxonEngine::Rendering::Vulkan::VulkanTexture2DController::Release()
 {
 	vkDestroyImageView(m_device, m_imageView, nullptr);
 	vkDestroyImage(m_device, m_textureImage, nullptr);
