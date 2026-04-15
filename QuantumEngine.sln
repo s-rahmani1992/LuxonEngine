@@ -17,7 +17,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuantumEngine.DemoAPI", "En
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantumEditor.Demo", "Editor\QuantumEditor.Demo\QuantumEditor.Demo.csproj", "{1AA789F9-A714-4386-B552-EF29A9B3426A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuantumEngine.Rendering.Vulkan", "Engine\QuantumEngine.Rendering.Vulkan\QuantumEngine.Rendering.Vulkan.vcxproj", "{1298E746-863F-4C3E-87F4-8DF8AE2A823D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Rendering.Vulkan", "Engine\LuxonEngine.Rendering.Vulkan\LuxonEngine.Rendering.Vulkan.vcxproj", "{1298E746-863F-4C3E-87F4-8DF8AE2A823D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

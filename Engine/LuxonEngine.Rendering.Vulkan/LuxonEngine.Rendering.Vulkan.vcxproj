@@ -24,6 +24,7 @@
     <ProjectGuid>{1298e746-863f-4c3e-87f4-8df8ae2a823d}</ProjectGuid>
     <RootNamespace>QuantumEngineRenderingVulkan</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LuxonEngine.Rendering.Vulkan</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -78,7 +79,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -100,7 +101,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -120,7 +121,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -142,7 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(SolutionDir)Engine\QuantumEngine.Rendering.Vulkan;$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
