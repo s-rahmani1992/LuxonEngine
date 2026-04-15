@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Rendering.Direc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "Editor", "{29B7CA00-5D13-4D45-8A41-DF105067F102}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuantumEngine.DemoAPI", "Engine\QuantumEngine.DemoAPI\QuantumEngine.DemoAPI.vcxproj", "{9F79A8F1-0866-4CFF-B110-7485EC178CC9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.DemoAPI", "Engine\LuxonEngine.DemoAPI\LuxonEngine.DemoAPI.vcxproj", "{9F79A8F1-0866-4CFF-B110-7485EC178CC9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LuxonEditor.Demo", "Editor\LuxonEditor.Demo\LuxonEditor.Demo.csproj", "{1AA789F9-A714-4386-B552-EF29A9B3426A}"
 EndProject

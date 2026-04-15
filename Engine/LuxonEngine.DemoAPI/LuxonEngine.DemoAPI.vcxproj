@@ -173,6 +173,7 @@
     <ProjectGuid>{9f79a8f1-0866-4cff-b110-7485ec178cc9}</ProjectGuid>
     <RootNamespace>QuantumEngineDemoAPI</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LuxonEngine.DemoAPI</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

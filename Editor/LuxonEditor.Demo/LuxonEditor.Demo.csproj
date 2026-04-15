@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Engine\QuantumEngine.DemoAPI\QuantumEngine.DemoAPI.vcxproj" />
+    <ProjectReference Include="..\..\Engine\LuxonEngine.DemoAPI\LuxonEngine.DemoAPI.vcxproj" />
   </ItemGroup>
 
 </Project>

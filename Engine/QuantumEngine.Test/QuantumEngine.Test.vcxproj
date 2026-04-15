@@ -55,7 +55,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.DemoAPI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\LuxonEngine.DemoAPI</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -81,7 +81,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.DemoAPI;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\QuantumEngine.DemoAPI</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine\LuxonEngine.DemoAPI</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -113,7 +113,7 @@
     <ResourceCompile Include="QuantumEngine.Test.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\QuantumEngine.DemoAPI\QuantumEngine.DemoAPI.vcxproj">
+    <ProjectReference Include="..\LuxonEngine.DemoAPI\LuxonEngine.DemoAPI.vcxproj">
       <Project>{9f79a8f1-0866-4cff-b110-7485ec178cc9}</Project>
     </ProjectReference>
   </ItemGroup>
