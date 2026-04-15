@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{02EA68
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Core", "Engine\LuxonEngine.Core\LuxonEngine.Core.vcxproj", "{9DAA880F-4D66-4557-B473-D8183FD9DCFB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuantumEngine.Test", "Engine\QuantumEngine.Test\QuantumEngine.Test.vcxproj", "{236E2B11-253D-47D9-9244-3A0A6C3BA54B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Test", "Engine\LuxonEngine.Test\LuxonEngine.Test.vcxproj", "{236E2B11-253D-47D9-9244-3A0A6C3BA54B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Rendering.DirectX12", "Engine\LuxonEngine.Rendering.DirectX12\LuxonEngine.Rendering.DirectX12.vcxproj", "{BFEABCF0-C11B-4676-A29E-88FC2D265235}"
 EndProject

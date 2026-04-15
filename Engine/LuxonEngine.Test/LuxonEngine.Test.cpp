@@ -1,7 +1,7 @@
-// QuantumEngine.Test.cpp : Defines the entry point for the application.
+// LuxonEngine.Test.cpp : Defines the entry point for the application.
 //
 
-#include "QuantumEngine.Test.h"
+#include "LuxonEngine.Test.h"
 #include <DemoAPI.h>
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

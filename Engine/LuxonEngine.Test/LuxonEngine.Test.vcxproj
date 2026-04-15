@@ -16,6 +16,7 @@
     <ProjectGuid>{236e2b11-253d-47d9-9244-3a0a6c3ba54b}</ProjectGuid>
     <RootNamespace>QuantumEngineTest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LuxonEngine.Test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -102,15 +103,15 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="QuantumEngine.Test.h" />
+    <ClInclude Include="LuxonEngine.Test.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="QuantumEngine.Test.cpp" />
+    <ClCompile Include="LuxonEngine.Test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="QuantumEngine.Test.rc" />
+    <ResourceCompile Include="LuxonEngine.Test.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LuxonEngine.DemoAPI\LuxonEngine.DemoAPI.vcxproj">
