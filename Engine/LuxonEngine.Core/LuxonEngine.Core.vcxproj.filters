@@ -134,6 +134,9 @@
     <ClInclude Include="Core\BezierCurve.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\AssetRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">
@@ -186,6 +189,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\BezierCurve.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\AssetRegistry.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

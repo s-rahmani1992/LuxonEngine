@@ -114,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BasicTypes.h" />
+    <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\AssimpModel3DImporter.h" />
     <ClInclude Include="Core\Behaviour.h" />
     <ClInclude Include="Core\BezierCurve.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="StringUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\AssimpModel3DImporter.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
     <ClCompile Include="Core\Camera\PerspectiveCamera.cpp" />

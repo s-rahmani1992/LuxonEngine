@@ -7,6 +7,7 @@
 
 namespace LuxonEngine {
 	class Behaviour;
+	class AssetRegistry;
 }
 
 namespace LuxonEngine::Rendering {
@@ -25,7 +26,8 @@ namespace LuxonEngine::Platform {
 		static void CreateApplication(HINSTANCE hInstance); //Creates singleton for apploication 
 		static ref<GraphicWindow> CreateGraphicWindow(const WindowProperties& properties); // Creates new window object with properties
 		inline static ref<Rendering::GPUDeviceManager> GetGPUDevice() { return m_instance.m_gpu_device; } 
-		
+		inline static ref<AssetRegistry> GetAssetRegistry() { return m_instance.m_assetRegistry; }
+
 		template<class T>
 		static ref<Rendering::GPUDeviceManager> InitializeGraphicDevice() {
 			m_instance.m_gpu_device = std::make_shared<T>();
@@ -45,6 +47,7 @@ namespace LuxonEngine::Platform {
 		ATOM winClass;
 		ref<Rendering::GPUDeviceManager> m_gpu_device;
 		HWND hostWindow;
+		ref<AssetRegistry> m_assetRegistry;
 
 		static LRESULT CALLBACK OnWindowMessage(HWND, UINT, WPARAM, LPARAM);
 	};

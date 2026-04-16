@@ -1,5 +1,16 @@
 #include "WICTexture2DImporter.h"
+#include "Texture2D.h"
 #include <wrl/client.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <StringUtilities.h>
+#include <fstream>
+#include <filesystem>
+#include <Platform/Application.h>
+#include <Core/AssetRegistry.h>
+
+#pragma comment(lib, "WindowsCodecs.lib")
 
 using namespace Microsoft::WRL;
 
@@ -118,5 +129,40 @@ ref<LuxonEngine::Texture2D> LuxonEngine::WICTexture2DImporter::Import(const std:
 	texProperties.copyPixelData = false;
 	targetBitmapSource->CopyPixels(&rect, stride, texProperties.size, texProperties.data);
 
-	return std::make_shared<Texture2D>(texProperties);
+	std::ifstream metafile(WStringToString(filePath) + ".json", std::ios::in | std::ios::binary);
+	
+	boost::json::value metaValue;
+
+	if (!metafile) {
+		metaValue = CreateDefaultMeta(filePath, error);
+	}
+	else {
+		auto jsonMetaStr = std::string(
+			std::istreambuf_iterator<char>(metafile),
+			std::istreambuf_iterator<char>()
+		);
+
+		boost::system::error_code ec;
+		metaValue = boost::json::parse(jsonMetaStr, ec);
+	}
+
+	auto uidStr = metaValue.as_object()["uuid"].as_string().c_str();
+	boost::uuids::string_generator gen;
+	auto texture = std::make_shared<Texture2D>(texProperties);
+	Platform::Application::GetAssetRegistry()->RegisterTexture2D(gen(uidStr), texture);
+	return texture;
+}
+
+boost::json::value LuxonEngine::WICTexture2DImporter::CreateDefaultMeta(const std::wstring& fileName, std::string& error)
+{
+	boost::json::value meta;
+	auto& ob = meta.emplace_object();
+	auto randomuuidGenerator = boost::uuids::random_generator();
+	ob.emplace("uuid", boost::uuids::to_string(randomuuidGenerator()));
+	std::ofstream file(WStringToString(fileName) + ".json");
+	
+	file << boost::json::serialize(meta);
+	file.close();
+
+	return meta;
 }
