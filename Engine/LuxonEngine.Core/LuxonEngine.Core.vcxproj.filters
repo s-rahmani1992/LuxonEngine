@@ -137,6 +137,7 @@
     <ClInclude Include="Core\AssetRegistry.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="JSONUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">
@@ -194,5 +195,6 @@
     <ClCompile Include="Core\AssetRegistry.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="JSONUtilities.cpp" />
   </ItemGroup>
 </Project>

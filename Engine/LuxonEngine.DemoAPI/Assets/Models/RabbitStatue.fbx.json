@@ -1,0 +1,27 @@
+{
+  "transform": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "axis": {
+      "x": 1.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "angle": 0.0,
+    "scale": {
+      "x": 20.0,
+      "y": 20.0,
+      "z": 20.0
+    }
+  },
+  "meshes": [
+    {
+      "name": "Rabbit_low_Stereo_textured_mesh",
+      "index": 0,
+      "uuid": "5b5cadc1-05c6-4d4b-b4e1-45e07907cfc2"
+    }
+  ]
+}

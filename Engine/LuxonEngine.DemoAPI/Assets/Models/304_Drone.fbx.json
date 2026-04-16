@@ -1,0 +1,27 @@
+{
+  "transform": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "axis": {
+      "x": 1.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "angle": 90.0,
+    "scale": {
+      "x": 0.2,
+      "y": 0.2,
+      "z": 0.2
+    }
+  },
+  "meshes": [
+    {
+      "name": "Sheet_196",
+      "index": 0,
+      "uuid": "accc136b-2c5d-4bcb-a68b-5d58c0c96e69"
+    }
+  ]
+}

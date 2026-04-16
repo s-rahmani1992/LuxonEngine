@@ -135,6 +135,7 @@
     <ClInclude Include="Core\Transform.h" />
     <ClInclude Include="Core\Vector2.h" />
     <ClInclude Include="Core\Vector3.h" />
+    <ClInclude Include="JSONUtilities.h" />
     <ClInclude Include="Platform\Application.h" />
     <ClInclude Include="Platform\CommonWin.h" />
     <ClInclude Include="Platform\GraphicWindow.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Core\Transform.cpp" />
     <ClCompile Include="Core\Vector2.cpp" />
     <ClCompile Include="Core\Vector3.cpp" />
+    <ClCompile Include="JSONUtilities.cpp" />
     <ClCompile Include="Platform\Application.cpp" />
     <ClCompile Include="Platform\GraphicWindow.cpp" />
     <ClCompile Include="StringUtilities.cpp" />

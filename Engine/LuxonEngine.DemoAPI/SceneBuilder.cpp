@@ -25,6 +25,7 @@
 #include <Core/Mesh.h>
 #include <Core/Transform.h>
 #include <Core/Scene.h>
+#include <Core/AssetRegistry.h>
 
 #include "Behaviours/CameraController.h"
 #include "Behaviours/FrameRateLogger.h"
@@ -39,7 +40,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_RETRO_CAR_MESH(MESH_VAR, ERROR_VAR)   \
     auto retroCarModelPath = root + L"\\Assets\\Models\\RetroCar.fbx";  \
-    auto retroCarModel = AssimpModel3DImporter::Import(WCharToString(retroCarModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(0.05f) }, ERROR_VAR);    \
+    auto retroCarModel = AssimpModel3DImporter::Import(WCharToString(retroCarModelPath.c_str()), ERROR_VAR);    \
     if (retroCarModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(retroCarModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -48,7 +49,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_PICKUP_TRUCK_MESH(MESH_VAR, ERROR_VAR)   \
     auto pickupTruckModelPath = root + L"\\Assets\\Models\\PickupTruck.fbx";  \
-    auto pickupTruckModel = AssimpModel3DImporter::Import(WCharToString(pickupTruckModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(0.01f) }, ERROR_VAR);    \
+    auto pickupTruckModel = AssimpModel3DImporter::Import(WCharToString(pickupTruckModelPath.c_str()), ERROR_VAR);    \
     if (pickupTruckModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(pickupTruckModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -57,7 +58,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_PEDESTAL_MESH(MESH_VAR, ERROR_VAR)   \
     auto pedestalModelPath = root + L"\\Assets\\Models\\tech_pedestal.fbx";  \
-    auto pedestalModel = AssimpModel3DImporter::Import(WCharToString(pedestalModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(0.1f) }, ERROR_VAR);    \
+    auto pedestalModel = AssimpModel3DImporter::Import(WCharToString(pedestalModelPath.c_str()), ERROR_VAR);    \
     if (pedestalModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(pedestalModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -66,7 +67,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_CONTAINER_MESH(MESH_VAR, ERROR_VAR)   \
     auto containerModelPath = root + L"\\Assets\\Models\\Scifi_Container.fbx";  \
-    auto containerModel = AssimpModel3DImporter::Import(WCharToString(containerModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(1.0f) }, ERROR_VAR);    \
+    auto containerModel = AssimpModel3DImporter::Import(WCharToString(containerModelPath.c_str()), ERROR_VAR);    \
     if (containerModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(containerModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -75,7 +76,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_LION_STATUE_MESH(MESH_VAR, ERROR_VAR)   \
     auto lionStatueModelPath = root + L"\\Assets\\Models\\lion-lp.fbx";  \
-    auto lionStatueModel = AssimpModel3DImporter::Import(WCharToString(lionStatueModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(1.0f) }, ERROR_VAR);    \
+    auto lionStatueModel = AssimpModel3DImporter::Import(WCharToString(lionStatueModelPath.c_str()), ERROR_VAR);    \
     if (lionStatueModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(lionStatueModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -84,7 +85,7 @@ using namespace LuxonEngine;
 
 #define IMPORT_DRONE_MESH(MESH_VAR, ERROR_VAR)   \
     auto droneModelPath = root + L"\\Assets\\Models\\304_Drone.fbx";  \
-    auto droneModel = AssimpModel3DImporter::Import(WCharToString(droneModelPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(0.2f) }, ERROR_VAR);    \
+    auto droneModel = AssimpModel3DImporter::Import(WCharToString(droneModelPath.c_str()), ERROR_VAR);    \
     if (droneModel == nullptr) { \
         error = "Error in Importing Model At: \n" + WStringToString(droneModelPath) + "Error: \n" + ERROR_VAR;   \
         return nullptr; \
@@ -174,26 +175,18 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
 
     IMPORT_CONTAINER_MESH(containerMesh, errorStr)
 
-    auto rabbitStatuePath = root + L"\\Assets\\Models\\Scifi_Container.fbx";
-    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(20.0f) }, errorStr);
+    IMPORT_LION_STATUE_MESH(lionStatueMesh1, errorStr)
+
+    auto rabbitStatuePath = root + L"\\Assets\\Models\\RabbitStatue.fbx";
+    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), errorStr);
     if (rabbitStatueModel1 == nullptr) {
         error = "Error in Importing Model At: \n" + WStringToString(rabbitStatuePath) + "Error: \n" + errorStr;
         return nullptr;
     }
     auto rabbitStatueMesh1 = rabbitStatueModel1->GetMesh("Rabbit_low_Stereo_textured_mesh");
 
-    auto lionStatuePath = root + L"\\Assets\\Models\\lion-lp.fbx";
-    auto lionStatueModel1 = AssimpModel3DImporter::Import(WCharToString(lionStatuePath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(1.0f) }, errorStr);
-    
-    if (lionStatueModel1 == nullptr) {
-        error = "Error in Importing Model At: \n" + WStringToString(lionStatuePath) + "Error: \n" + errorStr;
-        return nullptr;
-    }    
-    
-    auto lionStatueMesh1 = lionStatueModel1->GetMesh("Model.004");
-
     auto chairPath = root + L"\\Assets\\Models\\leather_chair.fbx";
-    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), ModelImportProperties{.axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(1.0f)}, errorStr);
+    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), errorStr);
 
     if (chairModel1 == nullptr) {
         error = "Error in Importing Model At: \n" + WStringToString(chairPath) + "Error: \n" + errorStr;
@@ -503,7 +496,7 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
     IMPORT_LION_STATUE_MESH(lionStatueMesh, errorStr)
 
     auto rabbitStatuePath = root + L"\\Assets\\Models\\RabbitStatue.fbx";
-    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(20.0f) }, errorStr);
+    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), errorStr);
     if (rabbitStatueModel1 == nullptr) {
         error = "Error in Importing Model At: \n" + WStringToString(rabbitStatuePath) + "Error: \n" + errorStr;
         return nullptr;
@@ -511,7 +504,7 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
     auto rabbitStatueMesh1 = rabbitStatueModel1->GetMesh("Rabbit_low_Stereo_textured_mesh");
 
     auto chairPath = root + L"\\Assets\\Models\\leather_chair.fbx";
-    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(1.0f) }, errorStr);
+    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), errorStr);
 
     if (chairModel1 == nullptr) {
         error = "Error in Importing Model At: \n" + WStringToString(chairPath) + "Error: \n" + errorStr;
@@ -969,18 +962,18 @@ ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>
     IMPORT_LION_STATUE_MESH(lionStatueMesh, error)
 
     auto rabbitStatuePath = root + L"\\Assets\\Models\\RabbitStatue.fbx";
-    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 0, .scale = Vector3(20.0f) }, errorStr);
+    auto rabbitStatueModel1 = AssimpModel3DImporter::Import(WCharToString(rabbitStatuePath.c_str()), errorStr);
     if (rabbitStatueModel1 == nullptr) {
-        error = "Error in Importing Model At: \n" + WStringToString(rabbitStatuePath) + "Error: \n" + errorStr;
+        errorStr = "Error in Importing Model At: \n" + WStringToString(rabbitStatuePath) + "Error: \n" + error;
         return nullptr;
     }
     auto rabbitStatueMesh1 = rabbitStatueModel1->GetMesh("Rabbit_low_Stereo_textured_mesh");
 
     auto chairPath = root + L"\\Assets\\Models\\leather_chair.fbx";
-    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), ModelImportProperties{ .axis = Vector3(1.0f, 0.0f, 0.0f), .angleDeg = 90, .scale = Vector3(1.0f) }, errorStr);
+    auto chairModel1 = AssimpModel3DImporter::Import(WCharToString(chairPath.c_str()), error);
 
     if (chairModel1 == nullptr) {
-        error = "Error in Importing Model At: \n" + WStringToString(chairPath) + "Error: \n" + errorStr;
+        errorStr = "Error in Importing Model At: \n" + WStringToString(chairPath) + "Error: \n" + error;
         return nullptr;
     }
 
@@ -1201,6 +1194,8 @@ ref<Scene> SceneBuilder::BuildComplexScene(const ref<Render::GPUAssetManager>& a
     ref<CameraController> cameraController = std::make_shared<CameraController>(mainCamera);
 
     ////// Importing Textures
+
+	auto assetRegistry = Platform::Application::GetAssetRegistry();
 
     auto pickupTruckColorTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_color.jpg", error);
     auto pickupTruckReflTex = LuxonEngine::WICTexture2DImporter::Import(root + L"\\Assets\\Textures\\truck_refl.jpg", error);
