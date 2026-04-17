@@ -20,6 +20,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		~VulkanShaderRegistery();
 		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) override;
 		virtual ref<ShaderProgram> CompileProgram(const std::wstring& fileName, std::string& error) override;
+		virtual ref<ShaderProgram> GetProgramByGUID(boost::uuids::uuid guid) override;
 		ref<SPIRVShaderProgram> GetShaderPrograms(const std::string& name);
 		void Initialize();
 	private:

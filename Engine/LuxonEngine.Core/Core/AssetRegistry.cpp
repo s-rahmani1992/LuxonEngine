@@ -12,6 +12,12 @@ bool LuxonEngine::AssetRegistry::RegisterMesh(const boost::uuids::uuid& guid, co
 	return it.second;
 }
 
+bool LuxonEngine::AssetRegistry::RegisterMaterial(const boost::uuids::uuid& guid, const ref<Rendering::Material>& material)
+{
+	auto it = m_materials.emplace(guid, material);
+	return it.second;
+}
+
 ref<LuxonEngine::Texture2D> LuxonEngine::AssetRegistry::GetTexture2D(const boost::uuids::uuid& guid)
 {
 	auto it = m_textures.find(guid);
@@ -27,6 +33,16 @@ ref<LuxonEngine::Mesh> LuxonEngine::AssetRegistry::GetMesh(const boost::uuids::u
 	auto it = m_meshes.find(guid);
 
 	if(it != m_meshes.end())
+		return it->second;
+
+	return nullptr;
+}
+
+ref<LuxonEngine::Rendering::Material> LuxonEngine::AssetRegistry::GetMaterial(const boost::uuids::uuid& guid)
+{
+	auto it = m_materials.find(guid);
+
+	if (it != m_materials.end())
 		return it->second;
 
 	return nullptr;

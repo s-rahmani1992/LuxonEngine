@@ -22,7 +22,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<HLSLShaderProgram> GetShaderProgram(const std::string& name);
 		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) override;
 		virtual ref<ShaderProgram> CompileProgram(const std::wstring& fileName, std::string& error) override;
-	
+		virtual ref<ShaderProgram> GetProgramByGUID(boost::uuids::uuid guid) override;
 	private:
 
 		ref<HLSLShader> CompileShaderStage(const DxcBuffer* sourceBuffer, DX12_Shader_Type shaderType, std::string& error);

@@ -1,0 +1,23 @@
+{
+  "program_id": "64f065f7-eaa4-451c-b3a2-aacd9093107d",
+  "fields": {
+    "missColor": {
+      "type": "color",
+      "data": {
+        "r": 0.2,
+        "g": 0.4,
+        "b": 0.6,
+        "a": 1.0
+      }
+    },
+    "hitColor": {
+      "type": "color",
+      "data": {
+        "r": 0.8,
+        "g": 0.1,
+        "b": 0.3,
+        "a": 1.0
+      }
+    }
+  }
+}

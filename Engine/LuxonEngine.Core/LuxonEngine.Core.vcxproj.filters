@@ -138,6 +138,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="JSONUtilities.h" />
+    <ClInclude Include="Rendering\MaterialImporter.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">
@@ -196,5 +199,8 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="JSONUtilities.cpp" />
+    <ClCompile Include="Rendering\MaterialImporter.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -236,6 +236,10 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 
 	s_instance = this;
 	m_bufferFactory = std::make_shared<VulkanBufferFactory>(m_graphicDevice, m_physicalDevice);
+	
+	m_shaderRegistry = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);	
+	m_shaderRegistry->Initialize();
+
 	return true;
 }
 
@@ -271,9 +275,7 @@ ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::Vulkan::Vul
 
 ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateShaderRegistery()
 {
-	ref<VulkanShaderRegistery> shaderRegistery = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);
-	shaderRegistery->Initialize();
-	return shaderRegistery;
+	return m_shaderRegistry;
 }
 
 ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateMaterialFactory()

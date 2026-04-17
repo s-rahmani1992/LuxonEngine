@@ -18,6 +18,7 @@
 #include <Core/Light/Lights.h>
 #include <Core/WICTexture2DImporter.h>
 #include <Core/AssimpModel3DImporter.h>
+#include <Rendering/MaterialImporter.h>
 #include <Core/Camera/PerspectiveCamera.h>
 #include <Core/Model3DAsset.h>
 #include <Core/GameEntity.h>
@@ -91,6 +92,13 @@ using namespace LuxonEngine;
         return nullptr; \
     }   \
     auto MESH_VAR = droneModel->GetMesh("Sheet_196");
+
+#define IMPORT_MATERIAL(MATERIAL_VAR, PATH, ERROR_VAR)   \
+    auto MATERIAL_VAR = Rendering::MaterialImporter::ImportMaterial(PATH, ERROR_VAR);    \
+    if (MATERIAL_VAR == nullptr) {  \
+        error = "Error in importing material at " + WStringToString(PATH) + " " + ERROR_VAR; \
+        return nullptr; \
+    }
 
 ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& error)
 {
@@ -210,15 +218,14 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
 
     ////// Creating the materials
 
-	auto rtGlobalMaterial = materialFactory->CreateMaterial(globalRTProgram);
-	rtGlobalMaterial->SetValue("missColor", Color(0.2f, 0.4f, 0.6f, 1.0f));
-    rtGlobalMaterial->SetValue("hitColor", Color(0.8f, 0.1f, 0.3f, 1.0f));
+    std::wstring materialPath = root + L"\\Assets\\Materials\\globalRTMaterial.LMat";
+	IMPORT_MATERIAL(rtGlobalMaterial, materialPath, errorStr)
+    
+    materialPath = root + L"\\Assets\\Materials\\retroCarMaterial.LMat";
+    IMPORT_MATERIAL(retroCarMaterial, materialPath, errorStr)
 
-    auto retroCarMaterial = materialFactory->CreateMaterial(lightRasterProgram);
-    retroCarMaterial->SetValue("ambient", 0.1f);
-    retroCarMaterial->SetValue("diffuse", 0.5f);
-    retroCarMaterial->SetValue("specular", 2.1f);
-    retroCarMaterial->SetTexture2D("mainTexture", retroCarTex);
+    materialPath = root + L"\\Assets\\Materials\\retroCarRTMaterial.LMat";
+    IMPORT_MATERIAL(retroCarRTMaterial, materialPath, errorStr)
 
     auto pedestalMaterial = materialFactory->CreateMaterial(lightRasterProgram);
     pedestalMaterial->SetValue("ambient", 0.1f);
@@ -231,12 +238,6 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
     pedestalRTMaterial->SetValue("ambient", 0.1f);
     pedestalRTMaterial->SetValue("diffuse", 0.5f);
     pedestalRTMaterial->SetValue("specular", 2.1f);
-
-	auto retroCarRTMaterial = materialFactory->CreateMaterial(simpleRTLightProgram);
-	retroCarRTMaterial->SetTexture2D("mainTexture", retroCarTex);
-	retroCarRTMaterial->SetValue("ambient", 0.1f);
-	retroCarRTMaterial->SetValue("diffuse", 0.5f);
-	retroCarRTMaterial->SetValue("specular", 2.1f);
 
     auto pickupTruckMaterial = materialFactory->CreateMaterial(lightRasterProgram);
     pickupTruckMaterial->SetValue("ambient", 0.1f);

@@ -147,6 +147,7 @@
     <ClInclude Include="Rendering\GraphicContext.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\MaterialFactory.h" />
+    <ClInclude Include="Rendering\MaterialImporter.h" />
     <ClInclude Include="Rendering\MeshRenderer.h" />
     <ClInclude Include="Rendering\RayTracingComponent.h" />
     <ClInclude Include="Rendering\Renderer.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="JSONUtilities.cpp" />
     <ClCompile Include="Platform\Application.cpp" />
     <ClCompile Include="Platform\GraphicWindow.cpp" />
+    <ClCompile Include="Rendering\MaterialImporter.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
