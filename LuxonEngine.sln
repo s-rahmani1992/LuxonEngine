@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LuxonEditor.Demo", "Editor\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEngine.Rendering.Vulkan", "Engine\LuxonEngine.Rendering.Vulkan\LuxonEngine.Rendering.Vulkan.vcxproj", "{1298E746-863F-4C3E-87F4-8DF8AE2A823D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEditor", "Editor\LuxonEditor\LuxonEditor.vcxproj", "{93AB7357-D420-4BFF-BDC5-65F709488D89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -49,6 +51,10 @@ Global
 		{1298E746-863F-4C3E-87F4-8DF8AE2A823D}.Debug|x64.Build.0 = Debug|x64
 		{1298E746-863F-4C3E-87F4-8DF8AE2A823D}.Release|x64.ActiveCfg = Release|x64
 		{1298E746-863F-4C3E-87F4-8DF8AE2A823D}.Release|x64.Build.0 = Release|x64
+		{93AB7357-D420-4BFF-BDC5-65F709488D89}.Debug|x64.ActiveCfg = Debug|x64
+		{93AB7357-D420-4BFF-BDC5-65F709488D89}.Debug|x64.Build.0 = Debug|x64
+		{93AB7357-D420-4BFF-BDC5-65F709488D89}.Release|x64.ActiveCfg = Release|x64
+		{93AB7357-D420-4BFF-BDC5-65F709488D89}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +66,7 @@ Global
 		{9F79A8F1-0866-4CFF-B110-7485EC178CC9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{1AA789F9-A714-4386-B552-EF29A9B3426A} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
 		{1298E746-863F-4C3E-87F4-8DF8AE2A823D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{93AB7357-D420-4BFF-BDC5-65F709488D89} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02ED7E20-D96E-427D-A8FA-1414DFBA3EAE}
