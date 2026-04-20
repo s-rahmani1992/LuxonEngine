@@ -27,7 +27,7 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
     // Create editor application window
     WNDCLASSEXW wc = { sizeof(wc), CS_OWNDC, OnEditorMessage, 0L, 0L, m_hInstance, nullptr, nullptr, nullptr, nullptr, L"LuxonEngine_Class", nullptr };
     m_winClass = RegisterClassExW(&wc);
-    m_handle = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW | WS_EX_APPWINDOW, wc.lpszClassName, L"Luxon Engine", WS_OVERLAPPEDWINDOW, 100, 100, (int)(1280 * main_scale), (int)(800 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
+    m_handle = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW | WS_EX_APPWINDOW, wc.lpszClassName, L"Luxon Engine", WS_OVERLAPPEDWINDOW, 300, 100, (int)(1280 * main_scale), (int)(800 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D())
@@ -126,9 +126,56 @@ void LuxonEditor::EditorApplication::Run()
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        ImGuiStyle& style = ImGui::GetStyle();
+        ImVec2 oldPadding = style.FramePadding;
+        style.FramePadding = ImVec2(10.0f, 10.0f); // horizontal, vertical padding
+
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Open")) {}
+                if (ImGui::MenuItem("New")) {}
+                ImGui::Separator();
+                if (ImGui::MenuItem("Save")) {}
+                if (ImGui::MenuItem("Save All")) {}
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) {}
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit"))
+            {
+                //IMGUI_DEMO_MARKER("Menu/Edit");
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) {}
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) {} // Disabled item
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) {}
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) {}
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) {}
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+        auto nextPos = ImGui::GetFrameHeight();
+        style.FramePadding = oldPadding;
+
         ImGuiID dockspace_id = ImGui::GetID("My Dockspace");
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+        ImGuiWindowFlags rootWindowFlags = ImGuiWindowFlags_NoTitleBar |
+                                           ImGuiWindowFlags_NoCollapse |
+                                           ImGuiWindowFlags_NoResize |
+                                           ImGuiWindowFlags_NoMove |
+                                           ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                           ImGuiWindowFlags_NoNavFocus;
+
+
+        ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + nextPos));
+        ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, viewport->Size.y - nextPos));
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        static bool dockspaceOpen = true;
+        ImGui::Begin("RootDockspaceHost", &dockspaceOpen, rootWindowFlags);
         // Create settings
         if (ImGui::DockBuilderGetNode(dockspace_id) == nullptr)
         {
@@ -147,13 +194,14 @@ void LuxonEditor::EditorApplication::Run()
         }
 
         // Submit dockspace
-        ImGui::DockSpaceOverViewport(dockspace_id, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+        ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+        ImGui::End();
 
         // Submit windows
         ImGui::Begin("Game");
         ImGui::Text("Game viewport goes here");
         ImGui::End();
-        
+
         ImGui::Begin("Properties");
         ImGui::Text("Properties viewport goes here");
         ImGui::End();
