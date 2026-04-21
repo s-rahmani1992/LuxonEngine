@@ -19,6 +19,7 @@ LuxonEditor::EditorApplication* LuxonEditor::EditorApplication::CreateApplicatio
 LuxonEditor::EditorApplication::EditorApplication(HINSTANCE hInstance)
     :m_hInstance(hInstance)
 {
+    SetProjectPath();
 }
 
 bool LuxonEditor::EditorApplication::Initialize(std::string& error)
@@ -53,6 +54,9 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;    // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;       // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;     // Enable Multi-Viewport / Platform Windows
+
+    std::string iniPath = 
+    io.IniFilename = m_iniPath.c_str();
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -188,7 +192,7 @@ void LuxonEditor::EditorApplication::Run()
             ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
             ImGuiID dock_id_left = 0;
             ImGuiID dock_id_right = 0;
-            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.30f, &dock_id_left, &dock_id_right);
+            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.70f, &dock_id_left, &dock_id_right);
             ImGuiID dock_id_left_top = 0;
             ImGuiID dock_id_left_bottom = 0;
             ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Up, 0.50f, &dock_id_left_top, &dock_id_left_bottom);
@@ -333,4 +337,21 @@ void LuxonEditor::EditorApplication::CleanupRenderTarget()
         g_mainRenderTargetView->Release(); 
         g_mainRenderTargetView = nullptr; 
     }
+}
+
+void LuxonEditor::EditorApplication::SetProjectPath()
+{
+    LPSTR rootF = new CHAR[500];
+    DWORD size;
+    size = GetModuleFileNameA(NULL, rootF, 500);
+    std::string root = std::string(rootF, size);
+
+    const size_t last_slash_idx = root.rfind('\\');
+
+    if (std::string::npos != last_slash_idx)
+        root = root.substr(0, last_slash_idx);
+
+    m_projectPath = root;
+    m_iniPath = m_projectPath + "\\project-editor-prefs.ini";
+    delete[] rootF;
 }

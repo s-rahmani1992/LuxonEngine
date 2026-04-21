@@ -39,6 +39,7 @@ namespace LuxonEditor {
 		void CleanupDeviceD3D();
 		void CreateRenderTarget();
 		void CleanupRenderTarget();
+		void SetProjectPath();
 
 		static EditorApplication m_appInstance;
 
@@ -47,8 +48,8 @@ namespace LuxonEditor {
 		HWND m_handle;
 		int m_width;
 		int m_height;
-		//ImGuiIO io;
-
+		std::string m_projectPath;
+		std::string m_iniPath;
 		// DX11 variables
 		ID3D11Device* g_pd3dDevice = nullptr;
 		ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
