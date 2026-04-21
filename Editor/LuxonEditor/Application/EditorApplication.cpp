@@ -1,5 +1,8 @@
 #include "EditorApplication.h"
-#include "../imgui/imgui_internal.h"
+
+#include "../EditorWindows/ProjectBrowserWindow.h"
+#include "../EditorWindows/GameViewWindow.h"
+#include "../EditorWindows/InspectorWindow.h"
 
 LuxonEditor::EditorApplication LuxonEditor::EditorApplication::m_appInstance(NULL);
 
@@ -53,7 +56,6 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
@@ -80,6 +82,9 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
         return false;
     }
 
+    AddWindow<ProjectBrowserWindow>();
+    AddWindow<GameViewWindow>();
+    AddWindow<InspectorWindow>();
     return true;
 }
 
@@ -182,14 +187,14 @@ void LuxonEditor::EditorApplication::Run()
             ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
             ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
             ImGuiID dock_id_left = 0;
-            ImGuiID dock_id_main = dockspace_id;
-            ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.20f, &dock_id_left, &dock_id_main);
+            ImGuiID dock_id_right = 0;
+            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.30f, &dock_id_left, &dock_id_right);
             ImGuiID dock_id_left_top = 0;
             ImGuiID dock_id_left_bottom = 0;
             ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Up, 0.50f, &dock_id_left_top, &dock_id_left_bottom);
-            ImGui::DockBuilderDockWindow("Game", dock_id_main);
-            ImGui::DockBuilderDockWindow("Properties", dock_id_left_top);
-            ImGui::DockBuilderDockWindow("Scene", dock_id_left_bottom);
+            ImGui::DockBuilderDockWindow(GetWindowName<InspectorWindow>(), dock_id_right);
+            ImGui::DockBuilderDockWindow(GetWindowName<GameViewWindow>(), dock_id_left_top);
+            ImGui::DockBuilderDockWindow(GetWindowName<ProjectBrowserWindow>(), dock_id_left_bottom);
             ImGui::DockBuilderFinish(dockspace_id);
         }
 
@@ -198,18 +203,10 @@ void LuxonEditor::EditorApplication::Run()
         ImGui::End();
 
         // Submit windows
-        ImGui::Begin("Game");
-        ImGui::Text("Game viewport goes here");
-        ImGui::End();
 
-        ImGui::Begin("Properties");
-        ImGui::Text("Properties viewport goes here");
-        ImGui::End();
-
-        ImGui::Begin("Scene");
-        ImGui::Text("Scene viewport goes here");
-        ImGui::End();
-
+        for (auto& win : m_windowList)
+            win->RenderUI();
+        
         // Rendering
         ImGui::Render();
         const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
@@ -233,6 +230,9 @@ void LuxonEditor::EditorApplication::Run()
 
 void LuxonEditor::EditorApplication::ShutDown()
 {
+    for (auto& window : m_windowList)
+        delete window;
+
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

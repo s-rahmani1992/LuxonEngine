@@ -3,5 +3,6 @@
     <CoreProjectDir>$(SolutionDir)Engine\LuxonEngine.Core\</CoreProjectDir>
     <DX12ProjectDir>$(SolutionDir)Engine\LuxonEngine.Rendering.DirectX12\</DX12ProjectDir>
     <VKProjectDir>$(SolutionDir)Engine\LuxonEngine.Rendering.Vulkan\</VKProjectDir>
+    <GUIProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI\</GUIProjectDir>
   </PropertyGroup>
 </Project>
