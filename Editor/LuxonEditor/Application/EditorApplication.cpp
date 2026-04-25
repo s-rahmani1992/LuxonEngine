@@ -86,7 +86,7 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
         return false;
     }
 
-    AddWindow<ProjectBrowserWindow>();
+    AddWindow<ProjectBrowserWindow>(m_projectPath, m_projectPath + "\\Assets");
     AddWindow<GameViewWindow>();
     AddWindow<InspectorWindow>();
     return true;
