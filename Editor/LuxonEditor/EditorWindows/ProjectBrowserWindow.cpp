@@ -1,9 +1,11 @@
 
 #include "ProjectBrowserWindow.h"
+#include "../Application/EditorApplication.h"
+#include "../Application/AssetManager.h"
 
 
 LuxonEditor::ProjectBrowserWindow::ProjectBrowserWindow()
-	:EditorWindow("Project Browser")
+	:EditorWindow("Project Browser"), m_assetManager(EditorApplication::GetAssetManager())
 {
 }
 
@@ -13,7 +15,7 @@ LuxonEditor::ProjectBrowserWindow::ProjectBrowserWindow(const std::string& proje
 }
 
 LuxonEditor::ProjectBrowserWindow::ProjectBrowserWindow(const std::string& projectPath, const std::string& currentPath)
-	:EditorWindow("Project Browser")
+	:EditorWindow("Project Browser"), m_assetManager(EditorApplication::GetAssetManager())
 	, m_projectDirectory(std::filesystem::path(projectPath)), m_currentDirectory(std::filesystem::path(currentPath))
 {
 	UpdatePathList();
@@ -100,7 +102,7 @@ void LuxonEditor::ProjectBrowserWindow::UpdatePathList()
 			if (extention.string() == ".json")
 				continue;
 
-			m_fileList.push_back(childPath.path().filename().string());
+			m_fileList.push_back(childPath.path());
 		}
 			
 	}
@@ -120,7 +122,8 @@ void LuxonEditor::ProjectBrowserWindow::SetTargetDirectory(std::filesystem::dire
 
 void LuxonEditor::ProjectBrowserWindow::RenderFolder(const std::string& folderName)
 {
-	RenderGraphics(folderName, IM_COL32(255, 0, 0, 255));
+	auto texID = m_assetManager->GetIcon(FOLDER_ICON_ID);
+	RenderGraphics(folderName, texID);
 	
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 		pendingAction = [this, folderName]() {
@@ -129,12 +132,13 @@ void LuxonEditor::ProjectBrowserWindow::RenderFolder(const std::string& folderNa
 	}
 }
 
-void LuxonEditor::ProjectBrowserWindow::RenderFile(const std::string& fileName)
+void LuxonEditor::ProjectBrowserWindow::RenderFile(const std::filesystem::path& fileName)
 {
-	RenderGraphics(fileName, IM_COL32(0, 255, 0, 255));
+	auto texID = m_assetManager->GetIconFromExtention(fileName.extension().string());
+	RenderGraphics(fileName.filename().string(), texID);
 }
 
-void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::string& fileName, ImU32 color)
+void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::string& fileName, ImTextureID texID)
 {
 	ImVec2 iconSize(m_itemWidth, m_itemWidth);
 	float fontSize = ImGui::GetFontSize();
@@ -154,7 +158,7 @@ void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::string& fileNa
 		dl->AddRectFilled(ImVec2(p.x - m_itemGap / 2, p.y - m_itemGap / 2), ImVec2(p.x + itemWidth + m_itemGap / 2, p.y + itemHeight + m_itemGap / 2), IM_COL32(0, 0, 255, 100));
 	}
 
-	dl->AddRectFilled(p, ImVec2(p.x + iconSize.x, p.y + iconSize.y), color);
+	dl->AddImage(texID, p, ImVec2(p.x + iconSize.x, p.y + iconSize.y));
 
 	const char* line_start = fileName.c_str();
 	ImVec2 pos = ImVec2(p.x, p.y + m_itemWidth);

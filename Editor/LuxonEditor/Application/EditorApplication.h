@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include <typeinfo>
+#include "AssetManager.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -22,6 +23,8 @@ namespace LuxonEditor {
 	class EditorApplication {
 	public:
 		static EditorApplication* CreateApplication(HINSTANCE hInstance, std::string error);
+		static std::string& GetProjectPath() { return m_appInstance.m_projectPath; }
+		static AssetManager* GetAssetManager() { return &m_appInstance.m_assetManager; }
 		EditorApplication(HINSTANCE hInstance);
 		bool Initialize(std::string& error);
 		void Run();
@@ -62,6 +65,8 @@ namespace LuxonEditor {
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		std::vector<EditorWindow*> m_windowList;
 		std::map<size_t, EditorWindow*> m_windowMap;
+
+		AssetManager m_assetManager;
 	};
 
 	template<class T, class ...Args>

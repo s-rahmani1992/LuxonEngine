@@ -35,6 +35,9 @@
     <ClInclude Include="EditorWindows\InspectorWindow.h">
       <Filter>EditorWindows</Filter>
     </ClInclude>
+    <ClInclude Include="Application\AssetManager.h">
+      <Filter>Application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LuxonEditor.rc">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="EditorWindows\InspectorWindow.cpp">
       <Filter>EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\AssetManager.cpp">
+      <Filter>Application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -42,6 +42,14 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
         return false;
     }
 
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
+        error = "Failed to initialize COM";
+        return false;
+    }
+
+    m_assetManager = AssetManager(g_pd3dDevice);
+
     // Show the window
     ::ShowWindow(m_handle, SW_SHOWDEFAULT);
     ::UpdateWindow(m_handle);
