@@ -65,7 +65,7 @@ namespace LuxonEditor {
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		std::vector<EditorWindow*> m_windowList;
 		std::map<size_t, EditorWindow*> m_windowMap;
-
+		ImGuiIO* m_io;
 		AssetManager m_assetManager;
 	};
 

@@ -66,6 +66,8 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
     std::string iniPath = 
     io.IniFilename = m_iniPath.c_str();
 
+    m_io = &io;
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -268,6 +270,16 @@ LRESULT __stdcall LuxonEditor::EditorApplication::OnEditorMessage(HWND hWnd, UIN
             m_appInstance.m_height = HIWORD(lParam);
         }
         return 0;
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        m_appInstance.m_io->AddKeyEvent(ImGuiKey_F2, wParam == VK_F2);
+        break;
+
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        m_appInstance.m_io->AddKeyEvent(ImGuiKey_F2, false);
+        break;
     case WM_SYSCOMMAND:
         if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
             return 0;

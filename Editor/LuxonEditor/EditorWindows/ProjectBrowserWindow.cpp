@@ -79,6 +79,20 @@ void LuxonEditor::ProjectBrowserWindow::RenderElements()
 	ImGui::EndGroup();
 
 	ImGui::EndChild();
+
+	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)
+		&& ImGui::IsMouseClicked(ImGuiMouseButton_Left) && m_selectedItem != nullptr) {
+		if (m_isRenaming) {
+			m_isRenaming = false;
+			RenamePath(*m_selectedItem, m_inputName);
+			std::memset(m_inputName, 0, IM_ARRAYSIZE(m_inputName));
+		}
+		m_selectedItem = nullptr;
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_F2) && m_selectedItem != nullptr) {
+		m_isRenaming = true;
+	}
 }
 
 void LuxonEditor::ProjectBrowserWindow::UpdatePathList()
@@ -86,6 +100,7 @@ void LuxonEditor::ProjectBrowserWindow::UpdatePathList()
 	m_folders.clear();
 	m_folderList.clear();
 	m_fileList.clear();
+	m_selectedItem = nullptr;
 
 	std::filesystem::directory_entry directoryIterator(m_currentDirectory);
 
@@ -96,7 +111,7 @@ void LuxonEditor::ProjectBrowserWindow::UpdatePathList()
 
 	for (const std::filesystem::directory_entry& childPath : std::filesystem::directory_iterator(m_currentDirectory.path())) {
 		if (childPath.is_directory())
-			m_folderList.push_back(childPath.path().filename().string());
+			m_folderList.push_back(childPath.path());
 		else {
 			auto extention = childPath.path().extension();
 			if (extention.string() == ".json")
@@ -104,7 +119,6 @@ void LuxonEditor::ProjectBrowserWindow::UpdatePathList()
 
 			m_fileList.push_back(childPath.path());
 		}
-			
 	}
 }
 
@@ -120,14 +134,14 @@ void LuxonEditor::ProjectBrowserWindow::SetTargetDirectory(std::filesystem::dire
 	UpdatePathList();
 }
 
-void LuxonEditor::ProjectBrowserWindow::RenderFolder(const std::string& folderName)
+void LuxonEditor::ProjectBrowserWindow::RenderFolder(const std::filesystem::path& folderName)
 {
 	auto texID = m_assetManager->GetIcon(FOLDER_ICON_ID);
 	RenderGraphics(folderName, texID);
 	
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 		pendingAction = [this, folderName]() {
-			OpenFolder(folderName);
+			OpenFolder(folderName.filename().string());
 			};
 	}
 }
@@ -135,22 +149,23 @@ void LuxonEditor::ProjectBrowserWindow::RenderFolder(const std::string& folderNa
 void LuxonEditor::ProjectBrowserWindow::RenderFile(const std::filesystem::path& fileName)
 {
 	auto texID = m_assetManager->GetIconFromExtention(fileName.extension().string());
-	RenderGraphics(fileName.filename().string(), texID);
+	RenderGraphics(fileName, texID);
 }
 
-void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::string& fileName, ImTextureID texID)
+void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID)
 {
+	auto pathStr = fileName.filename().stem().string();
 	ImVec2 iconSize(m_itemWidth, m_itemWidth);
 	float fontSize = ImGui::GetFontSize();
 	ImFont* font = ImGui::GetFont();
 	float itemWidth = iconSize.x;
-	auto requiredTextSize = font->CalcTextSizeA(fontSize, m_itemWidth, m_itemWidth, fileName.c_str());
+	auto requiredTextSize = font->CalcTextSizeA(fontSize, m_itemWidth, m_itemWidth, pathStr.c_str());
 
 	float itemHeight = iconSize.y + requiredTextSize.y + m_itemGap; // padding
 	ImGui::BeginGroup(); // keep icon + text together
 
 	ImVec2 p = ImGui::GetCursorScreenPos();
-	ImGui::InvisibleButton(fileName.c_str(), ImVec2(itemWidth, itemHeight));
+	ImGui::InvisibleButton(pathStr.c_str(), ImVec2(itemWidth, itemHeight));
 
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 
@@ -158,26 +173,56 @@ void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::string& fileNa
 		dl->AddRectFilled(ImVec2(p.x - m_itemGap / 2, p.y - m_itemGap / 2), ImVec2(p.x + itemWidth + m_itemGap / 2, p.y + itemHeight + m_itemGap / 2), IM_COL32(0, 0, 255, 100));
 	}
 
+	if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+		m_selectedItem = const_cast<std::filesystem::path*>(&fileName);
+	}
+
+	else if(&fileName == m_selectedItem)
+		dl->AddRectFilled(ImVec2(p.x - m_itemGap / 2, p.y - m_itemGap / 2), ImVec2(p.x + itemWidth + m_itemGap / 2, p.y + itemHeight + m_itemGap / 2), IM_COL32(0, 0, 255, 200));
+
 	dl->AddImage(texID, p, ImVec2(p.x + iconSize.x, p.y + iconSize.y));
+	
+	if (m_isRenaming && m_selectedItem == &fileName) {
+		auto oldPos = ImGui::GetCursorScreenPos();
+		std::memcpy(m_inputName, fileName.filename().stem().string().data(), fileName.filename().string().length());
+		ImVec2 pos = ImVec2(p.x, p.y + m_itemWidth);
+		ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y));
+		ImGui::PushStyleColor(ImGuiCol_InputTextCursor, IM_COL32(0, 0, 0, 255));
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 200));        // transparent background
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(0, 0, 0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+		ImGui::SetKeyboardFocusHere();
+		ImGui::InputTextMultiline("##edit", m_inputName, IM_ARRAYSIZE(m_inputName), ImVec2(m_itemWidth, fontSize));
+	
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(5);
 
-	const char* line_start = fileName.c_str();
-	ImVec2 pos = ImVec2(p.x, p.y + m_itemWidth);
-	const char* text_end = line_start + fileName.length();
-	while (line_start < text_end)
-	{
-		const char* line_end = font->CalcWordWrapPosition(fontSize, line_start, text_end, m_itemWidth);
+		ImGui::SetCursorScreenPos(oldPos);
+		ImGui::Dummy(ImVec2(0, 0));
+	}
+	else {
+		const char* line_start = pathStr.c_str();
+		ImVec2 pos = ImVec2(p.x, p.y + m_itemWidth);
+		const char* text_end = line_start + pathStr.length();
+		while (line_start < text_end)
+		{
+			const char* line_end = font->CalcWordWrapPosition(fontSize, line_start, text_end, m_itemWidth);
 
-		auto textWidth = ImGui::CalcTextSize(line_start, line_end, true, m_itemWidth);
+			auto textWidth = ImGui::CalcTextSize(line_start, line_end, true, m_itemWidth);
 
-		dl->AddText(ImVec2(pos.x + (m_itemWidth - textWidth.x) / 2, pos.y), IM_COL32_WHITE, line_start, line_end);
+			dl->AddText(ImVec2(pos.x + (m_itemWidth - textWidth.x) / 2, pos.y), IM_COL32_WHITE, line_start, line_end);
 
-		// Advance to next line
-		pos.y += fontSize;
-		line_start = line_end;
+			// Advance to next line
+			pos.y += fontSize;
+			line_start = line_end;
 
-		// Skip spaces/newlines
-		while (line_start < text_end && (*line_start == ' ' || *line_start == '\n'))
-			line_start++;
+			// Skip spaces/newlines
+			while (line_start < text_end && (*line_start == ' ' || *line_start == '\n'))
+				line_start++;
+		}
 	}
 
 	ImGui::EndGroup();
@@ -198,4 +243,14 @@ void LuxonEditor::ProjectBrowserWindow::RenderDirectory(std::filesystem::directo
 			SetTargetDirectory(directory);
 			};
 	}
+}
+
+void LuxonEditor::ProjectBrowserWindow::RenamePath(std::filesystem::path& path, char* newName)
+{
+	std::filesystem::path newPath = (path.parent_path() / (newName + path.extension().string()));
+	std::filesystem::path metaPath(path.string() + ".json");
+	std::filesystem::path newMetaPath = (metaPath.parent_path() / (newName + path.extension().string() + ".json"));
+	std::filesystem::rename(path, newPath);
+	std::filesystem::rename(metaPath, newMetaPath);
+	UpdatePathList();
 }
