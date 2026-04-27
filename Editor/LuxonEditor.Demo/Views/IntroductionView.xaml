@@ -22,7 +22,7 @@
                     Padding="10" DockPanel.Dock="Top">
             <FlowDocument FontFamily="{StaticResource Global_Font}">
                 <Paragraph Foreground="{StaticResource Title_Color}" TextAlignment="Center" FontSize="40">
-                    Welcome to QuantumEngine Demo
+                    Welcome to Luxon Engine Demo
                 </Paragraph>
                 <Paragraph Margin="6 0 6 10" FontSize="25">
                     This application is a demo for the render engine which showcases several scenes with different illumination and rendering effects.

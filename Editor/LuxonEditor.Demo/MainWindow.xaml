@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:LuxonEditor.Demo"
         xmlns:view="clr-namespace:LuxonEditor.Demo.Views"
         mc:Ignorable="d"
-        Title="Quantum Engine Demo" Height="720" Width="1280"
+        Title="Luxon Engine Demo" Height="720" Width="1280"
         WindowStartupLocation="Manual" Left="50" Top="50">
     <Window.Resources>
         <ResourceDictionary>
