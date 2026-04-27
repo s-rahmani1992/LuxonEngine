@@ -80,7 +80,7 @@ void LuxonEditor::ProjectBrowserWindow::RenderElements()
 
 	ImGui::EndChild();
 
-	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)
+	if (!m_isDeleting && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)
 		&& ImGui::IsMouseClicked(ImGuiMouseButton_Left) && m_selectedItem != nullptr) {
 		if (m_isRenaming) {
 			m_isRenaming = false;
@@ -92,6 +92,39 @@ void LuxonEditor::ProjectBrowserWindow::RenderElements()
 
 	if (ImGui::IsKeyPressed(ImGuiKey_F2) && m_selectedItem != nullptr) {
 		m_isRenaming = true;
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && m_selectedItem != nullptr) {
+		ImGui::OpenPopup("Confirm Delete");
+		m_isDeleting = true;
+	}
+
+	if (m_isDeleting) {
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
+			ImGuiCond_Appearing,
+			ImVec2(0.5f, 0.5f));
+
+		if (ImGui::BeginPopupModal("Confirm Delete", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+			std::string msg = "Are you sure you want to delete the " + m_selectedItem->filename().string();
+			ImGui::Text(msg.c_str());
+			ImGui::Separator();
+
+			if (ImGui::Button("Yes", ImVec2(120, 0)))
+			{
+				DeletePath(*m_selectedItem);     // your action
+				m_selectedItem = nullptr;
+				m_isDeleting = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine(0, 30);
+			if (ImGui::Button("No", ImVec2(120, 0)))
+			{
+				m_isDeleting = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 }
 
@@ -252,5 +285,18 @@ void LuxonEditor::ProjectBrowserWindow::RenamePath(std::filesystem::path& path, 
 	std::filesystem::path newMetaPath = (metaPath.parent_path() / (newName + path.extension().string() + ".json"));
 	std::filesystem::rename(path, newPath);
 	std::filesystem::rename(metaPath, newMetaPath);
+	UpdatePathList();
+}
+
+void LuxonEditor::ProjectBrowserWindow::DeletePath(std::filesystem::path& path)
+{
+	std::filesystem::path metaPath(path.string() + ".json");
+	
+	if (std::filesystem::is_directory(path))
+		std::filesystem::remove_all(path);
+	else
+		std::filesystem::remove(path);
+	
+	std::filesystem::remove(metaPath);
 	UpdatePathList();
 }

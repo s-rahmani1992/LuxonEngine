@@ -23,6 +23,7 @@ namespace LuxonEditor {
 		void RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID);
 		void RenderDirectory(std::filesystem::directory_entry& directory);
 		void RenamePath(std::filesystem::path& path, char* newName);
+		void DeletePath(std::filesystem::path& path);
 
 		std::filesystem::directory_entry m_projectDirectory;
 		std::filesystem::directory_entry m_currentDirectory;
@@ -37,6 +38,7 @@ namespace LuxonEditor {
 		std::filesystem::path* m_selectedItem;
 		bool m_isRenaming = false;
 		char m_inputName[256];
+		bool m_isDeleting;
 		AssetManager* m_assetManager;
 	};
 }

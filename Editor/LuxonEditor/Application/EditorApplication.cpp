@@ -274,11 +274,13 @@ LRESULT __stdcall LuxonEditor::EditorApplication::OnEditorMessage(HWND hWnd, UIN
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
         m_appInstance.m_io->AddKeyEvent(ImGuiKey_F2, wParam == VK_F2);
+        m_appInstance.m_io->AddKeyEvent(ImGuiKey_Delete, wParam == VK_DELETE);
         break;
 
     case WM_KEYUP:
     case WM_SYSKEYUP:
         m_appInstance.m_io->AddKeyEvent(ImGuiKey_F2, false);
+        m_appInstance.m_io->AddKeyEvent(ImGuiKey_Delete, false);
         break;
     case WM_SYSCOMMAND:
         if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
