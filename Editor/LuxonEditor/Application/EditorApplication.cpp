@@ -3,6 +3,7 @@
 #include "../EditorWindows/ProjectBrowserWindow.h"
 #include "../EditorWindows/GameViewWindow.h"
 #include "../EditorWindows/InspectorWindow.h"
+#include "../EditorWindows/ConsoleMessageWindow.h"
 
 LuxonEditor::EditorApplication LuxonEditor::EditorApplication::m_appInstance(NULL);
 
@@ -99,6 +100,7 @@ bool LuxonEditor::EditorApplication::Initialize(std::string& error)
     AddWindow<ProjectBrowserWindow>(m_projectPath, m_projectPath + "\\Assets");
     AddWindow<GameViewWindow>();
     AddWindow<InspectorWindow>();
+    AddWindow<ConsoleMessageWindow>();
     return true;
 }
 
@@ -209,6 +211,7 @@ void LuxonEditor::EditorApplication::Run()
             ImGui::DockBuilderDockWindow(GetWindowName<InspectorWindow>(), dock_id_right);
             ImGui::DockBuilderDockWindow(GetWindowName<GameViewWindow>(), dock_id_left_top);
             ImGui::DockBuilderDockWindow(GetWindowName<ProjectBrowserWindow>(), dock_id_left_bottom);
+            ImGui::DockBuilderDockWindow(GetWindowName<ConsoleMessageWindow>(), dock_id_left_bottom);
             ImGui::DockBuilderFinish(dockspace_id);
         }
 

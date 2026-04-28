@@ -19,6 +19,9 @@ LuxonEditor::AssetManager::AssetManager(ID3D11Device* device)
 	ImportIcon(path + "\\Contents\\icons\\hlsl.png", HLSL_ICON_ID);
 	ImportIcon(path + "\\Contents\\icons\\default.png", DEFAULT_ICON_ID);
 	ImportIcon(path + "\\Contents\\icons\\3d-model.png", MODEL_ICON_ID);
+	ImportIcon(path + "\\Contents\\icons\\log.png", LOG_ICON_ID);
+	ImportIcon(path + "\\Contents\\icons\\warning.png", WARN_ICON_ID);
+	ImportIcon(path + "\\Contents\\icons\\error.png", ERROR_ICON_ID);
 }
 
 LuxonEditor::AssetManager::~AssetManager()

@@ -161,6 +161,8 @@
   <ItemGroup>
     <ClInclude Include="Application\AssetManager.h" />
     <ClInclude Include="Application\EditorApplication.h" />
+    <ClInclude Include="Application\MessageLogger.h" />
+    <ClInclude Include="EditorWindows\ConsoleMessageWindow.h" />
     <ClInclude Include="EditorWindows\GameViewWindow.h" />
     <ClInclude Include="EditorWindows\InspectorWindow.h" />
     <ClInclude Include="EditorWindows\ProjectBrowserWindow.h" />
@@ -170,6 +172,8 @@
   <ItemGroup>
     <ClCompile Include="Application\AssetManager.cpp" />
     <ClCompile Include="Application\EditorApplication.cpp" />
+    <ClCompile Include="Application\MessageLogger.cpp" />
+    <ClCompile Include="EditorWindows\ConsoleMessageWindow.cpp" />
     <ClCompile Include="EditorWindows\GameViewWindow.cpp" />
     <ClCompile Include="EditorWindows\InspectorWindow.cpp" />
     <ClCompile Include="EditorWindows\ProjectBrowserWindow.cpp" />

@@ -38,6 +38,12 @@
     <ClInclude Include="Application\AssetManager.h">
       <Filter>Application</Filter>
     </ClInclude>
+    <ClInclude Include="Application\MessageLogger.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorWindows\ConsoleMessageWindow.h">
+      <Filter>EditorWindows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LuxonEditor.rc">
@@ -68,6 +74,12 @@
     </ClCompile>
     <ClCompile Include="Application\AssetManager.cpp">
       <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\MessageLogger.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorWindows\ConsoleMessageWindow.cpp">
+      <Filter>EditorWindows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

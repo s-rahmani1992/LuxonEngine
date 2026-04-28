@@ -10,6 +10,9 @@
 #define HLSL_ICON_ID "hlsl_icon_id"
 #define DEFAULT_ICON_ID "default_icon_id"
 #define MODEL_ICON_ID "model_icon_id"
+#define LOG_ICON_ID "log_icon_id"
+#define WARN_ICON_ID "warn_icon_id"
+#define ERROR_ICON_ID "error_icon_id"
 
 namespace LuxonEditor {
 	class AssetManager {
