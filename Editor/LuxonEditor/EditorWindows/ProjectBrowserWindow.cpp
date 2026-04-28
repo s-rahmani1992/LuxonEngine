@@ -185,7 +185,7 @@ void LuxonEditor::ProjectBrowserWindow::RenderFile(const std::filesystem::path& 
 	RenderGraphics(fileName, texID);
 }
 
-void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID)
+void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID, bool acceptDrag)
 {
 	auto pathStr = fileName.filename().stem().string();
 	ImVec2 iconSize(m_itemWidth, m_itemWidth);
@@ -202,7 +202,7 @@ void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::filesystem::pa
 
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 
-	if (ImGui::IsItemHovered()) {
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
 		dl->AddRectFilled(ImVec2(p.x - m_itemGap / 2, p.y - m_itemGap / 2), ImVec2(p.x + itemWidth + m_itemGap / 2, p.y + itemHeight + m_itemGap / 2), IM_COL32(0, 0, 255, 100));
 	}
 
@@ -258,11 +258,49 @@ void LuxonEditor::ProjectBrowserWindow::RenderGraphics(const std::filesystem::pa
 		}
 	}
 
+	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID |
+									ImGuiDragDropFlags_SourceNoPreviewTooltip))
+	{
+		// Payload: send the file index or pointer
+		std::filesystem::path* ptr = const_cast<std::filesystem::path*>(&fileName);
+		ImGui::SetDragDropPayload("FILE_ITEM", &ptr, sizeof(std::filesystem::path*));
+		
+		ImVec2 mouse = ImGui::GetIO().MousePos;
+		ImVec2 half = ImVec2(0.5f * iconSize.x, 0.5f * iconSize.y);
+
+		ImDrawList* dl1 = ImGui::GetForegroundDrawList();
+		
+		// Optional: preview while dragging
+		dl1->AddImage(texID, ImVec2(mouse.x - half.x, mouse.y - half.y),
+			ImVec2(mouse.x + half.x, mouse.y + half.y), ImVec2(0, 0),
+			ImVec2(1, 1), IM_COL32(255, 255, 255, 150));
+
+		ImGui::EndDragDropSource();
+	}
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FILE_ITEM")) {
+				//auto draggedItem = (std::filesystem::path*)(payload->Data);
+				std::filesystem::path* draggedItem = *(std::filesystem::path**)payload->Data;
+				if (draggedItem != &fileName && std::filesystem::is_directory(fileName)) {
+					pendingAction = [this, fileName, draggedItem]() {
+						MoveToFolder(fileName, *draggedItem);
+						};
+				}
+			}
+		}
+		
+		ImGui::EndDragDropTarget();
+	}
+
 	ImGui::EndGroup();
 }
 
 void LuxonEditor::ProjectBrowserWindow::RenderDirectory(std::filesystem::directory_entry& directory)
 {
+	ImGui::BeginGroup();
 	ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 0));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 0, 0, 0));
@@ -276,6 +314,25 @@ void LuxonEditor::ProjectBrowserWindow::RenderDirectory(std::filesystem::directo
 			SetTargetDirectory(directory);
 			};
 	}
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FILE_ITEM")) {
+				std::filesystem::path* draggedItem = *(std::filesystem::path**)payload->Data;
+				auto& draggedPath = *draggedItem;
+				if (draggedPath.parent_path() != directory.path()) {
+					pendingAction = [this, directory, &draggedPath]() {
+						MoveToFolder(directory.path(), draggedPath);
+						};
+				}
+			}
+		}
+
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::EndGroup();
 }
 
 void LuxonEditor::ProjectBrowserWindow::RenamePath(std::filesystem::path& path, char* newName)
@@ -284,7 +341,8 @@ void LuxonEditor::ProjectBrowserWindow::RenamePath(std::filesystem::path& path, 
 	std::filesystem::path metaPath(path.string() + ".json");
 	std::filesystem::path newMetaPath = (metaPath.parent_path() / (newName + path.extension().string() + ".json"));
 	std::filesystem::rename(path, newPath);
-	std::filesystem::rename(metaPath, newMetaPath);
+	if(std::filesystem::exists(metaPath))
+		std::filesystem::rename(metaPath, newMetaPath);
 	UpdatePathList();
 }
 
@@ -298,5 +356,20 @@ void LuxonEditor::ProjectBrowserWindow::DeletePath(std::filesystem::path& path)
 		std::filesystem::remove(path);
 	
 	std::filesystem::remove(metaPath);
+	UpdatePathList();
+}
+
+void LuxonEditor::ProjectBrowserWindow::MoveToFolder(const std::filesystem::path& folder, std::filesystem::path& file)
+{
+	std::filesystem::path newPath = (folder / (file.filename()));
+	std::filesystem::path metaPath(file.string() + ".json");
+
+	if (!std::filesystem::is_directory(file) && std::filesystem::exists(metaPath)) {
+		
+		std::filesystem::path newMetaPath(newPath.string() + ".json");
+		std::filesystem::rename(metaPath, newMetaPath);
+	}
+
+	std::filesystem::rename(file, newPath);
 	UpdatePathList();
 }

@@ -20,10 +20,11 @@ namespace LuxonEditor {
 		void SetTargetDirectory(std::filesystem::directory_entry& targetDirectory);
 		void RenderFolder(const std::filesystem::path& folderName);
 		void RenderFile(const std::filesystem::path& fileName);
-		void RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID);
+		void RenderGraphics(const std::filesystem::path& fileName, ImTextureID texID, bool acceptDrag = false);
 		void RenderDirectory(std::filesystem::directory_entry& directory);
 		void RenamePath(std::filesystem::path& path, char* newName);
 		void DeletePath(std::filesystem::path& path);
+		void MoveToFolder(const std::filesystem::path& folder, std::filesystem::path& file);
 
 		std::filesystem::directory_entry m_projectDirectory;
 		std::filesystem::directory_entry m_currentDirectory;
@@ -36,6 +37,7 @@ namespace LuxonEditor {
 		int m_itemGap = 20;
 
 		std::filesystem::path* m_selectedItem;
+		std::filesystem::path* m_draggedItem;
 		bool m_isRenaming = false;
 		char m_inputName[256];
 		bool m_isDeleting;
