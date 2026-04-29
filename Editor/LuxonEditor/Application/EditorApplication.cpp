@@ -7,12 +7,14 @@
 
 LuxonEditor::EditorApplication LuxonEditor::EditorApplication::m_appInstance(NULL);
 
-LuxonEditor::EditorApplication* LuxonEditor::EditorApplication::CreateApplication(HINSTANCE hInstance, std::string error)
+LuxonEditor::EditorApplication* LuxonEditor::EditorApplication::CreateApplication(HINSTANCE hInstance, Graphic_API graphicAPI, std::string error)
 {
     m_appInstance = EditorApplication(hInstance);
 
     if (m_appInstance.Initialize(error) == false)
         return nullptr;
+
+    m_appInstance.m_gpuApplication = CreateGPUApplication(graphicAPI);
 
     return &m_appInstance;
 }
@@ -249,6 +251,8 @@ void LuxonEditor::EditorApplication::ShutDown()
 {
     for (auto& window : m_windowList)
         delete window;
+
+    delete m_gpuApplication;
 
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();

@@ -11,7 +11,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     std::string error;
-    auto editorApp =  LuxonEditor::EditorApplication::CreateApplication(hInstance, error);
+    auto editorApp =  LuxonEditor::EditorApplication::CreateApplication(hInstance, VULKAN, error);
     
     if (editorApp == nullptr)
     {

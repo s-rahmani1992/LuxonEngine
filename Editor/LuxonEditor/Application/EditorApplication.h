@@ -14,6 +14,11 @@
 #include <map>
 #include <typeinfo>
 #include "AssetManager.h"
+#include <EngineAPI.h>
+
+namespace LuxonEngine::Rendering {
+	class GPUDeviceManager;
+}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -22,7 +27,7 @@ namespace LuxonEditor {
 
 	class EditorApplication {
 	public:
-		static EditorApplication* CreateApplication(HINSTANCE hInstance, std::string error);
+		static EditorApplication* CreateApplication(HINSTANCE hInstance, Graphic_API graphicAPI, std::string error);
 		static std::string& GetProjectPath() { return m_appInstance.m_projectPath; }
 		static AssetManager* GetAssetManager() { return &m_appInstance.m_assetManager; }
 		EditorApplication(HINSTANCE hInstance);
@@ -67,6 +72,7 @@ namespace LuxonEditor {
 		std::map<size_t, EditorWindow*> m_windowMap;
 		ImGuiIO* m_io;
 		AssetManager m_assetManager;
+		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication;
 	};
 
 	template<class T, class ...Args>
