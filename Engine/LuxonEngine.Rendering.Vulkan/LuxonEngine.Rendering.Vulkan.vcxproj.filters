@@ -73,6 +73,7 @@
       <Filter>RayTracing</Filter>
     </ClInclude>
     <ClInclude Include="VulkanGBufferPipelineModule.h" />
+    <ClInclude Include="VulkanAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\VulkanDeviceManager.cpp">
@@ -150,6 +151,7 @@
       <Filter>RayTracing</Filter>
     </ClCompile>
     <ClCompile Include="VulkanGBufferPipelineModule.cpp" />
+    <ClCompile Include="VulkanAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

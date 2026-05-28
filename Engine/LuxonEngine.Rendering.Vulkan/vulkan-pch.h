@@ -6,9 +6,9 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <BasicTypes.h>
 #include <vulkan/vulkan.h>
-#include <dxcapi.h>
 #include "Core/spirv_reflect.h"
 #include <wrl/client.h>
+#include <dxcapi.h>
 
 #pragma comment(lib, "vulkan-1.lib")
 #pragma comment(lib, "dxcompiler.lib")
