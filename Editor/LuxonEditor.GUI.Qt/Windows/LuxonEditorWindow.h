@@ -3,7 +3,11 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_LuxonEditorWindow.h"
 
-namespace LuxonEditor::GUI::Qt {
+namespace ads {
+    class CDockManager;
+}
+
+namespace LuxonEditor::GUI::QT {
     class LuxonEditorWindow : public QMainWindow
     {
         Q_OBJECT
@@ -14,5 +18,6 @@ namespace LuxonEditor::GUI::Qt {
 
     private:
         Ui::LuxonEditorWindowClass ui;
+        ads::CDockManager* m_dockManager;
     };
 }

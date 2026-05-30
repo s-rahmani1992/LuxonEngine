@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/LuxonEditorWindow">
+        <file>error.png</file>
+        <file>warning.png</file>
+        <file>log.png</file>
+    </qresource>
+</RCC>

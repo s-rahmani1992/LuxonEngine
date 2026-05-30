@@ -39,11 +39,13 @@
     <QtInstall>6.9.3_msvc2022_64</QtInstall>
     <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
+    <MocMacroNames>ADS_STATIC;$(MocMacroNames)</MocMacroNames>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.9.3_msvc2022_64</QtInstall>
     <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <MocMacroNames>ADS_STATIC;$(MocMacroNames)</MocMacroNames>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -68,11 +70,15 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -104,15 +110,82 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ADS\src\ads_globals.cpp" />
+    <ClCompile Include="ADS\src\AutoHideDockContainer.cpp" />
+    <ClCompile Include="ADS\src\AutoHideSideBar.cpp" />
+    <ClCompile Include="ADS\src\AutoHideTab.cpp" />
+    <ClCompile Include="ADS\src\DockAreaTabBar.cpp" />
+    <ClCompile Include="ADS\src\DockAreaTitleBar.cpp" />
+    <ClCompile Include="ADS\src\DockAreaWidget.cpp" />
+    <ClCompile Include="ADS\src\DockComponentsFactory.cpp" />
+    <ClCompile Include="ADS\src\DockContainerWidget.cpp" />
+    <ClCompile Include="ADS\src\DockFocusController.cpp" />
+    <ClCompile Include="ADS\src\DockingStateReader.cpp" />
+    <ClCompile Include="ADS\src\DockManager.cpp" />
+    <ClCompile Include="ADS\src\DockOverlay.cpp" />
+    <ClCompile Include="ADS\src\DockSplitter.cpp" />
+    <ClCompile Include="ADS\src\DockWidget.cpp" />
+    <ClCompile Include="ADS\src\DockWidgetTab.cpp" />
+    <ClCompile Include="ADS\src\ElidingLabel.cpp" />
+    <ClCompile Include="ADS\src\FloatingDockContainer.cpp" />
+    <ClCompile Include="ADS\src\FloatingDragPreview.cpp" />
+    <ClCompile Include="ADS\src\IconProvider.cpp" />
+    <ClCompile Include="ADS\src\PushButton.cpp" />
+    <ClCompile Include="ADS\src\ResizeHandle.cpp" />
+    <ClCompile Include="Console\ConsoleLogWindow.cpp" />
+    <ClCompile Include="Console\LogFilter.cpp" />
+    <ClCompile Include="Console\LogItemStyle.cpp" />
+    <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <QtUic Include="Console\ConsoleLogWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="Windows\LuxonEditorWindow.qrc" />
+    <ProjectReference Include="..\..\Engine\LuxonEngine.API\LuxonEngine.API.vcxproj">
+      <Project>{96efc921-6887-4aa6-acdd-9dea5d5547fa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Engine\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
+      <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Console\LogModel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Console\LogFilter.h" />
+    <QtMoc Include="Console\ConsoleLogWindow.h" />
+    <QtMoc Include="ADS\src\ads_globals.h" />
+    <QtMoc Include="ADS\src\AutoHideDockContainer.h" />
+    <QtMoc Include="ADS\src\AutoHideSideBar.h" />
+    <QtMoc Include="ADS\src\AutoHideTab.h" />
+    <QtMoc Include="ADS\src\DockAreaTabBar.h" />
+    <QtMoc Include="ADS\src\DockAreaTitleBar.h" />
+    <QtMoc Include="ADS\src\DockAreaTitleBar_p.h" />
+    <QtMoc Include="ADS\src\DockAreaWidget.h" />
+    <ClInclude Include="ADS\src\DockComponentsFactory.h" />
+    <QtMoc Include="ADS\src\DockContainerWidget.h" />
+    <QtMoc Include="ADS\src\DockFocusController.h" />
+    <ClInclude Include="ADS\src\DockingStateReader.h" />
+    <QtMoc Include="ADS\src\DockManager.h" />
+    <QtMoc Include="ADS\src\DockOverlay.h" />
+    <QtMoc Include="ADS\src\DockSplitter.h" />
+    <QtMoc Include="ADS\src\DockWidget.h" />
+    <QtMoc Include="ADS\src\DockWidgetTab.h" />
+    <QtMoc Include="ADS\src\ElidingLabel.h" />
+    <QtMoc Include="ADS\src\FloatingDockContainer.h" />
+    <QtMoc Include="ADS\src\FloatingDragPreview.h" />
+    <ClInclude Include="ADS\src\IconProvider.h" />
+    <QtMoc Include="ADS\src\PushButton.h" />
+    <QtMoc Include="ADS\src\ResizeHandle.h" />
+    <ClInclude Include="Console\LogItemStyle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="ADS\src\ads.qrc" />
+    <QtRcc Include="Resources\LuxonEditorWindow.qrc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

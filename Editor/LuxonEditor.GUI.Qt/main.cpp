@@ -1,7 +1,7 @@
 #include "Windows/LuxonEditorWindow.h"
 #include <QtWidgets/QApplication>
 
-namespace QT = LuxonEditor::GUI::Qt;
+namespace QT = LuxonEditor::GUI::QT;
 
 int main(int argc, char *argv[])
 {

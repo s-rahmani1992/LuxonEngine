@@ -123,6 +123,7 @@
     <ClInclude Include="Core\GameEntity.h" />
     <ClInclude Include="Core\GUIDUtility.h" />
     <ClInclude Include="Core\Light\Lights.h" />
+    <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Matrix4.h" />
     <ClInclude Include="Core\Mesh.h" />
     <ClInclude Include="Core\Model3DAsset.h" />
@@ -159,6 +160,7 @@
     <ClCompile Include="Core\Camera\Camera.cpp" />
     <ClCompile Include="Core\Camera\PerspectiveCamera.cpp" />
     <ClCompile Include="Core\Color.cpp" />
+    <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Matrix4.cpp" />
     <ClCompile Include="Core\Mesh.cpp" />
     <ClCompile Include="Core\Model3DAsset.cpp" />

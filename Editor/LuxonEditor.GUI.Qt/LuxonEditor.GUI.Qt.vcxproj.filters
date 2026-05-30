@@ -4,10 +4,25 @@
     <Filter Include="Windows">
       <UniqueIdentifier>{7dad9cf8-225f-4ef1-a953-d6d5bfd25e46}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Console">
+      <UniqueIdentifier>{55b6300c-8369-4aba-a23e-884bceba99fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{02976786-4fd3-48de-ac19-0505ae2aacc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ADS">
+      <UniqueIdentifier>{53d7e5eb-7778-45da-a393-6e9088f12cee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ADS\src">
+      <UniqueIdentifier>{2b98c61a-affe-40b6-855c-4578d9c5c84b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
       <Filter>Windows</Filter>
+    </QtUic>
+    <QtUic Include="Console\ConsoleLogWindow.ui">
+      <Filter>Console</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -15,15 +30,179 @@
     <ClCompile Include="Windows\LuxonEditorWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Console\LogModel.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+    <ClCompile Include="Console\LogItemStyle.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+    <ClCompile Include="Console\LogFilter.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+    <ClCompile Include="Console\ConsoleLogWindow.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\ads_globals.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\AutoHideDockContainer.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\AutoHideSideBar.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\AutoHideTab.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockAreaTabBar.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockAreaTitleBar.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockAreaWidget.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockComponentsFactory.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockContainerWidget.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockFocusController.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockingStateReader.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockManager.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockOverlay.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockSplitter.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockWidget.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\DockWidgetTab.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\ElidingLabel.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\FloatingDockContainer.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\FloatingDragPreview.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\IconProvider.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\PushButton.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ADS\src\ResizeHandle.cpp">
+      <Filter>ADS\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
       <Filter>Windows</Filter>
     </QtMoc>
+    <QtMoc Include="Console\LogModel.h">
+      <Filter>Console</Filter>
+    </QtMoc>
+    <QtMoc Include="Console\LogFilter.h">
+      <Filter>Console</Filter>
+    </QtMoc>
+    <QtMoc Include="Console\ConsoleLogWindow.h">
+      <Filter>Console</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\ads_globals.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\AutoHideDockContainer.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\AutoHideSideBar.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\AutoHideTab.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockAreaTabBar.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockAreaTitleBar.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockAreaTitleBar_p.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockAreaWidget.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockContainerWidget.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockFocusController.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockManager.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockOverlay.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockSplitter.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockWidget.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\DockWidgetTab.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\ElidingLabel.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\FloatingDockContainer.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\FloatingDragPreview.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\PushButton.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
+    <QtMoc Include="ADS\src\ResizeHandle.h">
+      <Filter>ADS\src</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="Windows\LuxonEditorWindow.qrc">
-      <Filter>Windows</Filter>
+    <ClInclude Include="Console\LogItemStyle.h">
+      <Filter>Console</Filter>
+    </ClInclude>
+    <ClInclude Include="ADS\src\DockComponentsFactory.h">
+      <Filter>ADS\src</Filter>
+    </ClInclude>
+    <ClInclude Include="ADS\src\DockingStateReader.h">
+      <Filter>ADS\src</Filter>
+    </ClInclude>
+    <ClInclude Include="ADS\src\IconProvider.h">
+      <Filter>ADS\src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resources\LuxonEditorWindow.qrc">
+      <Filter>Resources</Filter>
+    </QtRcc>
+    <QtRcc Include="ADS\src\ads.qrc">
+      <Filter>ADS\src</Filter>
     </QtRcc>
   </ItemGroup>
 </Project>
