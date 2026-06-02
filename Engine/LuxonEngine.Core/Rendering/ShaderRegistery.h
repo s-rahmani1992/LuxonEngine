@@ -1,6 +1,7 @@
 #pragma once
 #include "../BasicTypes.h"
 #include <string>
+#include <boost/uuid/uuid.hpp>
 
 namespace LuxonEngine::Rendering {
 	class ShaderProgram;
@@ -24,5 +25,12 @@ namespace LuxonEngine::Rendering {
 		/// <param name="program"></param>
 		/// <param name="isRT"></param>
 		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) = 0;
+	
+		/// <summary>
+		/// Gets Shader Program By GUID. returns null if the guid does not exist
+		/// </summary>
+		/// <param name="guid">id of the program</param>
+		/// <returns></returns>
+		virtual ref<ShaderProgram> GetProgramByGUID(boost::uuids::uuid guid) = 0;
 	};
 }

@@ -21,6 +21,7 @@ namespace LuxonEngine {
 namespace LuxonEngine::Rendering::DX12 {
 	class DX12CommandExecuter;
 	class DX12MeshController;
+	class DX12ShaderRegistery;
 
 	class DX12GPUDeviceManager : public GPUDeviceManager
 	{
@@ -37,6 +38,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<IDXGIFactory7> m_factory;
 		ComPtr<IDXGIAdapter4> m_adapter;
 		ComPtr<ID3D12Device10> m_device;
+
+		ref<DX12ShaderRegistery> m_shaderRegistry;
 
 #ifdef _DEBUG
 		Microsoft::WRL::ComPtr<ID3D12Debug6> m_d3d12_dubug;

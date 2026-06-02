@@ -289,6 +289,16 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	return finalProgram;
 }
 
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
+{
+	auto it = m_shaders.find(guid);
+
+	if (it != m_shaders.end())
+		return it->second;
+
+	return nullptr;
+}
+
 ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, DX12_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;

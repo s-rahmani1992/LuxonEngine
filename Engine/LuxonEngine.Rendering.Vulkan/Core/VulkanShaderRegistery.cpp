@@ -270,6 +270,16 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	return finalProgram;
 }
 
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
+{
+	auto it = m_registeredPrograms.find(guid);
+
+	if (it != m_registeredPrograms.end())
+		return it->second;
+
+	return nullptr;
+}
+
 ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetShaderPrograms(const std::string& name)
 {
 	auto it = m_specialPrograms.find(name);

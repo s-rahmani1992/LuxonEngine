@@ -1,0 +1,27 @@
+{
+  "transform": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "axis": {
+      "x": 1.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "angle": 90.0,
+    "scale": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    }
+  },
+  "meshes": [
+    {
+      "name": "Container Free",
+      "index": 0,
+      "uuid": "2bcf405e-e7b6-4e60-9f3d-8eb2851ca21e"
+    }
+  ]
+}

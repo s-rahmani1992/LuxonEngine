@@ -2,6 +2,7 @@
 #include "GraphicWindow.h"
 #include "../Core/Behaviour.h"
 #include "../Rendering/GraphicContext.h"
+#include "../Core/AssetRegistry.h"
 
 //TODO Move icon to common resource file
 #define IDI_QUANTUMENGINETEST           129
@@ -12,6 +13,7 @@ void LuxonEngine::Platform::Application::CreateApplication(HINSTANCE hInstance)
 {
     m_instance = Application();
     m_instance.m_app_instance = hInstance;
+	m_instance.m_assetRegistry = std::make_shared<AssetRegistry>();
     m_instance.CreateWindowClass();
 }
 

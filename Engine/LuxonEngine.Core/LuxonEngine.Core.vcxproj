@@ -114,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BasicTypes.h" />
+    <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\AssimpModel3DImporter.h" />
     <ClInclude Include="Core\Behaviour.h" />
     <ClInclude Include="Core\BezierCurve.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Core\Transform.h" />
     <ClInclude Include="Core\Vector2.h" />
     <ClInclude Include="Core\Vector3.h" />
+    <ClInclude Include="JSONUtilities.h" />
     <ClInclude Include="Platform\Application.h" />
     <ClInclude Include="Platform\CommonWin.h" />
     <ClInclude Include="Platform\GraphicWindow.h" />
@@ -146,6 +148,7 @@
     <ClInclude Include="Rendering\GraphicContext.h" />
     <ClInclude Include="Rendering\Material.h" />
     <ClInclude Include="Rendering\MaterialFactory.h" />
+    <ClInclude Include="Rendering\MaterialImporter.h" />
     <ClInclude Include="Rendering\MeshRenderer.h" />
     <ClInclude Include="Rendering\RayTracingComponent.h" />
     <ClInclude Include="Rendering\Renderer.h" />
@@ -156,6 +159,7 @@
     <ClInclude Include="StringUtilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\AssimpModel3DImporter.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
     <ClCompile Include="Core\Camera\PerspectiveCamera.cpp" />
@@ -172,8 +176,10 @@
     <ClCompile Include="Core\Transform.cpp" />
     <ClCompile Include="Core\Vector2.cpp" />
     <ClCompile Include="Core\Vector3.cpp" />
+    <ClCompile Include="JSONUtilities.cpp" />
     <ClCompile Include="Platform\Application.cpp" />
     <ClCompile Include="Platform\GraphicWindow.cpp" />
+    <ClCompile Include="Rendering\MaterialImporter.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,9 +1,12 @@
 #pragma once
 #include <string>
+#include <Platform/CommonWin.h>
 #include "../BasicTypes.h"
 #include "Vector3.h"
+#include <boost/json.hpp>
 
 struct aiMesh;
+struct aiScene;
 
 namespace LuxonEngine {
 	class Model3DAsset;
@@ -18,8 +21,9 @@ namespace LuxonEngine {
 
 	class AssimpModel3DImporter {
 	public:
-		static ref<Model3DAsset> Import(const std::string& filePath, const ModelImportProperties& properties, std::string& error);
+		static ref<Model3DAsset> Import(const std::string& filePath, std::string& error);
 	private:
 		static ref<Mesh> CreateMesh(const aiMesh* paiMesh, const ModelImportProperties& properties);
+		static boost::json::value CreateDefaultMetaData(const aiScene* scene, const std::string& filePath);
 	};
 }

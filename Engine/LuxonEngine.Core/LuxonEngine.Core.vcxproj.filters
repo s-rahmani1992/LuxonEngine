@@ -137,6 +137,13 @@
     <ClInclude Include="Core\Logger.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\AssetRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="JSONUtilities.h" />
+    <ClInclude Include="Rendering\MaterialImporter.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">
@@ -190,6 +197,13 @@
     </ClCompile>
     <ClCompile Include="Core\BezierCurve.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\AssetRegistry.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="JSONUtilities.cpp" />
+    <ClCompile Include="Rendering\MaterialImporter.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logger.cpp">
       <Filter>Core</Filter>

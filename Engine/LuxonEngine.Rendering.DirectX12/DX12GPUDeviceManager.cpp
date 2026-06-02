@@ -45,6 +45,9 @@ bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 
 	if (!adapterFound)
 		return false;
+
+	m_shaderRegistry = std::make_shared<DX12ShaderRegistery>();
+	m_shaderRegistry->Initialize(m_device);
 }
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
@@ -81,9 +84,7 @@ ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::DX12::DX12G
 
 ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateShaderRegistery()
 {
-	auto shaderReg = std::make_shared<DX12ShaderRegistery>();
-	shaderReg->Initialize(m_device);
-	return shaderReg;
+	return m_shaderRegistry;
 }
 
 ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateMaterialFactory()
