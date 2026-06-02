@@ -16,6 +16,9 @@
     <Filter Include="ADS\src">
       <UniqueIdentifier>{2b98c61a-affe-40b6-855c-4578d9c5c84b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AssetBrowser">
+      <UniqueIdentifier>{3a189414-7518-4038-a723-cb8680405213}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -23,6 +26,9 @@
     </QtUic>
     <QtUic Include="Console\ConsoleLogWindow.ui">
       <Filter>Console</Filter>
+    </QtUic>
+    <QtUic Include="AssetBrowser\AssetBrowserWindow.ui">
+      <Filter>AssetBrowser</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +114,15 @@
     <ClCompile Include="ADS\src\ResizeHandle.cpp">
       <Filter>ADS\src</Filter>
     </ClCompile>
+    <ClCompile Include="AssetBrowser\AssetBrowserWindow.cpp">
+      <Filter>AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser\PathItemStyle.cpp">
+      <Filter>AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser\PathFilter.cpp">
+      <Filter>AssetBrowser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -182,6 +197,12 @@
     <QtMoc Include="ADS\src\ResizeHandle.h">
       <Filter>ADS\src</Filter>
     </QtMoc>
+    <QtMoc Include="AssetBrowser\AssetBrowserWindow.h">
+      <Filter>AssetBrowser</Filter>
+    </QtMoc>
+    <QtMoc Include="AssetBrowser\PathFilter.h">
+      <Filter>AssetBrowser</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console\LogItemStyle.h">
@@ -195,6 +216,9 @@
     </ClInclude>
     <ClInclude Include="ADS\src\IconProvider.h">
       <Filter>ADS\src</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowser\PathItemStyle.h">
+      <Filter>AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

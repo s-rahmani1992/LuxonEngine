@@ -132,12 +132,16 @@
     <ClCompile Include="ADS\src\IconProvider.cpp" />
     <ClCompile Include="ADS\src\PushButton.cpp" />
     <ClCompile Include="ADS\src\ResizeHandle.cpp" />
+    <ClCompile Include="AssetBrowser\AssetBrowserWindow.cpp" />
+    <ClCompile Include="AssetBrowser\PathFilter.cpp" />
+    <ClCompile Include="AssetBrowser\PathItemStyle.cpp" />
     <ClCompile Include="Console\ConsoleLogWindow.cpp" />
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
   </ItemGroup>
@@ -181,6 +185,9 @@
     <ClInclude Include="ADS\src\IconProvider.h" />
     <QtMoc Include="ADS\src\PushButton.h" />
     <QtMoc Include="ADS\src\ResizeHandle.h" />
+    <QtMoc Include="AssetBrowser\AssetBrowserWindow.h" />
+    <QtMoc Include="AssetBrowser\PathFilter.h" />
+    <ClInclude Include="AssetBrowser\PathItemStyle.h" />
     <ClInclude Include="Console\LogItemStyle.h" />
   </ItemGroup>
   <ItemGroup>

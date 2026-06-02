@@ -1,6 +1,7 @@
 #include "LuxonEditorWindow.h"
 #include <EngineAPI.h>
 #include "Console/ConsoleLogWindow.h"
+#include "AssetBrowser/AssetBrowserWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
 #include "../ADS/src/DockManager.h"
@@ -30,7 +31,12 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     auto* consoleDock = m_dockManager->createDockWidget("Console");
     consoleDock->setWidget(consoleWindow);
 
+    auto assetBrowserWindow = new AssetBrowserWindow(QCoreApplication::applicationDirPath() + "/Assets", QCoreApplication::applicationDirPath() + "/Assets");
+    auto* assetBrowserDock = m_dockManager->createDockWidget("Browser");
+    assetBrowserDock->setWidget(assetBrowserWindow);
+
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, consoleDock);
+    m_dockManager->addDockWidget(ads::RightDockWidgetArea, assetBrowserDock);
 }
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::~LuxonEditorWindow()
