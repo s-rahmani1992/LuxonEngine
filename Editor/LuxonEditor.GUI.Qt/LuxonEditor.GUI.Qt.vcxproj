@@ -70,14 +70,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -154,6 +154,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Engine\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
       <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\LuxonEditor.Core\LuxonEditor.Core.vcxproj">
+      <Project>{9dddebb3-4733-4fe7-ac78-4624d2c7e602}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

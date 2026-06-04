@@ -1,5 +1,5 @@
 #include "LuxonEditorWindow.h"
-#include <EngineAPI.h>
+#include <LuxonEditorAPI.h>
 #include "Console/ConsoleLogWindow.h"
 #include "AssetBrowser/AssetBrowserWindow.h"
 
@@ -31,7 +31,7 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     auto* consoleDock = m_dockManager->createDockWidget("Console");
     consoleDock->setWidget(consoleWindow);
 
-    auto assetBrowserWindow = new AssetBrowserWindow(QCoreApplication::applicationDirPath() + "/Assets", QCoreApplication::applicationDirPath() + "/Assets");
+    auto assetBrowserWindow = new AssetBrowserWindow(QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
     auto* assetBrowserDock = m_dockManager->createDockWidget("Browser");
     assetBrowserDock->setWidget(assetBrowserWindow);
 

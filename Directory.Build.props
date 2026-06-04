@@ -4,6 +4,8 @@
     <DX12ProjectDir>$(SolutionDir)Engine\LuxonEngine.Rendering.DirectX12\</DX12ProjectDir>
     <VKProjectDir>$(SolutionDir)Engine\LuxonEngine.Rendering.Vulkan\</VKProjectDir>
     <APIProjectDir>$(SolutionDir)Engine\LuxonEngine.API\</APIProjectDir>
+    <EngineAPIProjectDir>$(SolutionDir)Engine\LuxonEngine.API\</EngineAPIProjectDir>
+    <EngineAPIDir>$(SolutionDir)Editor\LuxonEditor.Core\</EngineAPIDir>
     <GUIProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI\</GUIProjectDir>
   </PropertyGroup>
 </Project>

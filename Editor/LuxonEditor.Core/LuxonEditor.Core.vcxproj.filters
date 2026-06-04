@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{872d029a-38f3-4c84-88b5-e3c6302d36a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\AssetRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EngineApplication.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="LuxonEditorAPI.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\AssetRegistry.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\EngineApplication.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="LuxonEditorAPI.cpp" />
+  </ItemGroup>
+</Project>

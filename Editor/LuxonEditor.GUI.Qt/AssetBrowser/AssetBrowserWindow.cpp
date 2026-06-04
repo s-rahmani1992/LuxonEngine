@@ -5,9 +5,12 @@
 #include <Core/Logger.h>
 #include <QFileSystemModel>
 #include "PathFilter.h"
+#include <LuxonEditorAPI.h>
+#include <QKeyEvent>
+#include <qmessagebox.h>
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, const QString& targetPath, QWidget *parent)
-	: m_rootPath(rootPath), QWidget(parent)
+	: m_rootPath(rootPath), m_assetManager(GetAssetManager()), QWidget(parent)
 {
 	ui.setupUi(this);
 
@@ -22,6 +25,7 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
 	ui.contentListView->setResizeMode(QListView::Adjust);
 	ui.contentListView->setMouseTracking(true);
 	ui.contentListView->viewport()->setAttribute(Qt::WA_Hover);
+	ui.contentListView->installEventFilter(this);
 
 	RefreshAddressPanel(targetPath);
 
@@ -75,6 +79,7 @@ void LuxonEditor::GUI::QT::AssetBrowserWindow::RefreshAddressPanel(const QString
             QModelIndex srcIdx = m_fileModel->index(pathCopy);
             ui.contentListView->setRootIndex(m_pathFilter->mapFromSource(srcIdx));
             ui.contentListView->clearSelection();
+            RefreshAddressPanel(m_fileModel->filePath(srcIdx));
             });
 
         layout->addWidget(btn);
@@ -85,3 +90,47 @@ void LuxonEditor::GUI::QT::AssetBrowserWindow::RefreshAddressPanel(const QString
     }
 }
 
+bool LuxonEditor::GUI::QT::AssetBrowserWindow::eventFilter(QObject* obj, QEvent* event)
+{
+    if (obj == ui.contentListView && event->type() == QEvent::KeyPress)
+    {
+        auto* key = (QKeyEvent*)(event);
+
+        if (key->key() == Qt::Key_Delete)
+        {
+            auto sel = ui.contentListView->selectionModel()->selectedIndexes();
+
+            if (!sel.isEmpty()) {
+                auto srcIdx = m_pathFilter->mapToSource(sel.first());
+                auto fileInfo = m_fileModel->fileInfo(srcIdx);
+				QString message = fileInfo.isDir() ? "Are you sure you want to delete the selected folder and all its contents?" : "Are you sure you want to delete the selected file?";
+
+                QMessageBox::StandardButton reply;
+                reply = QMessageBox::question(
+                    this,
+                    "Confirm Delete",
+                    message,
+                    QMessageBox::Yes | QMessageBox::No
+                );
+
+                if (reply != QMessageBox::Yes) {
+					return true; // handled, but do nothing
+                }
+
+                for (const auto& idx : sel)
+                {
+                    auto srcIdx = m_pathFilter->mapToSource(idx);
+                    if (!srcIdx.isValid()) continue;
+                    auto fileInfo = m_fileModel->fileInfo(srcIdx);
+                    QString relativePath = QDir(m_rootPath).relativeFilePath(fileInfo.filePath());
+
+					AssetRegistry_DeletePath(m_assetManager, relativePath.toStdString());
+                }
+
+                return true; // handled
+            }
+        }
+    }
+
+    return QWidget::eventFilter(obj, event);
+}
