@@ -16,6 +16,7 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
 
 	m_fileModel = new QFileSystemModel(this);
     m_fileModel->setRootPath(rootPath);
+    m_fileModel->setReadOnly(false);
     m_pathFilter = new PathFilter(m_fileModel, this);
 
 	ui.contentListView->setModel(m_pathFilter);
@@ -26,6 +27,7 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
 	ui.contentListView->setMouseTracking(true);
 	ui.contentListView->viewport()->setAttribute(Qt::WA_Hover);
 	ui.contentListView->installEventFilter(this);
+    ui.contentListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	RefreshAddressPanel(targetPath);
 
@@ -45,6 +47,19 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::~AssetBrowserWindow()
 {}
+
+void LuxonEditor::GUI::QT::AssetBrowserWindow::keyPressEvent(QKeyEvent * e)
+{
+    if (e->key() == Qt::Key_F2)
+    {
+        QModelIndex idx = ui.contentListView->currentIndex();
+        if (idx.isValid())
+            ui.contentListView->edit(idx);
+        return;
+    }
+
+    QWidget::keyPressEvent(e);
+}
 
 void LuxonEditor::GUI::QT::AssetBrowserWindow::RefreshAddressPanel(const QString& targetPath)
 {

@@ -19,3 +19,8 @@ LUXON_ENGINE_API void AssetRegistry_DeletePath(LuxonEditor::AssetRegistry* asset
 {
 	assetRegistry->DeletePath(relativePath);
 }
+
+LUXON_ENGINE_API void AssetRegistry_RenamePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& oldRelativePath, const std::string& newName)
+{
+	assetRegistry->RenamePath(oldRelativePath, newName);
+}

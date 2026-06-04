@@ -19,6 +19,9 @@ namespace LuxonEditor::GUI::QT {
 		AssetBrowserWindow(QString rootPath, const QString& targetPath, QWidget* parent = nullptr);
 		~AssetBrowserWindow();
 
+	protected:
+		void keyPressEvent(QKeyEvent* event) override;
+
 	private:
 		void RefreshAddressPanel(const QString& targetPath);
 		bool eventFilter(QObject* obj, QEvent* event) override;

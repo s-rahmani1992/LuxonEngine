@@ -19,3 +19,19 @@ void LuxonEditor::AssetRegistry::DeletePath(const std::string& relativePath)
 
 	fs::remove(metaPath);
 }
+
+void LuxonEditor::AssetRegistry::RenamePath(const std::string& oldRelativePath, const std::string& newName)
+{
+	fs::path oldAbsolutePath = (fs::path(m_projectPath) / "Assets" / oldRelativePath).lexically_normal();
+	fs::path newAbsolutePath = oldAbsolutePath.parent_path() / (newName + oldAbsolutePath.extension().string());
+	fs::path oldMetaPath(oldAbsolutePath.string() + ".json");
+	fs::path newMetaPath(newAbsolutePath.string() + ".json");
+	std::error_code ec; // to avoid exceptions
+	fs::rename(oldAbsolutePath, newAbsolutePath, ec);
+	if (ec) {
+		return;
+	}
+	if (fs::exists(oldMetaPath)) {
+		fs::rename(oldMetaPath, newMetaPath, ec);
+	}
+}
