@@ -123,6 +123,9 @@
     <ClCompile Include="AssetBrowser\PathFilter.cpp">
       <Filter>AssetBrowser</Filter>
     </ClCompile>
+    <ClCompile Include="AssetBrowser\AddressBarButton.cpp">
+      <Filter>AssetBrowser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -201,6 +204,9 @@
       <Filter>AssetBrowser</Filter>
     </QtMoc>
     <QtMoc Include="AssetBrowser\PathFilter.h">
+      <Filter>AssetBrowser</Filter>
+    </QtMoc>
+    <QtMoc Include="AssetBrowser\AddressBarButton.h">
       <Filter>AssetBrowser</Filter>
     </QtMoc>
   </ItemGroup>

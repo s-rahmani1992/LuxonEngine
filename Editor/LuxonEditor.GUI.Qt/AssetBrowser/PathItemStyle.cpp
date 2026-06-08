@@ -93,3 +93,12 @@ void LuxonEditor::GUI::QT::PathItemStyle::updateEditorGeometry(QWidget* editor, 
 
     editor->setGeometry(textRect);
 }
+
+QImage LuxonEditor::GUI::QT::PathItemStyle::GetIconForIndex(const QModelIndex& idx) const
+{
+    auto fileInfo = m_fileModel->fileInfo(idx);
+    if (fileInfo.isDir())
+        return m_folderIcon;
+    else
+		return m_fileIcon;
+}

@@ -18,6 +18,8 @@ namespace LuxonEditor::GUI::QT {
             return QSize(80, 140);
         }
 
+		QImage GetIconForIndex(const QModelIndex& idx) const;
+
     private:
         PathFilter* m_proxy;
         QFileSystemModel* m_fileModel;

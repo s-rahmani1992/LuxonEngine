@@ -132,6 +132,12 @@
     <ClCompile Include="ADS\src\IconProvider.cpp" />
     <ClCompile Include="ADS\src\PushButton.cpp" />
     <ClCompile Include="ADS\src\ResizeHandle.cpp" />
+    <ClCompile Include="AssetBrowser\AddressBarButton.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="AssetBrowser\AssetBrowserWindow.cpp" />
     <ClCompile Include="AssetBrowser\PathFilter.cpp" />
     <ClCompile Include="AssetBrowser\PathItemStyle.cpp" />
@@ -190,6 +196,7 @@
     <QtMoc Include="ADS\src\ResizeHandle.h" />
     <QtMoc Include="AssetBrowser\AssetBrowserWindow.h" />
     <QtMoc Include="AssetBrowser\PathFilter.h" />
+    <QtMoc Include="AssetBrowser\AddressBarButton.h" />
     <ClInclude Include="AssetBrowser\PathItemStyle.h" />
     <ClInclude Include="Console\LogItemStyle.h" />
   </ItemGroup>
