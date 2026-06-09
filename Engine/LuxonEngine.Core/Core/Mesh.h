@@ -23,7 +23,7 @@ namespace LuxonEngine {
 		}
 	};
 
-	class Mesh {
+	class LUXON_CORE_API Mesh {
 	public:
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<UInt32>& indices);
 		UInt32 GetVertexCount() const { return m_vertices.size(); }

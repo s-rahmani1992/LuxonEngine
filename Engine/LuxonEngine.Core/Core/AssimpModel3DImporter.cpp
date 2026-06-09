@@ -15,6 +15,8 @@
 #include <Core/AssetRegistry.h>
 #include <JSONUtilities.h>
 
+#pragma comment(lib, "assimp.lib")
+
 ref<LuxonEngine::Model3DAsset> LuxonEngine::AssimpModel3DImporter::Import(const std::string& fileName, std::string& error)
 {
 	Assimp::Importer Importer;

@@ -1,13 +1,14 @@
 #pragma once
 #include "../BasicTypes.h"
 #include <string>
+#include "../export.h"
 
 namespace LuxonEngine {
 
 	/// <summary>
 	/// struct representing a 3D vector
 	/// </summary>
-	struct Vector3 {
+	struct LUXON_CORE_API Vector3 {
 	public: // Constructors
 
 		Vector3();

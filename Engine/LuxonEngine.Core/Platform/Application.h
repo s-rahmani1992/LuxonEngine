@@ -4,6 +4,7 @@
 #include "../BasicTypes.h"
 #include "../Rendering/GPUDeviceManager.h"
 #include <vector>
+#include "../export.h"
 
 namespace LuxonEngine {
 	class Behaviour;
@@ -21,7 +22,7 @@ namespace LuxonEngine::Platform {
 	/// <summary>
 	/// class wrapper for application variables. It is a singleton class
 	/// </summary>
-	class Application {
+	class LUXON_CORE_API Application {
 	public:
 		static void CreateApplication(HINSTANCE hInstance); //Creates singleton for apploication 
 		static ref<GraphicWindow> CreateGraphicWindow(const WindowProperties& properties); // Creates new window object with properties

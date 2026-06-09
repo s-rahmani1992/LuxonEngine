@@ -1,11 +1,12 @@
 #pragma once
 #include <initializer_list>
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine {
 	struct Vector3;
 
-	struct Matrix4 {
+	struct LUXON_CORE_API Matrix4 {
 	public:
 		Matrix4(const std::initializer_list<Float>& values);
 		Matrix4();

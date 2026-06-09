@@ -1,9 +1,10 @@
 #pragma 
 #include "Vector2.h"
 #include "Vector3.h"
+#include "export.h"
 
 namespace LuxonEngine::Core {
-class BezierCurve{
+class LUXON_CORE_API BezierCurve{
     public:
         BezierCurve(const Vector3& point1, const Vector3& point2, const Vector3& point3);
         

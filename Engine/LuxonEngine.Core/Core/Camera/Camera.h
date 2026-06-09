@@ -1,11 +1,12 @@
 #pragma once
 #include "../../BasicTypes.h"
 #include "../Matrix4.h"
+#include "../../export.h"
 
 namespace LuxonEngine {
 	class Transform;
 
-	class Camera {
+	class LUXON_CORE_API Camera {
 	public:
 		Camera(const ref<Transform>& transform);
 		inline Matrix4 ProjectionMatrix() const { return m_projectionMatrix; }

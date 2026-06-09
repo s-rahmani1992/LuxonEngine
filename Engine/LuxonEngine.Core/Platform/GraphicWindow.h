@@ -2,12 +2,13 @@
 #include "../BasicTypes.h"
 #include "CommonWin.h"
 #include <string>
+#include "../export.h"
 
 namespace LuxonEngine::Platform {
 	/// <summary>
 	/// Properties used for window creation
 	/// </summary>
-	struct WindowProperties {
+	struct LUXON_CORE_API WindowProperties {
 	public:
 		UInt16 width;
 		UInt16 height;
@@ -18,7 +19,7 @@ namespace LuxonEngine::Platform {
 	/// <summary>
 	/// Used for handling windows update and render
 	/// </summary>
-	class GraphicWindow {
+	class __declspec(dllexport) GraphicWindow {
 	public:
 		GraphicWindow(const WindowProperties& properties, const ATOM& winClass);
 		inline UInt16 GetWidth() const { return m_width; }

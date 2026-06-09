@@ -144,6 +144,7 @@
     <ClInclude Include="Rendering\MaterialImporter.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="export.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">

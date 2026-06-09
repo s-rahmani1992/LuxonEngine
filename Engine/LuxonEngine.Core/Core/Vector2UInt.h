@@ -1,9 +1,10 @@
 #pragma once
 
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine {
-	struct Vector2UInt {
+	struct LUXON_CORE_API Vector2UInt {
 	public:
 		Vector2UInt();
 		Vector2UInt(UInt32 x);

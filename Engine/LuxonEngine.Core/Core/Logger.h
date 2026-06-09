@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include "../export.h"
 
 namespace LuxonEngine {
 	enum class LogType {
@@ -16,7 +17,7 @@ namespace LuxonEngine {
 		LogType type;
 	};
 
-	class Logger {
+	class LUXON_CORE_API Logger {
 	public:
 		using Callback = std::function<void()>;
 		inline static void Log(const std::string& message) { m_instance.LogMessage(message, LogType::Log); }

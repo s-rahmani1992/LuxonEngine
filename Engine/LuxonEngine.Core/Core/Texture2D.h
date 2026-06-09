@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine::Rendering {
 	class GPUTexture2DController;
@@ -24,7 +25,7 @@ namespace LuxonEngine {
 		TextureFormat format;
 	};
 
-	class Texture2D {
+	class LUXON_CORE_API Texture2D {
 	public:
 		Texture2D(const TextureProperties& properties);
 		inline UInt32 GetWidth() const { return m_width; }

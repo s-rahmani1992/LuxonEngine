@@ -1,8 +1,9 @@
 #pragma once
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine {
-	struct Vector2 {
+	struct LUXON_CORE_API Vector2 {
 	public:
 		Vector2();
 		Vector2(Float x);
