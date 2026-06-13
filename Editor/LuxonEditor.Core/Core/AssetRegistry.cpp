@@ -1,5 +1,6 @@
 #include "AssetRegistry.h"
 #include <filesystem>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -43,6 +44,18 @@ void LuxonEditor::AssetRegistry::MovePath(const std::string& oldRelativePath, co
 	fs::path oldMetaPath(oldAbsolutePath.string() + ".json");
 	fs::path newMetaPath(newAbsolutePath.string() + ".json");
 	std::error_code ec; // to avoid exceptions
+
+	if (fs::is_directory(oldAbsolutePath)) {
+		fs::create_directory(fs::path(folderRelativePath) / oldAbsolutePath.filename());
+		auto subPaths = fs::directory_iterator(oldAbsolutePath);
+
+		for (auto& subPath : subPaths) {
+			MovePath(subPath.path().string(), (fs::path(folderRelativePath) / oldAbsolutePath.filename()).string());
+		}
+		fs::remove(oldAbsolutePath);
+		return;
+	}
+
 	fs::rename(oldAbsolutePath, newAbsolutePath, ec);
 	if (ec) {
 		return;
