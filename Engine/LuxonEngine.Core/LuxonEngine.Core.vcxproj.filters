@@ -145,6 +145,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="export.h" />
+    <ClInclude Include="Core\SerializationStream.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Platform\GraphicWindow.cpp">
@@ -207,6 +210,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logger.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\SerializationStream.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

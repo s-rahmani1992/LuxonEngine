@@ -131,6 +131,7 @@
     <ClInclude Include="Core\Mesh.h" />
     <ClInclude Include="Core\Model3DAsset.h" />
     <ClInclude Include="Core\Scene.h" />
+    <ClInclude Include="Core\SerializationStream.h" />
     <ClInclude Include="Core\ShapeBuilder.h" />
     <ClInclude Include="Core\Texture2D.h" />
     <ClInclude Include="Core\Vector2UInt.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="Core\Matrix4.cpp" />
     <ClCompile Include="Core\Mesh.cpp" />
     <ClCompile Include="Core\Model3DAsset.cpp" />
+    <ClCompile Include="Core\SerializationStream.cpp" />
     <ClCompile Include="Core\ShapeBuilder.cpp" />
     <ClCompile Include="Core\BezierCurve.cpp" />
     <ClCompile Include="Core\Texture2D.cpp" />
