@@ -1,11 +1,20 @@
 #pragma once
 #include <string>
 
+enum Graphic_API;
+
+namespace LuxonEngine::Rendering {
+	class GPUDeviceManager;
+}
+
 namespace LuxonEditor {
 	class AssetRegistry;
+	class AssetDirectoryWatcher;
+	class EngineShaderRegistry;
 
 	struct ApplicationConfig {
 		std::string projectPath;
+		Graphic_API graphicAPI;
 	};
 
 	class EngineApplication {
@@ -19,12 +28,22 @@ namespace LuxonEditor {
 
 	public:
 		EngineApplication() = default;
-		bool Initialize(std::string& error);
-	private:
+		EngineApplication(const EngineApplication&) = delete;
+		EngineApplication& operator=(const EngineApplication&) = delete;
+		EngineApplication(EngineApplication&& src);
+		EngineApplication& operator=(EngineApplication&& src);
 		EngineApplication(const ApplicationConfig& config);
-
+		~EngineApplication() { 
+			ShutDown(); 
+		}
+		bool Initialize(std::string& error);
+		void ShutDown();
+	private:
+		Graphic_API m_graphicAPI;
 		std::string m_projectPath;
-
+		EngineShaderRegistry* m_shaderRegistery;
 		AssetRegistry* m_assetManager;
+		AssetDirectoryWatcher* m_assetWatcher;
+		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication = nullptr;
 	};
 }

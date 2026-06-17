@@ -169,6 +169,23 @@ namespace LuxonEngine {
         catch (const std::exception&) {
             // Return default on error
         }
+        str = std::string();
+        return false;
+    }
+
+    bool SerializationStream::GetString(const std::string& fieldName, char** str)
+    {
+        try {
+            auto& obj = m_jsonData.as_object();
+            if (obj.contains(fieldName)) {
+                *str = const_cast<char*>(obj[fieldName].as_string().c_str());
+                return true;
+            }
+        }
+        catch (const std::exception&) {
+            // Return default on error
+        }
+        *str = nullptr;
         return false;
     }
 

@@ -34,6 +34,7 @@ namespace LuxonEngine {
         bool GetVector3(const std::string& fieldName, Vector3& vec);
         bool GetColor(const std::string& fieldName, Color& color);
         bool GetString(const std::string& fieldName, std::string& str);
+        bool GetString(const std::string& fieldName, char** str);
         GUID GetGuid(const std::string& fieldName);
         SerializationStream Object(const std::string& fieldName);
 

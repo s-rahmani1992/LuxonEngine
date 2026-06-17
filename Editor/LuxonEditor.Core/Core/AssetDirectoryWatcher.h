@@ -35,7 +35,7 @@ namespace LuxonEditor {
 		AssetDirectoryWatcher& operator=(const AssetDirectoryWatcher&) = delete;
 		AssetDirectoryWatcher(AssetDirectoryWatcher&&) = default;
 		AssetDirectoryWatcher& operator=(AssetDirectoryWatcher&&) = default;
-
+		inline std::string& GetRootDirectory() { return m_directory; }
 		~AssetDirectoryWatcher();
 		bool Start();
 		void Stop();

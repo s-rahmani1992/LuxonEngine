@@ -270,6 +270,182 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	return finalProgram;
 }
 
+LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
+{
+	DxcBuffer sourceBuffer{
+		.Ptr = shaderCode,
+		.Size = codeLength,
+		.Encoding = DXC_CP_ACP,
+	};
+
+	m_compileArguments[5] = (WCHAR*)compileProperties.folderPath.c_str();
+
+	SPIRVShaderProgram* finalProgram;
+
+	if (compileProperties.type == ShaderProgramType::Rasterization) {
+
+		std::vector<ref<SPIRVShader>> shaders;
+
+		if (compileProperties.rasterProperties.vertexMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.vertexMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("vs_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+			auto vertexShader = CompileShaderStage(&sourceBuffer, Vulkan_Vertex, WStringToString(wMain), stageError);
+
+			if (vertexShader == nullptr) {
+				error = "Error in compiling Vertex Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(vertexShader);
+		}
+
+		if (compileProperties.rasterProperties.geometryMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.geometryMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("gs_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+			auto geometryShader = CompileShaderStage(&sourceBuffer, Vulkan_Geometry, WStringToString(wMain), stageError);
+
+			if (geometryShader == nullptr) {
+				error = "Error in compiling Geometry Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(geometryShader);
+		}
+
+		if (compileProperties.rasterProperties.pixelMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.pixelMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("ps_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+			auto pixelShader = CompileShaderStage(&sourceBuffer, Vulkan_Fragment, WStringToString(wMain), stageError);
+
+			if (pixelShader == nullptr) {
+				error = "Error in compiling Pixel Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(pixelShader);
+		}
+
+		finalProgram = new Rasterization::SPIRVRasterizationProgram(shaders, m_device);
+	}
+
+	else if (compileProperties.type == ShaderProgramType::RayTracing) {
+		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
+		std::string target("lib_");
+		target += compileProperties.model;
+		std::wstring wTarget = CharToString(target.c_str());
+		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+		ComPtr<IDxcBlob> pshaderObjectData;
+
+		ComPtr<IDxcResult> compileResult;
+		HRESULT result;
+		UInt32 argumentCounts = compileProperties.rayTracingProperties.rayGen != nullptr ? m_minArguments + 2 : m_minArguments + 4;
+		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), argumentCounts, m_includeHandler, IID_PPV_ARGS(&compileResult));
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Beginning to compile";
+			return nullptr;
+		}
+
+		ComPtr<IDxcBlobUtf8> pErrors;
+
+		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Beginning to compile";
+			return nullptr;
+		}
+
+		if (pErrors && pErrors->GetStringLength() > 0)
+		{
+			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
+			return nullptr;
+		}
+
+		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Obtaining Shader Bytecode";
+			return nullptr;
+		}
+
+		finalProgram = new RayTracing::SPIRVRayTracingProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
+	}
+
+	else if (compileProperties.type == ShaderProgramType::Compute) {
+		std::wstring wMain = CharToString(compileProperties.computeProperties.computeMain);
+		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+		std::string target("cs_");
+		target += compileProperties.model;
+		std::wstring wTarget = CharToString(target.c_str());
+		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+		ComPtr<IDxcBlob> pshaderObjectData;
+
+		ComPtr<IDxcResult> compileResult;
+		HRESULT result;
+		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), m_minArguments, m_includeHandler, IID_PPV_ARGS(&compileResult));
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Beginning to compile";
+			return nullptr;
+		}
+
+		ComPtr<IDxcBlobUtf8> pErrors;
+
+		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Beginning to compile";
+			return nullptr;
+		}
+
+		if (pErrors && pErrors->GetStringLength() > 0)
+		{
+			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
+			return nullptr;
+		}
+
+		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
+
+		if (FAILED(result)) {
+			error = "Unknown Error when Obtaining Shader Bytecode";
+			return nullptr;
+		}
+
+		finalProgram = new Compute::SPIRVComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
+	}
+
+	else {
+		error = "Unknown Shader Type";
+		return nullptr;
+	}
+
+	return finalProgram;
+}
+
 ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
 {
 	auto it = m_registeredPrograms.find(guid);

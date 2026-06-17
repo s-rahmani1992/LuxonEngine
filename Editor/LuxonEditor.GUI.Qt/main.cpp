@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 
     LuxonEditor::ApplicationConfig config{
         .projectPath = QCoreApplication::applicationDirPath().toStdString(),
+        .graphicAPI = Graphic_API::DIRECTX_12,
     };
 	std::string errorString;
 	auto engineApp = CreateEngineApplication(config, errorString);

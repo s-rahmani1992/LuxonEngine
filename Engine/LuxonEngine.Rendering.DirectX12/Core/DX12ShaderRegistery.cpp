@@ -289,6 +289,155 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	return finalProgram;
 }
 
+LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
+{
+	DxcBuffer sourceBuffer{
+		.Ptr = shaderCode,
+		.Size = codeLength,
+		.Encoding = DXC_CP_ACP,
+	};
+
+	m_compileArguments[5] = (WCHAR*)compileProperties.folderPath.c_str();
+
+	HLSLShaderProgram* finalProgram;
+
+	if (compileProperties.type == ShaderProgramType::Rasterization) {
+
+		std::vector<ref<HLSLShader>> shaders;
+
+		if (compileProperties.rasterProperties.vertexMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.vertexMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("vs_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+			m_compileArguments[11] = (WCHAR*)L"_DX12_VERTEX_STAGE";
+			auto vertexShader = CompileShaderStage(&sourceBuffer, DX12::VERTEX_SHADER, stageError);
+
+			if (vertexShader == nullptr) {
+				error = "Error in compiling Vertex Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(vertexShader);
+		}
+
+		if (compileProperties.rasterProperties.geometryMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.geometryMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("gs_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+			m_compileArguments[11] = (WCHAR*)L"_DX12_GEOMETRY_STAGE";
+			auto geometryShader = CompileShaderStage(&sourceBuffer, DX12::GEOMETRY_SHADER, stageError);
+
+			if (geometryShader == nullptr) {
+				error = "Error in compiling Geometry Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(geometryShader);
+		}
+
+		if (compileProperties.rasterProperties.pixelMain != nullptr) {
+			std::string stageError;
+			std::wstring wMain = CharToString(compileProperties.rasterProperties.pixelMain);
+			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+			std::string target("ps_");
+			target += compileProperties.model;
+			std::wstring wTarget = CharToString(target.c_str());
+			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+			m_compileArguments[11] = (WCHAR*)L"_DX12_PIXEL_STAGE";
+			auto pixelShader = CompileShaderStage(&sourceBuffer, DX12::PIXEL_SHADER, stageError);
+
+			if (pixelShader == nullptr) {
+				error = "Error in compiling Pixel Stage: " + stageError;
+				return nullptr;
+			}
+
+			shaders.push_back(pixelShader);
+		}
+
+		finalProgram = new Rasterization::HLSLRasterizationProgram(shaders);
+	}
+
+	else if (compileProperties.type == ShaderProgramType::RayTracing) {
+		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
+		std::string target("lib_");
+		target += compileProperties.model;
+		std::wstring wTarget = CharToString(target.c_str());
+		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		RayTracing::HLSLRayTracingProgramProperties rayProps;
+
+		if (compileProperties.rayTracingProperties.rayGen != nullptr)
+			rayProps.rayGenerationFunction = std::string(compileProperties.rayTracingProperties.rayGen);
+		if (compileProperties.rayTracingProperties.intersection)
+			rayProps.intersectionFunction = std::string(compileProperties.rayTracingProperties.intersection);
+		if (compileProperties.rayTracingProperties.anyHit)
+			rayProps.anyHitFunction = std::string(compileProperties.rayTracingProperties.anyHit);
+		if (compileProperties.rayTracingProperties.closestHit)
+			rayProps.closestHitFunction = std::string(compileProperties.rayTracingProperties.closestHit);
+		if (compileProperties.rayTracingProperties.miss)
+			rayProps.missFunction = std::string(compileProperties.rayTracingProperties.miss);
+
+		ComPtr<IDxcBlob> pshaderObjectData;
+		ComPtr<IUnknown> shaderRefl;
+
+		UInt32 argCount = compileProperties.rayTracingProperties.rayGen != nullptr ? m_minArguments : m_minArguments + 2;
+		m_compileArguments[11] = (WCHAR*)L"_DX12_RAY_TRACING_LOCAL";
+		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, argCount, error) == false) {
+			return nullptr;
+		}
+
+		ComPtr<ID3D12LibraryReflection> pLibraryReflection;
+		shaderRefl->QueryInterface(IID_PPV_ARGS(&pLibraryReflection));
+		finalProgram = new RayTracing::HLSLRayTracingProgram((Byte*)pshaderObjectData->GetBufferPointer(), (UInt64)pshaderObjectData->GetBufferSize(), rayProps, pLibraryReflection);
+	}
+
+	else if (compileProperties.type == ShaderProgramType::Compute) {
+		std::wstring wMain = CharToString(compileProperties.computeProperties.computeMain);
+		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+
+		std::string target("cs_");
+		target += compileProperties.model;
+		std::wstring wTarget = CharToString(target.c_str());
+		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+
+		ComPtr<IDxcBlob> pshaderObjectData;
+		ComPtr<IUnknown> shaderRefl;
+
+		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, m_minArguments, error) == false) {
+			return nullptr;
+		}
+
+		ComPtr<ID3D12ShaderReflection> pShaderReflection;
+		shaderRefl->QueryInterface(IID_PPV_ARGS(&pShaderReflection));
+		finalProgram = new Compute::HLSLComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), pShaderReflection);
+	}
+
+	else {
+		error = "Unknown Shader Type";
+		return nullptr;
+	}
+
+	std::string rootSignatureError;
+
+	if (finalProgram->InitializeRootSignature(m_device, rootSignatureError) == false) {
+		error = "Error in Creating Root signature: " + rootSignatureError;
+		delete finalProgram;
+		return nullptr;
+	}
+
+	return finalProgram;
+}
+
 ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
 {
 	auto it = m_shaders.find(guid);

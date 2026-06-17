@@ -22,12 +22,14 @@
     <ClInclude Include="Core\AssetDirectoryWatcher.h" />
     <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\EngineApplication.h" />
+    <ClInclude Include="Core\EngineShaderRegistry.h" />
     <ClInclude Include="LuxonEditorAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp" />
     <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\EngineApplication.cpp" />
+    <ClCompile Include="Core\EngineShaderRegistry.cpp" />
     <ClCompile Include="LuxonEditorAPI.cpp" />
   </ItemGroup>
   <ItemGroup>

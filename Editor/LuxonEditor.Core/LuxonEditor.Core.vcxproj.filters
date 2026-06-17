@@ -16,6 +16,9 @@
     <ClInclude Include="Core\AssetDirectoryWatcher.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\EngineShaderRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -26,6 +29,9 @@
     </ClCompile>
     <ClCompile Include="LuxonEditorAPI.cpp" />
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\EngineShaderRegistry.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
