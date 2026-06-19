@@ -12,13 +12,10 @@ LuxonEditor::AssetRegistry::AssetRegistry(const std::string& projectPath)
 void LuxonEditor::AssetRegistry::DeletePath(const std::string& relativePath)
 {
 	fs::path absolutePath = (fs::path(m_projectPath)/ "Assets" / relativePath).lexically_normal();
-	fs::path metaPath(absolutePath.string() + ".json");
 	if (fs::is_directory(absolutePath))
 		fs::remove_all(absolutePath);
 	else
 		fs::remove(absolutePath);
-
-	fs::remove(metaPath);
 }
 
 void LuxonEditor::AssetRegistry::RenamePath(const std::string& oldRelativePath, const std::string& newName)

@@ -1,6 +1,7 @@
 #pragma 
 #include <boost/uuid/uuid.hpp>
 #include <map>
+#include <filesystem>
 
 namespace LuxonEngine {
 	namespace Rendering {
@@ -11,6 +12,7 @@ namespace LuxonEngine {
 	class SerializationStream;
 }
 
+namespace fs = std::filesystem;
 namespace Render = LuxonEngine::Rendering;
 
 namespace LuxonEditor {
@@ -26,6 +28,7 @@ namespace LuxonEditor {
 		void CompileAllShaders();
 	private:
 		void OnAssetChanged(const FileChangeEvent& paths);
+		void CompileAtPath(const fs::path& filePath);
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		std::map<GUID, LuxonEngine::Rendering::ShaderProgram*> m_registeredPrograms;
 		size_t m_callbackID;

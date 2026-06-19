@@ -110,6 +110,10 @@ void LuxonEditor::AssetDirectoryWatcher::BatchEventLoop()
         cb(m_currentBatchEvent);
     }
 
+    for (auto& file : m_currentBatchEvent.deletedFiles) {
+        fs::remove(fs::path(m_directory) / (file + ".json"));
+    }
+
     m_fileTracks.clear();
 	m_processingEvents.store(false);
 }
@@ -143,7 +147,7 @@ void LuxonEditor::AssetDirectoryWatcher::ProcessEvents(DWORD bytes)
         std::string name = ToUtf8(wname);
         fs::path p = name;
 
-        if (fs::is_directory(p) || p.extension() == ".json" || !p.has_extension()) {
+        if (fs::is_directory(p) || !p.has_extension()) {
             if (info->NextEntryOffset == 0)
                 break;
 
@@ -223,6 +227,25 @@ void LuxonEditor::FileChangeEvent::Initialize(std::map<std::string, int>& rawFil
         auto it = rawFiles.begin();
         auto element = std::move(*it);
         rawFiles.erase(it);
+
+        auto path0 = rootPath / element.first;
+
+        if (path0.extension() == ".json") {
+            if (element.second == 0) { // meta file is modified
+                auto origPath = fs::path(element.first).replace_extension("");
+
+                if (fs::exists(rootPath / origPath)) {
+                    modifiedFiles.emplace(origPath.string());
+
+                    auto origElement = rawFiles.find(origPath.string());
+
+                    if (origElement != rawFiles.end())
+                        rawFiles.erase(origElement);
+                }
+            }
+
+            continue;
+        }
 
         if (element.second == 0) {
             auto path = rootPath / element.first;

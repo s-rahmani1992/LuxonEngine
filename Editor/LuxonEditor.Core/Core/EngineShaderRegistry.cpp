@@ -3,14 +3,12 @@
 #include "Rendering/ShaderRegistery.h"
 #include "Rendering/ShaderProgram.h"
 #include "Core/SerializationStream.h"
-#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <EngineAPI.h>
 #include <StringUtilities.h>
+#include <boost/uuid/uuid_io.hpp>
 
-namespace fs = std::filesystem;
-namespace Render = LuxonEngine::Rendering;
 
 LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
 	: m_shaderCompiler(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
@@ -36,69 +34,96 @@ void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
 			continue;
 		}
 
-		fs::path filePath = entry.path();
-		std::string extension = filePath.extension().string();
+		CompileAtPath(entry.path());
+	}
+}
 
-		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-
-		if (extension != ".hlsl") {
-			continue;
-		}
-
-		fs::path jsonPath = fs::path(filePath.string() + ".json");
-
-		if (!fs::exists(jsonPath)) {
-			continue; // Skip if no metadata file exists
-		}
-
-		std::ifstream hlslFile(filePath, std::ios::binary);
-		if (!hlslFile.is_open()) {
-			continue;
-		}
-
-		std::string hlslContent((std::istreambuf_iterator<char>(hlslFile)),
-								std::istreambuf_iterator<char>());
-		hlslFile.close();
+void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
+{
+	for (auto& deleted : event.deletedFiles) {
+		fs::path jsonPath = fs::path(m_assetWatcher->GetRootDirectory())/(deleted + ".json");
 
 		LuxonEngine::SerializationStream metadataStream;
 		if (!metadataStream.LoadFromFile(jsonPath.string())) {
 			continue;
 		}
 
-		Render::ShaderCompileProperties properties{};
-		properties.folderPath = CharToString(filePath.parent_path().string().c_str());
-		auto propertiesObject = metadataStream.Object("data");
-		FillProperties(properties, propertiesObject);
-
-		std::string error;
-		const UInt64 codeLength = hlslContent.length();
-		Render::ShaderProgram* compiledProgram = m_shaderCompiler->CompileProgram(
-			reinterpret_cast<const Byte*>(hlslContent.c_str()),
-			codeLength,
-			properties,
-			error
-		);
-
-		if (compiledProgram != nullptr) {
-			GUID programGuid = metadataStream.GetGuid("uuid");
-			auto shaderIT = m_registeredPrograms.find(programGuid);
-			if (shaderIT != m_registeredPrograms.end()) {
-				delete (*shaderIT).second;
-				(*shaderIT).second = compiledProgram;
-			}
-			else {
-				m_registeredPrograms[programGuid] = compiledProgram;
-			}
+		GUID programGuid = metadataStream.GetGuid("uuid");
+		auto shaderIT = m_registeredPrograms.find(programGuid);
+		if (shaderIT != m_registeredPrograms.end()) {
+			delete (*shaderIT).second;
+			m_registeredPrograms.erase(shaderIT);
 		}
-		else {
-			LuxonEngine::Logger::LogError(error);
-		}
+	}
+
+	for (auto& modified : event.modifiedFiles) {
+		CompileAtPath(fs::path(m_assetWatcher->GetRootDirectory()) / (modified));
 	}
 }
 
-void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
+void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 {
+	std::string extension = filePath.extension().string();
+
+	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+	if (extension != ".hlsl") {
+		return;
+	}
+
+	fs::path jsonPath = fs::path(filePath.string() + ".json");
+
+	if (!fs::exists(jsonPath)) {
+		return; // Skip if no metadata file exists
+	}
+
+	std::ifstream hlslFile(filePath, std::ios::binary);
+	if (!hlslFile.is_open()) {
+		return;
+	}
+
+	std::string hlslContent((std::istreambuf_iterator<char>(hlslFile)),
+		std::istreambuf_iterator<char>());
+	hlslFile.close();
+
+	LuxonEngine::SerializationStream metadataStream;
+	if (!metadataStream.LoadFromFile(jsonPath.string())) {
+		return;
+	}
+
+	Render::ShaderCompileProperties properties{};
+	properties.folderPath = CharToString(filePath.parent_path().string().c_str());
+	auto propertiesObject = metadataStream.Object("data");
+	FillProperties(properties, propertiesObject);
+
+	std::string error;
+	const UInt64 codeLength = hlslContent.length();
+	Render::ShaderProgram* compiledProgram = m_shaderCompiler->CompileProgram(
+		reinterpret_cast<const Byte*>(hlslContent.c_str()),
+		codeLength,
+		properties,
+		error
+	);
+
+	GUID programGuid = metadataStream.GetGuid("uuid");
+	auto shaderIT = m_registeredPrograms.find(programGuid);
+
+	if (compiledProgram == nullptr) {
+		if (shaderIT != m_registeredPrograms.end()) {
+			delete (*shaderIT).second;
+			m_registeredPrograms.erase(shaderIT);
+		}
+		LuxonEngine::Logger::LogError(error);
+		return;
+	}
 	
+	if (shaderIT != m_registeredPrograms.end()) {
+		delete (*shaderIT).second;
+		(*shaderIT).second = compiledProgram;
+	}
+	else {
+		m_registeredPrograms[programGuid] = compiledProgram;
+	}
 }
 
 void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& dataNode)
