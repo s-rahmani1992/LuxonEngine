@@ -7,9 +7,7 @@ namespace LuxonEditor::GUI::QT {
     public:
         void paint(QPainter* p, const QStyleOptionViewItem& opt, const QModelIndex& idx) const override;
 
-        QSize sizeHint(const QStyleOptionViewItem&, const QModelIndex&) const override {
-            return QSize(200, 40); // height of each item
-        }
+        QSize sizeHint(const QStyleOptionViewItem& opt, const QModelIndex& idx) const override;
 
     private:
         QImage m_logIcon = QImage(":/LuxonEditorWindow/log.png");

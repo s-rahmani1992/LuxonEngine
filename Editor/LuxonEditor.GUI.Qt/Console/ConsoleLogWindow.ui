@@ -56,7 +56,11 @@
     </layout>
    </item>
    <item>
-    <widget class="QListView" name="logListView"/>
+    <widget class="QListView" name="logListView">
+     <property name="spacing">
+      <number>5</number>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -7,12 +7,12 @@ void LuxonEditor::GUI::QT::LogItemStyle::paint(QPainter* p, const QStyleOptionVi
 {
     p->save();
 
-    p->fillRect(opt.rect, QColor("#ffffff"));
+    p->fillRect(opt.rect, QColor("#eeeeee"));
 
     const int iconSize = 20;
     QRect iconRect = QRect(
         opt.rect.left() + 8,
-        opt.rect.top() + (opt.rect.height() - iconSize) / 2,
+        opt.rect.top() + 8,
         iconSize,
         iconSize
     );
@@ -37,4 +37,21 @@ void LuxonEditor::GUI::QT::LogItemStyle::paint(QPainter* p, const QStyleOptionVi
     p->drawText(textRect, Qt::AlignVCenter | Qt::TextWordWrap, text);
 
     p->restore();
+}
+
+QSize LuxonEditor::GUI::QT::LogItemStyle::sizeHint(const QStyleOptionViewItem& opt, const QModelIndex& idx) const
+{
+    const int iconSize = 20;
+    const int padding = 16;
+    const int minHeight = iconSize + 8;
+
+    QString text = idx.data(LOG_PROPERTIES_MESSAGE_ID).toString();
+
+    QRect textRect(0, 0, opt.rect.width() - (iconSize + padding), 10000);
+    QFontMetrics fm(opt.font);
+    QRect boundingRect = fm.boundingRect(textRect, Qt::AlignVCenter | Qt::TextWordWrap, text);
+
+    int height = qMax(minHeight, boundingRect.height() + 8);
+
+    return QSize(opt.rect.width(), height);
 }
