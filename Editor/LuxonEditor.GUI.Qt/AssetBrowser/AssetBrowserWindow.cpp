@@ -11,6 +11,8 @@
 #include <qmimedata.h>
 #include <QDrag>
 #include "AddressBarButton.h"
+#include <QDesktopServices>
+#include <QUrl>
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, const QString& targetPath, QWidget *parent)
 	: m_rootPath(rootPath), m_assetManager(GetAssetManager()), QWidget(parent)
@@ -58,6 +60,10 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
             ui.contentListView->setRootIndex(idx);
             ui.contentListView->clearSelection();
             RefreshAddressPanel(m_fileModel->filePath(srcIdx));
+        }
+        else
+        {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.filePath()));
         }
 	});
 }

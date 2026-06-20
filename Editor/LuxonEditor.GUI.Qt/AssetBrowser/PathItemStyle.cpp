@@ -27,11 +27,17 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
     else if (opt.state & QStyle::State_MouseOver) {
         p->fillRect(opt.rect, QColor("#d0e7ff")); // hover color
     }
-    
+    auto ext = fileInfo.suffix().toLower();
     if(fileInfo.isDir())
         p->drawImage(iconRect, m_folderIcon);
+    else if(ext == "hlsl" || ext == "hlsli")
+		p->drawImage(iconRect, m_hlslIcon);
+    else if(ext == "png" || ext == "jpeg" || ext == "jpg")
+        p->drawImage(iconRect, m_textureIcon);
+    else if (ext == "fbx")
+        p->drawImage(iconRect, m_modelIcon);
     else
-		p->drawImage(iconRect, m_fileIcon);
+        p->drawImage(iconRect, m_fileIcon);
 
     auto textRect = QRect(
         opt.rect.left(),

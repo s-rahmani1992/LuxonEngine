@@ -26,5 +26,8 @@ namespace LuxonEditor::GUI::QT {
 
         QImage m_folderIcon = QImage(":/LuxonEditorWindow/folder.png");
         QImage m_fileIcon = QImage(":/LuxonEditorWindow/file.png");
+        QImage m_hlslIcon = QImage(":/LuxonEditorWindow/hlsl.png");
+        QImage m_modelIcon = QImage(":/LuxonEditorWindow/3d-model.png");
+        QImage m_textureIcon = QImage(":/LuxonEditorWindow/texture.png");
     };
 }

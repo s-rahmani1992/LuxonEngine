@@ -5,5 +5,8 @@
         <file>log.png</file>
         <file>file.png</file>
         <file>folder.png</file>
+        <file>3d-model.png</file>
+        <file>hlsl.png</file>
+        <file>texture.png</file>
     </qresource>
 </RCC>
