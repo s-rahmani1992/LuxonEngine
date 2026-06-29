@@ -70,21 +70,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QTWidgetProjectDir)$(Platform)\$(Configuration)\qt\uic\;$(QTWidgetProjectDir)Widgets\;$(QTWidgetProjectDir);$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QTWidgetProjectDir)$(Platform)\$(Configuration)\qt\uic\;$(QTWidgetProjectDir)Widgets\;$(QTWidgetProjectDir);$(APIProjectDir);$(CoreProjectDir);$(EngineAPIDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -151,10 +153,12 @@
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
+    <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp" />
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
+    <QtUic Include="ShaderCreation\ShaderCreationWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -170,11 +174,15 @@
     <ProjectReference Include="..\LuxonEditor.Core\LuxonEditor.Core.vcxproj">
       <Project>{9dddebb3-4733-4fe7-ac78-4624d2c7e602}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\LuxonEditor.GUI.Qt.Widgets\LuxonEditor.GUI.Qt.Widgets.vcxproj">
+      <Project>{d1a41f29-1b88-4627-878b-ea2f0c2b1f6f}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="ShaderCreation\ShaderCreationWindow.h" />
     <QtMoc Include="Console\LogFilter.h" />
     <QtMoc Include="Console\ConsoleLogWindow.h" />
     <QtMoc Include="ADS\src\ads_globals.h" />

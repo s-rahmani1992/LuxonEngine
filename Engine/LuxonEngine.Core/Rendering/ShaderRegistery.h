@@ -8,9 +8,9 @@ namespace LuxonEngine::Rendering {
 	class Shader;
 
 	enum class ShaderProgramType {
-		Rasterization,
-		RayTracing,
-		Compute,
+		Rasterization = 0,
+		RayTracing = 1,
+		Compute = 2,
 	};
 
 	struct RasterizationProgramProperties {

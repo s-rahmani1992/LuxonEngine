@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Widgets">
+      <UniqueIdentifier>{2a572b2c-e47a-4fd6-9e12-6afa5a842b5c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Widgets\NullableTextField.cpp">
+      <Filter>Widgets</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="Widgets\NullableTextField.ui">
+      <Filter>Widgets</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Widgets\NullableTextField.h">
+      <Filter>Widgets</Filter>
+    </QtMoc>
+  </ItemGroup>
+</Project>

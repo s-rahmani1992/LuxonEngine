@@ -7,5 +7,6 @@
     <EngineAPIProjectDir>$(SolutionDir)Engine\LuxonEngine.API\</EngineAPIProjectDir>
     <EngineAPIDir>$(SolutionDir)Editor\LuxonEditor.Core\</EngineAPIDir>
     <GUIProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI\</GUIProjectDir>
+    <QTWidgetProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI.Qt.Widgets\</QTWidgetProjectDir>
   </PropertyGroup>
 </Project>

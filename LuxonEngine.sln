@@ -29,6 +29,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEditor.GUI.Qt", "Edito
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEditor.Core", "Editor\LuxonEditor.Core\LuxonEditor.Core.vcxproj", "{9DDDEBB3-4733-4FE7-AC78-4624D2C7E602}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEditor.GUI.Qt.Widgets", "Editor\LuxonEditor.GUI.Qt.Widgets\LuxonEditor.GUI.Qt.Widgets.vcxproj", "{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuxonEditor.GUI.Qt.Designer", "Editor\LuxonEditor.GUI.Qt.Designer\LuxonEditor.GUI.Qt.Designer.vcxproj", "{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -79,6 +83,14 @@ Global
 		{9DDDEBB3-4733-4FE7-AC78-4624D2C7E602}.Debug|x64.Build.0 = Debug|x64
 		{9DDDEBB3-4733-4FE7-AC78-4624D2C7E602}.Release|x64.ActiveCfg = Release|x64
 		{9DDDEBB3-4733-4FE7-AC78-4624D2C7E602}.Release|x64.Build.0 = Release|x64
+		{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}.Debug|x64.ActiveCfg = Debug|x64
+		{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}.Debug|x64.Build.0 = Debug|x64
+		{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}.Release|x64.ActiveCfg = Release|x64
+		{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}.Release|x64.Build.0 = Release|x64
+		{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6}.Debug|x64.ActiveCfg = Debug|x64
+		{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6}.Debug|x64.Build.0 = Debug|x64
+		{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6}.Release|x64.ActiveCfg = Release|x64
+		{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +107,8 @@ Global
 		{96EFC921-6887-4AA6-ACDD-9DEA5D5547FA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{25B1557E-E9E2-4C6A-A670-A8015292A2F5} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
 		{9DDDEBB3-4733-4FE7-AC78-4624D2C7E602} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
+		{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
+		{293FBEF9-534D-45A3-AFC5-67C5C3FD18B6} = {29B7CA00-5D13-4D45-8A41-DF105067F102}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02ED7E20-D96E-427D-A8FA-1414DFBA3EAE}

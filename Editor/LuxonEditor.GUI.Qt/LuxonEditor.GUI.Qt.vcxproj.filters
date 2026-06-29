@@ -19,6 +19,9 @@
     <Filter Include="AssetBrowser">
       <UniqueIdentifier>{3a189414-7518-4038-a723-cb8680405213}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ShaderCreator">
+      <UniqueIdentifier>{ad8ef42d-4c23-4e3a-9e85-28b9c73160a7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -29,6 +32,9 @@
     </QtUic>
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui">
       <Filter>AssetBrowser</Filter>
+    </QtUic>
+    <QtUic Include="ShaderCreation\ShaderCreationWindow.ui">
+      <Filter>ShaderCreator</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +132,9 @@
     <ClCompile Include="AssetBrowser\AddressBarButton.cpp">
       <Filter>AssetBrowser</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp">
+      <Filter>ShaderCreator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -208,6 +217,9 @@
     </QtMoc>
     <QtMoc Include="AssetBrowser\AddressBarButton.h">
       <Filter>AssetBrowser</Filter>
+    </QtMoc>
+    <QtMoc Include="ShaderCreation\ShaderCreationWindow.h">
+      <Filter>ShaderCreator</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
