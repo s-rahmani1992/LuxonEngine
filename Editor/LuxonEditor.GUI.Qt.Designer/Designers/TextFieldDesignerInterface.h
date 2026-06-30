@@ -1,15 +1,15 @@
 #pragma once
-
 #include <QtUiPlugin/QDesignerCustomWidgetInterface>
 
-class QNullableTextFieldPlugin : public QObject, public QDesignerCustomWidgetInterface
+class TextFieldDesignerInterface : public QObject, public QDesignerCustomWidgetInterface
 {
-    Q_OBJECT
+	Q_OBJECT
 
-    Q_INTERFACES(QDesignerCustomWidgetInterface)
+	Q_INTERFACES(QDesignerCustomWidgetInterface)
 
 public:
-    QNullableTextFieldPlugin(QObject *parent = nullptr);
+	TextFieldDesignerInterface(QObject* parent = nullptr);
+	~TextFieldDesignerInterface();
 
     bool isContainer() const override;
     bool isInitialized() const override;
@@ -20,9 +20,10 @@ public:
     QString name() const override;
     QString toolTip() const override;
     QString whatsThis() const override;
-    QWidget *createWidget(QWidget *parent) override;
-    void initialize(QDesignerFormEditorInterface *core) override;
+    QWidget* createWidget(QWidget* parent) override;
+    void initialize(QDesignerFormEditorInterface* core) override;
 
 private:
     bool initialized;
 };
+

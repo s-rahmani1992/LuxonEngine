@@ -21,5 +21,6 @@ void LuxonEditor::GUI::QT::ShaderCreationWindow::OnshaderTypeChanged(LuxonEngine
 {
 	ui.rasterizationContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Rasterization);
 	ui.rayTracingContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::RayTracing);
+	ui.computeContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Compute);
 }
 

@@ -12,12 +12,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Widgets\NullableTextField.cpp" />
+    <ClCompile Include="Widgets\QTextField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Widgets\NullableTextField.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Widgets\NullableTextField.ui" />
+    <QtUic Include="Widgets\QTextField.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Widgets\QTextField.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}</ProjectGuid>

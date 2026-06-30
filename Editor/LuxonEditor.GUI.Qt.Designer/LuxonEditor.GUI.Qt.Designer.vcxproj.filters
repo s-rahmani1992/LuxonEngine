@@ -13,6 +13,10 @@
     <ClCompile Include="Designers\NullableTextFieldPlugin.cpp">
       <Filter>Designers</Filter>
     </ClCompile>
+    <ClCompile Include="Designers\TextFieldDesignerInterface.cpp">
+      <Filter>Designers</Filter>
+    </ClCompile>
+    <ClCompile Include="LuxonEditorWidgetsPlugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="designerplugins.json">
@@ -23,5 +27,9 @@
     <QtMoc Include="Designers\NullableTextFieldPlugin.h">
       <Filter>Designers</Filter>
     </QtMoc>
+    <QtMoc Include="Designers\TextFieldDesignerInterface.h">
+      <Filter>Designers</Filter>
+    </QtMoc>
+    <QtMoc Include="LuxonEditorWidgetsPlugin.h" />
   </ItemGroup>
 </Project>

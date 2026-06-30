@@ -14,54 +14,29 @@
    <string>ShaderCreationWindow</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
    <item>
-    <widget class="QWidget" name="shaderNameField" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QTextField" name="shaderNameField">
+     <property name="labelText">
+      <string>File Name</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <property name="topMargin">
-       <number>2</number>
-      </property>
-      <property name="bottomMargin">
-       <number>2</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="shaderNameTextBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="placeholderText">
-         <string>shader name</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="placeHolder">
+      <string>HLSL name</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -128,7 +103,37 @@
    </item>
    <item>
     <widget class="QWidget" name="typePropertiesContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>0</height>
+      </size>
+     </property>
      <layout class="QFormLayout" name="formLayout">
+      <property name="horizontalSpacing">
+       <number>2</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
       <item row="0" column="0">
        <widget class="QWidget" name="rasterizationContainer" native="true">
         <property name="enabled">
@@ -144,12 +149,28 @@
          <property name="spacing">
           <number>1</number>
          </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
          <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
           <number>2</number>
          </property>
          <property name="bottomMargin">
           <number>2</number>
          </property>
+         <item>
+          <widget class="QTextField" name="vertexField">
+           <property name="labelText">
+            <string>Vertex Stage</string>
+           </property>
+           <property name="placeHolder">
+            <string>Function Name</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QNullableTextField" name="geometryField">
            <property name="labelText">
@@ -161,7 +182,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QNullableTextField" name="pixelField">
+          <widget class="QTextField" name="pixelField">
            <property name="labelText">
             <string>Pixel Stage</string>
            </property>
@@ -182,6 +203,21 @@
          </sizepolicy>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
          <item>
           <widget class="QNullableTextField" name="rayGenField">
            <property name="labelText">
@@ -215,6 +251,52 @@
         </layout>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QWidget" name="computeContainer" native="true">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>10</width>
+          <height>10</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QTextField" name="textField">
+           <property name="labelText">
+            <string>Main Entry</string>
+           </property>
+           <property name="placeHolder">
+            <string>Function Name</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -222,6 +304,11 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>QTextField</class>
+   <extends>QWidget</extends>
+   <header>QTextField.h</header>
+  </customwidget>
   <customwidget>
    <class>QNullableTextField</class>
    <extends>QWidget</extends>
