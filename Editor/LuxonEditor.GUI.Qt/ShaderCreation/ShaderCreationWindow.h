@@ -27,6 +27,10 @@ namespace LuxonEditor::GUI::QT {
 		void OnRayTracingChanged(bool isValid);
 		void OnComputeChanged(bool isValid);
 
+		std::string computeMainStr;
+		std::string vertexMainStr;
+		std::string pixelMainStr;
+
 		Ui::ShaderCreationWindowClass ui;
 
 		static bool FunctionNameValidate(const QString& text);

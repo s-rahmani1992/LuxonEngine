@@ -3,6 +3,7 @@
 #include <LuxonEditorAPI.h>
 #include <EngineAPI.h>
 #include <filesystem>
+#include <StringUtilities.h>
 
 LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent)
 	: QDialog(parent)
@@ -56,6 +57,30 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 	ui.computeMain->InputText()->setText("cs_main");
 	ui.computeMain->RegisterValidationFunction(FunctionNameValidate);
 	connect(ui.computeMain, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnComputeChanged);
+
+	connect(ui.createButton, &QPushButton::clicked, this, [this]() {
+		m_compileProperties.model = "6_6";
+		switch (m_compileProperties.type) {
+		case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
+			vertexMainStr = ui.vertexField->InputText()->text().toStdString();
+			m_compileProperties.rasterProperties.vertexMain = vertexMainStr.data();
+			m_compileProperties.rasterProperties.geometryMain = ui.geometryField->GetText();
+			pixelMainStr = ui.pixelField->InputText()->text().toStdString();
+			m_compileProperties.rasterProperties.pixelMain = pixelMainStr.data();
+			break;
+		case LuxonEngine::Rendering::ShaderProgramType::RayTracing:
+			m_compileProperties.rayTracingProperties.rayGen = ui.rayGenField->GetText();
+			m_compileProperties.rayTracingProperties.closestHit = ui.closestHitField->GetText();
+			m_compileProperties.rayTracingProperties.miss = ui.missField->GetText();
+			break;
+		case LuxonEngine::Rendering::ShaderProgramType::Compute:
+			computeMainStr = ui.computeMain->InputText()->text().toStdString();
+			m_compileProperties.computeProperties.computeMain = computeMainStr.data();
+			break;
+		}
+		CreateShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString());
+		accept();
+		});
 }
 
 LuxonEditor::GUI::QT::ShaderCreationWindow::~ShaderCreationWindow()

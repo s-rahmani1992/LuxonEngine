@@ -9,6 +9,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <fstream>
+#include <sstream>
 
 #ifdef _DEBUG
 #pragma comment(lib, "libboost_json-vc143-mt-gd-x64-1_90.lib")
@@ -38,12 +39,6 @@ namespace LuxonEngine {
             return false;
         }
 
-        /*std::string jsonContent(
-            (std::istreambuf_iterator<char>(file)),
-            std::istreambuf_iterator<char>()
-        );*/
-        
-
         boost::system::error_code ec;
         m_jsonData = boost::json::parse(file, ec);
         file.close();
@@ -63,11 +58,17 @@ namespace LuxonEngine {
             return false;
         }
 
-        std::string jsonString = boost::json::serialize(m_jsonData);
-        file.write(jsonString.c_str(), jsonString.length());
+		PrettyPrint(file, m_jsonData);
         file.close();
 
         return true;
+    }
+
+    std::string SerializationStream::ToString() const
+    {
+        std::stringstream ss;
+        PrettyPrint(ss, m_jsonData);
+        return ss.str();
     }
 
     int SerializationStream::GetInt(const std::string& fieldName, int defaultValue)
@@ -289,5 +290,93 @@ namespace LuxonEngine {
         if (!obj.contains(fieldName)) {
             obj[fieldName] = boost::json::value();
         }
+    }
+
+    void SerializationStream::PrettyPrint(std::ostream& os, boost::json::value const& jv, std::string* indent)
+    {
+        namespace json = boost::json;
+        std::string indent_;
+        if (!indent)
+            indent = &indent_;
+        switch (jv.kind())
+        {
+        case json::kind::object:
+        {
+            os << "{\n";
+            indent->append(4, ' ');
+            auto const& obj = jv.get_object();
+            if (!obj.empty())
+            {
+                auto it = obj.begin();
+                for (;;)
+                {
+                    os << *indent << json::serialize(it->key()) << " : ";
+                    PrettyPrint(os, it->value(), indent);
+                    if (++it == obj.end())
+                        break;
+                    os << ",\n";
+                }
+            }
+            os << "\n";
+            indent->resize(indent->size() - 4);
+            os << *indent << "}";
+            break;
+        }
+
+        case json::kind::array:
+        {
+            os << "[\n";
+            indent->append(4, ' ');
+            auto const& arr = jv.get_array();
+            if (!arr.empty())
+            {
+                auto it = arr.begin();
+                for (;;)
+                {
+                    os << *indent;
+                    PrettyPrint(os, *it, indent);
+                    if (++it == arr.end())
+                        break;
+                    os << ",\n";
+                }
+            }
+            os << "\n";
+            indent->resize(indent->size() - 4);
+            os << *indent << "]";
+            break;
+        }
+
+        case json::kind::string:
+        {
+            os << json::serialize(jv.get_string());
+            break;
+        }
+
+        case json::kind::uint64:
+            os << jv.get_uint64();
+            break;
+
+        case json::kind::int64:
+            os << jv.get_int64();
+            break;
+
+        case json::kind::double_:
+            os << jv.get_double();
+            break;
+
+        case json::kind::bool_:
+            if (jv.get_bool())
+                os << "true";
+            else
+                os << "false";
+            break;
+
+        case json::kind::null:
+            os << "null";
+            break;
+        }
+
+        if (indent->empty())
+            os << "\n";
     }
 }

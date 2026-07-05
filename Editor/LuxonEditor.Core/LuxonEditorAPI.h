@@ -14,3 +14,5 @@ LUXON_ENGINE_API void AssetRegistry_DeletePath(LuxonEditor::AssetRegistry* asset
 LUXON_ENGINE_API void AssetRegistry_RenamePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& oldRelativePath, const std::string& newName);
 
 LUXON_ENGINE_API void AssetRegistry_MovePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& oldRelativePath, const std::string& folderRelativePath);
+
+LUXON_ENGINE_API void CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName);

@@ -23,6 +23,8 @@
     <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\EngineApplication.h" />
     <ClInclude Include="Core\EngineShaderRegistry.h" />
+    <ClInclude Include="Core\GuidUtilities.h" />
+    <ClInclude Include="Core\ShaderCreator.h" />
     <ClInclude Include="LuxonEditorAPI.h" />
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +32,8 @@
     <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\EngineApplication.cpp" />
     <ClCompile Include="Core\EngineShaderRegistry.cpp" />
+    <ClCompile Include="Core\GuidUtilities.cpp" />
+    <ClCompile Include="Core\ShaderCreator.cpp" />
     <ClCompile Include="LuxonEditorAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -121,6 +125,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -141,6 +148,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -159,6 +169,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -179,6 +192,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

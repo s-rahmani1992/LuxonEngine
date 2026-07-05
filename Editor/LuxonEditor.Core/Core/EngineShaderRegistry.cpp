@@ -59,6 +59,10 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 	for (auto& modified : event.modifiedFiles) {
 		CompileAtPath(fs::path(m_assetWatcher->GetRootDirectory()) / (modified));
 	}
+
+	for(auto& created : event.createdFiles) {
+		CompileAtPath(fs::path(m_assetWatcher->GetRootDirectory()) / (created));
+	}
 }
 
 void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
@@ -149,5 +153,37 @@ void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::S
 	else if (typeStr == "Compute") {
 		properties.type = Render::ShaderProgramType::Compute;
 		dataNode.GetString("csMain", &properties.computeProperties.computeMain);
+	}
+}
+
+void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream)
+{
+	stream.SetString("model", properties.model);
+
+	switch(properties.type) {
+		case Render::ShaderProgramType::RayTracing:
+			stream.SetString("type", "RayTracing");
+			if(properties.rayTracingProperties.rayGen != nullptr )
+				stream.SetString("rayGen", properties.rayTracingProperties.rayGen);
+			if(properties.rayTracingProperties.miss != nullptr )
+				stream.SetString("miss", properties.rayTracingProperties.miss);
+			if(properties.rayTracingProperties.intersection != nullptr )
+				stream.SetString("intersection", properties.rayTracingProperties.intersection);
+			if(properties.rayTracingProperties.anyHit != nullptr )
+				stream.SetString("anyHit", properties.rayTracingProperties.anyHit);
+			if(properties.rayTracingProperties.closestHit != nullptr )
+				stream.SetString("closestHit", properties.rayTracingProperties.closestHit);
+			break;
+		case Render::ShaderProgramType::Rasterization:
+			stream.SetString("type", "Rasterization");
+			stream.SetString("vsMain", properties.rasterProperties.vertexMain);
+			stream.SetString("psMain", properties.rasterProperties.pixelMain);
+			if(properties.rasterProperties.geometryMain != nullptr)
+				stream.SetString("gsMain", properties.rasterProperties.geometryMain);
+			break;
+		case Render::ShaderProgramType::Compute:
+			stream.SetString("type", "Compute");
+			stream.SetString("csMain", properties.computeProperties.computeMain);
+			break;
 	}
 }

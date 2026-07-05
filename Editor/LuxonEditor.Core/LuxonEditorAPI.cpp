@@ -1,4 +1,5 @@
 #include "LuxonEditorAPI.h"
+#include "Core/ShaderCreator.h"
 
 LuxonEditor::EngineApplication* CreateEngineApplication(const LuxonEditor::ApplicationConfig& config, std::string& errorString)
 {
@@ -28,4 +29,9 @@ void AssetRegistry_RenamePath(LuxonEditor::AssetRegistry* assetRegistry, const s
 void AssetRegistry_MovePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& oldRelativePath, const std::string& folderRelativePath)
 {
 	assetRegistry->MovePath(oldRelativePath, folderRelativePath);
+}
+
+LUXON_ENGINE_API void CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName)
+{
+	LuxonEditor::ShaderCreator::CreateShader(properties, shaderName);
 }

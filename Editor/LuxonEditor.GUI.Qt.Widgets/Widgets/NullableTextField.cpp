@@ -45,10 +45,13 @@ void QNullableTextField::setPlaceHolder(const QString& t)
 	ui.inputText->setPlaceholderText(t);
 }
 
-char* QNullableTextField::GetText() const
+char* QNullableTextField::GetText()
 {
-	auto text = ui.inputText->text();
-	return text.isEmpty() ? nullptr : text.toStdString().data();
+	if(ui.labelBox->isChecked() == false) {
+		return nullptr;
+	}
+	m_strValue = ui.inputText->text().toStdString();
+	return m_strValue.data();
 }
 
 void QNullableTextField::OnTextChanged(const QString& text)

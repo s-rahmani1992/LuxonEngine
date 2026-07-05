@@ -27,6 +27,8 @@ namespace LuxonEngine {
         // Save JSON to file
         bool SaveToFile(const std::string& filePath);
 
+		std::string ToString() const;
+
         // Get methods
         int GetInt(const std::string& fieldName, int defaultValue = 0);
         Float GetFloat(const std::string& fieldName, Float defaultValue = 0.0f);
@@ -49,6 +51,7 @@ namespace LuxonEngine {
         void SetObject(const std::string& fieldName, const SerializationStream& object);
     private:
         SerializationStream(boost::json::value& data);
+        static void PrettyPrint(std::ostream& os, boost::json::value const& jv, std::string* indent = nullptr);
         boost::json::value m_jsonData;
         std::string m_lastError;
 
