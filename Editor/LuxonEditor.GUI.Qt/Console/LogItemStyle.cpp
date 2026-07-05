@@ -7,7 +7,7 @@ void LuxonEditor::GUI::QT::LogItemStyle::paint(QPainter* p, const QStyleOptionVi
 {
     p->save();
 
-    p->fillRect(opt.rect, QColor("#eeeeee"));
+    p->fillRect(opt.rect, QColor("#111111"));
 
     const int iconSize = 20;
     QRect iconRect = QRect(

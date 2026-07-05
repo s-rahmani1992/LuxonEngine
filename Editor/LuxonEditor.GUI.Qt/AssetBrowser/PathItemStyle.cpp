@@ -21,11 +21,11 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
 	auto iconRect = QRect(opt.rect.left(), opt.rect.top(), opt.rect.width(), opt.rect.width());
 
     if (opt.state & QStyle::State_Selected) {
-        p->fillRect(opt.rect, QColor("#3399ff"));
+        p->fillRect(opt.rect, QColor("#1133ee"));
         p->setPen(Qt::white);
     }
     else if (opt.state & QStyle::State_MouseOver) {
-        p->fillRect(opt.rect, QColor("#d0e7ff")); // hover color
+        p->fillRect(opt.rect, QColor("#3366bb")); // hover color
     }
     auto ext = fileInfo.suffix().toLower();
     if(fileInfo.isDir())
