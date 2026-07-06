@@ -2,10 +2,13 @@
 #include <LuxonEditorAPI.h>
 #include "Console/ConsoleLogWindow.h"
 #include "AssetBrowser/AssetBrowserWindow.h"
+#include "InspecterWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
 #include "../ADS/src/DockManager.h"
 #include "../ADS/src/DockWidget.h"
+#include "../ADS/src/DockAreaWidget.h"
+#include "../ADS/src/DockSplitter.h"
 
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
@@ -35,8 +38,29 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     auto* assetBrowserDock = m_dockManager->createDockWidget("Browser");
     assetBrowserDock->setWidget(assetBrowserWindow);
 
-    m_dockManager->addDockWidget(ads::CenterDockWidgetArea, consoleDock);
-    m_dockManager->addDockWidget(ads::RightDockWidgetArea, assetBrowserDock);
+	auto inspecterWindow = new InspecterWindow(m_dockManager);
+	auto* inspecterDock = m_dockManager->createDockWidget("Inspecter");
+	inspecterDock->setWidget(inspecterWindow);
+
+	auto* leftTopArea = m_dockManager->addDockWidget(ads::LeftDockWidgetArea, assetBrowserDock);
+
+	auto* rightArea = m_dockManager->addDockWidget(ads::RightDockWidgetArea, inspecterDock);
+
+    auto* splitter = leftTopArea->parentSplitter();
+
+    int total = splitter->width();
+    int left = total * 0.9;
+    int right = total * 0.1;
+
+    splitter->setSizes({ left, right });
+
+    auto* leftBottomArea = m_dockManager->addDockWidget(ads::BottomDockWidgetArea, consoleDock, leftTopArea);
+
+	splitter = leftBottomArea->parentSplitter();
+	total = splitter->height();
+    int top = total * 0.5;
+    int bottom = total * 0.5;
+	splitter->setSizes({ top, bottom });
 }
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::~LuxonEditorWindow()
