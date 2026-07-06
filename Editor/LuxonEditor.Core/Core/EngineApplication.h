@@ -11,6 +11,7 @@ namespace LuxonEditor {
 	class AssetRegistry;
 	class AssetDirectoryWatcher;
 	class EngineShaderRegistry;
+	class SelectionManager;
 
 	struct ApplicationConfig {
 		std::string projectPath;
@@ -22,7 +23,7 @@ namespace LuxonEditor {
 		static EngineApplication* CreateApplication(const ApplicationConfig& config, std::string& error);
 		static std::string& GetProjectPath() { return m_appInstance.m_projectPath; }
 		static AssetRegistry* GetAssetManager() { return m_appInstance.m_assetManager; }
-		
+		static SelectionManager* GetSelectionManager();
 	private:
 		static EngineApplication m_appInstance;
 
@@ -45,5 +46,6 @@ namespace LuxonEditor {
 		AssetRegistry* m_assetManager;
 		AssetDirectoryWatcher* m_assetWatcher;
 		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication = nullptr;
+		SelectionManager* m_selectionManager = nullptr;
 	};
 }

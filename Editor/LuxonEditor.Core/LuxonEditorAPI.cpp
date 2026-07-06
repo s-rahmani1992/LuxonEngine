@@ -16,6 +16,11 @@ LuxonEditor::AssetRegistry* GetAssetManager()
 	return LuxonEditor::EngineApplication::GetAssetManager();
 }
 
+LUXON_ENGINE_API LuxonEditor::SelectionManager* GetSelectionManager()
+{
+	return LuxonEditor::EngineApplication::GetSelectionManager();
+}
+
 void AssetRegistry_DeletePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& relativePath)
 {
 	assetRegistry->DeletePath(relativePath);

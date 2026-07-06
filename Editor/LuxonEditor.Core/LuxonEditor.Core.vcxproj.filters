@@ -25,6 +25,9 @@
     <ClInclude Include="Core\GuidUtilities.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\SelectionManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -44,6 +47,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\GuidUtilities.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\SelectionManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

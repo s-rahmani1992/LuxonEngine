@@ -66,6 +66,14 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
             QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.filePath()));
         }
 	});
+
+    connect(ui.contentListView, &QListView::clicked, this, [this](const QModelIndex& idx) {
+        QModelIndex srcIdx = m_pathFilter->mapToSource(idx);
+        if (!srcIdx.isValid()) return;
+
+        auto fileInfo = m_fileModel->fileInfo(srcIdx);
+		GetSelectionManager()->SetSelectedObject(fileInfo.filePath().toStdString());
+		});
 }
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::~AssetBrowserWindow()

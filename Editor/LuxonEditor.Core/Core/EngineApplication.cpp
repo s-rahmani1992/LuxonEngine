@@ -1,11 +1,11 @@
 #include "EngineApplication.h"
 #include "AssetRegistry.h"
 #include "AssetDirectoryWatcher.h"
-//#include <Core/Logger.h>
 #include <Core/SerializationStream.h>
 #include <EngineAPI.h>
 #include <StringUtilities.h>
 #include "EngineShaderRegistry.h"
+#include "SelectionManager.h"
 #include <Rendering/ShaderRegistery.h>
 
 LuxonEditor::EngineApplication LuxonEditor::EngineApplication::m_appInstance;
@@ -18,6 +18,11 @@ LuxonEditor::EngineApplication* LuxonEditor::EngineApplication::CreateApplicatio
 		return nullptr;
 
     return &m_appInstance;
+}
+
+LuxonEditor::SelectionManager* LuxonEditor::EngineApplication::GetSelectionManager()
+{
+	return m_appInstance.m_selectionManager;
 }
 
 
@@ -61,7 +66,7 @@ bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 	auto compiler = m_gpuApplication->CreateShaderRegistery();
 	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
 	m_shaderRegistery->CompileAllShaders();
-
+	m_selectionManager = new SelectionManager();
 	return true;
 }
 

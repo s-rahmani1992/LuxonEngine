@@ -2,12 +2,15 @@
 #include <EngineAPI.h>
 #include "Core/EngineApplication.h"
 #include "Core/AssetRegistry.h"
+#include "Core/SelectionManager.h"
 
 LUXON_ENGINE_API LuxonEditor::EngineApplication* CreateEngineApplication(const LuxonEditor::ApplicationConfig& config, std::string& errorString);
 
 LUXON_ENGINE_API std::string GetProjectPath();
 
 LUXON_ENGINE_API LuxonEditor::AssetRegistry* GetAssetManager();
+
+LUXON_ENGINE_API LuxonEditor::SelectionManager* GetSelectionManager();
 
 LUXON_ENGINE_API void AssetRegistry_DeletePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& relativePath);
 
