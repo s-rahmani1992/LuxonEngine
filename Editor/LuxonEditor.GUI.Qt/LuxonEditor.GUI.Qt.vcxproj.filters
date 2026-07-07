@@ -39,6 +39,9 @@
     <QtUic Include="Windows\InspecterWindow.ui">
       <Filter>Windows</Filter>
     </QtUic>
+    <QtUic Include="ShaderCreation\ShaderInspecterWidget.ui">
+      <Filter>ShaderCreator</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -141,6 +144,9 @@
     <ClCompile Include="Windows\InspecterWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderCreation\ShaderInspecterWidget.cpp">
+      <Filter>ShaderCreator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -229,6 +235,9 @@
     </QtMoc>
     <QtMoc Include="Windows\InspecterWindow.h">
       <Filter>Windows</Filter>
+    </QtMoc>
+    <QtMoc Include="ShaderCreation\ShaderInspecterWidget.h">
+      <Filter>ShaderCreator</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

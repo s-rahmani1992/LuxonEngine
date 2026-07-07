@@ -19,6 +19,9 @@ public:
 	QString placeHolder() const;
 	void setPlaceHolder(const QString& t);
 
+	void Toggle(bool isOn) {
+		ui.labelBox->setChecked(isOn);
+	}
 	QLineEdit* InputText() const { return ui.inputText; }
 	char* GetText();
 	void RegisterValidationFunction(std::function<bool(const QString&)> func) {

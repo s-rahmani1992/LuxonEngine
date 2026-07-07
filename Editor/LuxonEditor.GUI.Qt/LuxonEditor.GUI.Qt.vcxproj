@@ -154,12 +154,14 @@
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp" />
+    <ClCompile Include="ShaderCreation\ShaderInspecterWidget.cpp" />
     <ClCompile Include="Windows\InspecterWindow.cpp" />
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
     <QtUic Include="ShaderCreation\ShaderCreationWindow.ui" />
+    <QtUic Include="ShaderCreation\ShaderInspecterWidget.ui" />
     <QtUic Include="Windows\InspecterWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
   </ItemGroup>
@@ -184,6 +186,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="ShaderCreation\ShaderInspecterWidget.h" />
     <QtMoc Include="Windows\InspecterWindow.h" />
     <QtMoc Include="ShaderCreation\ShaderCreationWindow.h" />
     <QtMoc Include="Console\LogFilter.h" />

@@ -15,6 +15,7 @@ namespace LuxonEditor::GUI::QT
 
 	private:
 		Ui::InspecterWindowClass ui;
+		QWidget* m_currentWidget = nullptr;
 	};
 }
 

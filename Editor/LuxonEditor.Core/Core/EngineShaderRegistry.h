@@ -21,7 +21,7 @@ namespace LuxonEditor {
 
 	using GUID = boost::uuids::uuid;
 	
-	class EngineShaderRegistry {
+	class __declspec(dllexport) EngineShaderRegistry {
 	public:
 		EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
 		~EngineShaderRegistry();
