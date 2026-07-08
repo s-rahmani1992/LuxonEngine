@@ -25,6 +25,31 @@ int main(int argc, char *argv[])
 
     app.setPalette(dark);
 
+	app.setStyleSheet(R"(
+        QMenuBar {
+            background-color: #353535;
+            color: white;
+        }
+
+        QMenuBar::item {
+            background-color: #353535;
+            color: white;
+        }
+
+        QMenuBar::item:selected {
+            background-color: #454545;
+        }
+
+        QMenu {
+            background-color: #353535;
+            color: white;
+        }
+
+        QMenu::item:selected {
+            background-color: #454545;
+        }
+    )");
+
     LuxonEditor::ApplicationConfig config{
         .projectPath = QCoreApplication::applicationDirPath().toStdString(),
         .graphicAPI = Graphic_API::DIRECTX_12,

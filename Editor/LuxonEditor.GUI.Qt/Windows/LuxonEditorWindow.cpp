@@ -2,6 +2,7 @@
 #include <LuxonEditorAPI.h>
 #include "Console/ConsoleLogWindow.h"
 #include "AssetBrowser/AssetBrowserWindow.h"
+#include "ShaderCreation/ShaderCreationWindow.h"
 #include "InspecterWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
@@ -16,14 +17,12 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
 {
     ui.setupUi(this);
 
-    connect(ui.logBtn, &QPushButton::clicked, this, [this]() {
-        LuxonEngine::Logger::Log("log message");
+    connect(ui.createShaderMenuItem, &QAction::triggered, [this]() {
+        ShaderCreationWindow shaderWindow(this);
+        shaderWindow.exec();
         });
-    connect(ui.warnBtn, &QPushButton::clicked, this, [this]() {
-        LuxonEngine::Logger::LogWarning("warn message");
-        });
-    connect(ui.errorBtn, &QPushButton::clicked, this, [this]() {
-        LuxonEngine::Logger::LogError("error message");
+    connect(ui.closeMenuItem, &QAction::triggered, [this]() {
+        QApplication::quit();
         });
 
     ads::CDockManager::setConfigFlag(ads::CDockManager::DefaultDockAreaButtons, false);
