@@ -49,6 +49,8 @@ namespace LuxonEngine {
         void SetString(const std::string& fieldName, const std::string& str);
         void SetGuid(const std::string& fieldName, const GUID& guid);
         void SetObject(const std::string& fieldName, const SerializationStream& object);
+    
+        void Clear();
     private:
         SerializationStream(boost::json::value& data);
         static void PrettyPrint(std::ostream& os, boost::json::value const& jv, std::string* indent = nullptr);

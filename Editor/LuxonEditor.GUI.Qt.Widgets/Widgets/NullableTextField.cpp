@@ -62,7 +62,7 @@ void QNullableTextField::OnTextChanged(const QString& text)
 			ui.inputText->setStyleSheet("border: 1px solid red;");
 		}
 		else {
-			ui.inputText->setStyleSheet("");
+			ui.inputText->setStyleSheet("border: none;");
 		}
 
 		emit ValueChanged(HasValidValue());

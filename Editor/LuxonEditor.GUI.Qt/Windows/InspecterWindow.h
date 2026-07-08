@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "ui_InspecterWindow.h"
+#include <Core/SerializationStream.h>
 
 namespace LuxonEditor::GUI::QT
 {
@@ -16,6 +17,9 @@ namespace LuxonEditor::GUI::QT
 	private:
 		Ui::InspecterWindowClass ui;
 		QWidget* m_currentWidget = nullptr;
+		std::string m_metaPath;
+		LuxonEngine::SerializationStream m_stream;
+		LuxonEngine::SerializationStream m_dataStream;
 	};
 }
 

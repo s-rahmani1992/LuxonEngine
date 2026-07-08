@@ -179,7 +179,7 @@ namespace LuxonEngine {
         try {
             auto& obj = m_jsonData.as_object();
             if (obj.contains(fieldName)) {
-                *str = const_cast<char*>(obj[fieldName].as_string().c_str());
+                *str = const_cast<char*>(obj[fieldName].as_string().data());
                 return true;
             }
         }
@@ -378,5 +378,9 @@ namespace LuxonEngine {
 
         if (indent->empty())
             os << "\n";
+    }
+
+    void LuxonEngine::SerializationStream::Clear() {
+        m_jsonData = boost::json::object();
     }
 }

@@ -21,7 +21,7 @@ public:
 
 	QLineEdit* InputText() const { return ui.inputText; }
 
-	char* GetText() const;
+	char* GetText();
 
 	void RegisterValidationFunction(std::function<bool(const QString&)> func) {
 		m_validationFunc = func;
@@ -41,5 +41,6 @@ private:
 	std::function<bool(const QString&)> m_validationFunc;
 
 	bool m_hasValidValue = true;
+	std::string m_strValue;
 };
 

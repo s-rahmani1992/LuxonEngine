@@ -158,6 +158,7 @@ void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::S
 
 void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream)
 {
+	stream.Clear();
 	stream.SetString("model", properties.model);
 
 	switch(properties.type) {

@@ -2,7 +2,6 @@
 #include <LuxonEditorAPI.h>
 #include "../ShaderCreation/ShaderInspecterWidget.h"
 #include <filesystem>
-#include <Core/SerializationStream.h>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 	: QWidget(parent)
@@ -23,15 +22,20 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 		if (selectedPath.extension().string() == ".hlsl" && std::filesystem::exists(selectedPath))
 		{
 			// Create meta file path by appending .json
-			std::string metaFilePath = selectedObject + ".json";
+			m_metaPath = selectedObject + ".json";
 			
 			// Create SerializationStream from the meta file
-			LuxonEngine::SerializationStream serializationStream;
-			serializationStream.LoadFromFile(metaFilePath);
+			m_stream.LoadFromFile(m_metaPath);
 			
 			// Create ShaderInspecterWidget with root widget as parent
-			LuxonEngine::SerializationStream data = serializationStream.Object("data");
-			m_currentWidget = new ShaderInspecterWidget(ui.container, &data);
+			m_dataStream = m_stream.Object("data");
+			ShaderInspecterWidget* shaderWidget = new ShaderInspecterWidget(ui.container, &m_dataStream);
+			connect(shaderWidget, &ShaderInspecterWidget::PropertyUpdates, this, [this](LuxonEngine::SerializationStream* stream) {
+				m_stream.SetObject("data", *stream);
+				std::string b = m_stream.ToString();
+				m_stream.SaveToFile(m_metaPath);
+				});
+			m_currentWidget = shaderWidget;
 			m_currentWidget->show();
 		}
 	});

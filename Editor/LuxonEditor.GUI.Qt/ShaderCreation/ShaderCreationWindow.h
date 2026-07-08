@@ -16,7 +16,7 @@ namespace LuxonEditor::GUI::QT {
 	public:
 		ShaderCreationWindow(QWidget* parent = nullptr);
 		~ShaderCreationWindow();
-
+		static bool FunctionNameValidate(const QString& text);
 	private:
 		void OnshaderTypeChanged(LuxonEngine::Rendering::ShaderProgramType programType);
 		bool ValidateRasterizationProperties();
@@ -33,7 +33,7 @@ namespace LuxonEditor::GUI::QT {
 
 		Ui::ShaderCreationWindowClass ui;
 
-		static bool FunctionNameValidate(const QString& text);
+		
 		static bool FileNameValidate(const QString& text);
 
 		LuxonEngine::Rendering::ShaderCompileProperties m_compileProperties;

@@ -33,10 +33,10 @@ void QTextField::setPlaceHolder(const QString& t)
 	ui.inputText->setPlaceholderText(t);
 }
 
-char* QTextField::GetText() const
+char* QTextField::GetText()
 {
-	auto text = ui.inputText->text();
-	return text.isEmpty() ? nullptr : text.toStdString().data();
+	m_strValue = ui.inputText->text().toStdString();
+	return m_strValue.empty() ? nullptr : m_strValue.data();
 }
 
 void QTextField::OnTextChanged(const QString& text)
@@ -47,7 +47,7 @@ void QTextField::OnTextChanged(const QString& text)
 			ui.inputText->setStyleSheet("border: 1px solid red;");
 		}
 		else {
-			ui.inputText->setStyleSheet("");
+			ui.inputText->setStyleSheet("border: none;");
 		}
 
 		emit ValueChanged(m_hasValidValue);
