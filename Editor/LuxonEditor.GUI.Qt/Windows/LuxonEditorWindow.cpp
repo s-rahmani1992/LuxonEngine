@@ -4,11 +4,9 @@
 #include "AssetBrowser/AssetBrowserWindow.h"
 #include "ShaderCreation/ShaderCreationWindow.h"
 #include "InspecterWindow.h"
+#include "SceneEditorWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
-#include "../ADS/src/DockManager.h"
-#include "../ADS/src/DockWidget.h"
-#include "../ADS/src/DockAreaWidget.h"
 #include "../ADS/src/DockSplitter.h"
 
 
@@ -29,37 +27,32 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     m_dockManager = new ads::CDockManager(ui.windowDocker);
     ui.windowDocker->layout()->addWidget(m_dockManager);
 
-    auto consoleWindow = new ConsoleLogWindow(m_dockManager);
-    auto* consoleDock = m_dockManager->createDockWidget("Console");
-    consoleDock->setWidget(consoleWindow);
+    auto* consoleDock = AddWindow<ConsoleLogWindow>("Console", m_dockManager);
+    auto* assetBrowserDock = AddWindow<AssetBrowserWindow>("Browser", QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
+    auto* inspecterDock = AddWindow<InspecterWindow>("Inspecter", m_dockManager);
+    auto* sceneEditorDock = AddWindow<SceneEditorWindow>("Scene", m_dockManager);
 
-    auto assetBrowserWindow = new AssetBrowserWindow(QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
-    auto* assetBrowserDock = m_dockManager->createDockWidget("Browser");
-    assetBrowserDock->setWidget(assetBrowserWindow);
 
-	auto inspecterWindow = new InspecterWindow(m_dockManager);
-	auto* inspecterDock = m_dockManager->createDockWidget("Inspecter");
-	inspecterDock->setWidget(inspecterWindow);
+	auto* rightArea0 = m_dockManager->addDockWidget(ads::RightDockWidgetArea, inspecterDock);
+    auto* leftArea0 = m_dockManager->addDockWidget(ads::LeftDockWidgetArea, sceneEditorDock);
 
-	auto* leftTopArea = m_dockManager->addDockWidget(ads::LeftDockWidgetArea, assetBrowserDock);
-
-	auto* rightArea = m_dockManager->addDockWidget(ads::RightDockWidgetArea, inspecterDock);
-
-    auto* splitter = leftTopArea->parentSplitter();
+    auto* splitter = leftArea0->parentSplitter();
 
     int total = splitter->width();
-    int left = total * 0.9;
-    int right = total * 0.1;
+    int left = total * 0.8;
+    int right = total * 0.2;
 
     splitter->setSizes({ left, right });
 
-    auto* leftBottomArea = m_dockManager->addDockWidget(ads::BottomDockWidgetArea, consoleDock, leftTopArea);
+    auto* bottomArea0 = m_dockManager->addDockWidget(ads::BottomDockWidgetArea, consoleDock, leftArea0);
 
-	splitter = leftBottomArea->parentSplitter();
+	splitter = bottomArea0->parentSplitter();
 	total = splitter->height();
     int top = total * 0.5;
     int bottom = total * 0.5;
 	splitter->setSizes({ top, bottom });
+
+    m_dockManager->addDockWidget(ads::RightDockWidgetArea, assetBrowserDock, bottomArea0);
 }
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::~LuxonEditorWindow()

@@ -6,3 +6,10 @@ LuxonEngine::PerspectiveCamera::PerspectiveCamera(const ref<Transform>& transfor
 	m_projectionMatrix = Matrix4::PerspectiveProjection(nearZ, farZ, aspect, fovAngleDeg);
 	m_inverseProjectionMatrix = Matrix4::InversePerspectiveProjection(nearZ, farZ, aspect, fovAngleDeg);
 }
+
+void LuxonEngine::PerspectiveCamera::ChangeAspect(float aspect)
+{
+	m_aspect = aspect;
+	m_projectionMatrix = Matrix4::PerspectiveProjection(m_nearZ, m_farZ, aspect, m_fovAngleDeg);
+	m_inverseProjectionMatrix = Matrix4::InversePerspectiveProjection(m_nearZ, m_farZ, aspect, m_fovAngleDeg);
+}

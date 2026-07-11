@@ -43,8 +43,8 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12HybridContext : public DX12GraphicContext
 	{
 	public:
-		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window)
-			: DX12GraphicContext(bufferCount, m_commandExecuter, window) {
+		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager)
+			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager) {
 		}
 
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) override;

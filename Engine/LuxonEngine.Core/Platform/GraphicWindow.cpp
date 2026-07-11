@@ -8,6 +8,12 @@ LuxonEngine::Platform::GraphicWindow::GraphicWindow(const WindowProperties& prop
         50, 50, m_width, m_height, properties.parentWinHandle, nullptr, GetModuleHandleW(nullptr), this);
 }
 
+LuxonEngine::Platform::GraphicWindow::GraphicWindow(const WindowProperties& properties, HWND handle)
+    :m_width(properties.width), m_height(properties.height), m_handle(handle)
+{
+
+}
+
 void LuxonEngine::Platform::GraphicWindow::Update(const Float& deltaTime)
 {
     MSG msg;

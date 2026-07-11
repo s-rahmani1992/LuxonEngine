@@ -8,6 +8,8 @@ LUXON_ENGINE_API LuxonEditor::EngineApplication* CreateEngineApplication(const L
 
 LUXON_ENGINE_API std::string GetProjectPath();
 
+LUXON_ENGINE_API LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication();
+
 LUXON_ENGINE_API LuxonEditor::AssetRegistry* GetAssetManager();
 
 LUXON_ENGINE_API LuxonEditor::SelectionManager* GetSelectionManager();

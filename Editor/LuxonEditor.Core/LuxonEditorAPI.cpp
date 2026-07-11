@@ -11,6 +11,11 @@ std::string GetProjectPath()
 	return LuxonEditor::EngineApplication::GetProjectPath();
 }
 
+LUXON_ENGINE_API LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication()
+{
+	return LuxonEditor::EngineApplication::GetGPUApplication();
+}
+
 LuxonEditor::AssetRegistry* GetAssetManager()
 {
 	return LuxonEditor::EngineApplication::GetAssetManager();

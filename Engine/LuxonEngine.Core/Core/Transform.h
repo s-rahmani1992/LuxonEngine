@@ -4,7 +4,7 @@
 #include "Matrix4.h"
 
 namespace LuxonEngine {
-	class Transform {
+	class LUXON_CORE_API Transform {
 	public:
 		Transform(const Vector3& position, const Vector3& scale, const Vector3& axir, Float angleDeg);
 		Transform();

@@ -24,6 +24,7 @@ namespace LuxonEditor {
 		static std::string& GetProjectPath() { return m_appInstance.m_projectPath; }
 		static AssetRegistry* GetAssetManager() { return m_appInstance.m_assetManager; }
 		static SelectionManager* GetSelectionManager();
+		static LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication();
 	private:
 		static EngineApplication m_appInstance;
 

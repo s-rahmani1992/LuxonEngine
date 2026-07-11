@@ -13,8 +13,9 @@
 #include "Rendering/RayTracingComponent.h"
 #include "Core/Scene.h"
 
-LuxonEngine::Rendering::DX12::DX12GraphicContext::DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window)
-	:m_bufferCount(bufferCount), m_commandExecuter(commandExecuter), m_window(window),
+LuxonEngine::Rendering::DX12::DX12GraphicContext::DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager)
+	:m_bufferCount(bufferCount), m_commandExecuter(commandExecuter), 
+	m_window(window),m_assetManager(assetManager),
 	m_renderBuffers(std::vector<ComPtr<ID3D12Resource2>>(bufferCount)),
 	m_rtvHandles(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>(bufferCount))
 {
@@ -198,6 +199,7 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes(c
 void LuxonEngine::Rendering::DX12::DX12GraphicContext::UpdateDataHeaps()
 {
 	m_camData.inverseProjectionMatrix = m_camera->GetTransform()->Matrix() * m_camera->InverseProjectionMatrix();
+	m_camData.projectionMatrix = m_camera->ProjectionMatrix();
 	m_camData.viewMatrix = m_camera->ViewMatrix();
 	m_camData.position = m_camera->GetTransform()->Position();
 

@@ -2,10 +2,10 @@
 #include "Camera.h"
 
 namespace LuxonEngine {
-	class PerspectiveCamera : public Camera {
+	class LUXON_CORE_API PerspectiveCamera : public Camera {
 	public:
 		PerspectiveCamera(const ref<Transform>& transform, Float nearZ, Float farZ, Float aspect, Float fovAngleDeg);
-	
+		void ChangeAspect(float aspect);
 	private:
 		Float m_nearZ;
 		Float m_farZ;

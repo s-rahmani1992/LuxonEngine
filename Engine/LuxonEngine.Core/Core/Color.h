@@ -1,8 +1,9 @@
 #pragma once
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine {
-	class Color {
+	class LUXON_CORE_API Color {
 	public:
 		Color(Float r, Float g, Float b, Float a);
 		Color();

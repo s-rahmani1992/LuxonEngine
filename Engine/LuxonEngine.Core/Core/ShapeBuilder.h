@@ -1,10 +1,11 @@
 #pragma once
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine
 {
 	class Mesh;
-	class ShapeBuilder
+	class LUXON_CORE_API ShapeBuilder
 	{
 	public:
 		static ref<Mesh> CreateCube(Float size);

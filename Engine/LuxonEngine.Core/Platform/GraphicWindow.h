@@ -22,6 +22,7 @@ namespace LuxonEngine::Platform {
 	class __declspec(dllexport) GraphicWindow {
 	public:
 		GraphicWindow(const WindowProperties& properties, const ATOM& winClass);
+		GraphicWindow(const WindowProperties& properties, HWND handle);
 		inline UInt16 GetWidth() const { return m_width; }
 		inline UInt16 GetHeight() const { return m_height; }
 		inline HWND GetHandle() const { return m_handle; }

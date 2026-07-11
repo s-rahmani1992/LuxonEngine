@@ -48,12 +48,19 @@ bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 
 	m_shaderRegistry = std::make_shared<DX12ShaderRegistery>();
 	m_shaderRegistry->Initialize(m_device);
+
+	m_assetManager = std::make_shared<DX12AssetManager>();
+
+	if (m_assetManager->Initialize(m_device) == false)
+		return false;
+
+	return true;
 }
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
-	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window);
+	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window, m_assetManager);
 	
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
@@ -64,7 +71,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
-	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window);
+	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager);
 
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
@@ -74,12 +81,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 
 ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateAssetManager()
 {
-	auto assetManager = std::make_shared<DX12AssetManager>();
-
-	if(assetManager->Initialize(m_device) == false)
-		return nullptr;
-
-	return assetManager;
+	return m_assetManager;
 }
 
 ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateShaderRegistery()

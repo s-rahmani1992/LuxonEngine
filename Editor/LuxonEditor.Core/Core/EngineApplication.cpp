@@ -25,6 +25,11 @@ LuxonEditor::SelectionManager* LuxonEditor::EngineApplication::GetSelectionManag
 	return m_appInstance.m_selectionManager;
 }
 
+LuxonEngine::Rendering::GPUDeviceManager* LuxonEditor::EngineApplication::GetGPUApplication()
+{
+	return m_appInstance.m_gpuApplication;
+}
+
 
 LuxonEditor::EngineApplication::EngineApplication(const ApplicationConfig& config)
 	:m_projectPath(config.projectPath), m_assetManager(new AssetRegistry(config.projectPath)),

@@ -10,8 +10,8 @@ namespace LuxonEngine::Rendering::DX12
 	class DX12RayTracingContext : public DX12GraphicContext
 	{
 	public:
-		DX12RayTracingContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window) 
-			: DX12GraphicContext(bufferCount, m_commandExecuter, window) {}
+		DX12RayTracingContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager)
+			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager) {}
 		
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) override;
 		virtual bool PrepareScene(const ref<Scene>& scene) override;

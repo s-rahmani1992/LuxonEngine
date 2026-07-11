@@ -9,6 +9,7 @@ namespace LuxonEngine {
 	class LUXON_CORE_API Camera {
 	public:
 		Camera(const ref<Transform>& transform);
+		virtual ~Camera() {}
 		inline Matrix4 ProjectionMatrix() const { return m_projectionMatrix; }
 		inline Matrix4 InverseProjectionMatrix() const { return m_inverseProjectionMatrix; }
 		inline ref<Transform> GetTransform() { return m_transform; }
