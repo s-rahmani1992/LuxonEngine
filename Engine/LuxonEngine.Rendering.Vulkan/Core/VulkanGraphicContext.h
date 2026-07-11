@@ -28,6 +28,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		~VulkanGraphicContext();
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& assetManager) override;
 		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
+		virtual void Flush() override;
 		virtual bool PrepareScene(const ref<Scene>& scene) = 0;
 		virtual void Render() = 0;
 

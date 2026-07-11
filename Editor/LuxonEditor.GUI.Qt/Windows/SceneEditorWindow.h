@@ -27,9 +27,10 @@ namespace LuxonEditor::GUI::QT {
 	private:
 		Ui::SceneEditorWindowClass ui;
 
-		ref<LuxonEngine::Platform::GraphicWindow> m_window;
-		ref<LuxonEngine::Rendering::GraphicContext> m_context;
-
 		ref<Scene> m_scene;
+
+		ref<LuxonEngine::Rendering::GraphicContext> m_context;
+		ref<LuxonEngine::Platform::GraphicWindow> m_window;
+
 	};
 }

@@ -12,6 +12,13 @@ LuxonEngine::Rendering::DX12::DX12CommandExecuter::~DX12CommandExecuter()
 	CloseHandle(m_sync_event);
 }
 
+void LuxonEngine::Rendering::DX12::DX12CommandExecuter::WaitForIdle(UInt32 timeOutMilliSeconds)
+{
+	m_commandQueue->Signal(m_fence.Get(), ++m_fence_value);
+	m_fence->SetEventOnCompletion(m_fence_value, m_sync_event);
+	WaitForSingleObject(m_sync_event, timeOutMilliSeconds);
+}
+
 void LuxonEngine::Rendering::DX12::DX12CommandExecuter::ExecuteAndWait(ID3D12GraphicsCommandList7* commandList, UInt32 timeOutMilliSeconds)
 {
 	commandList->Close();

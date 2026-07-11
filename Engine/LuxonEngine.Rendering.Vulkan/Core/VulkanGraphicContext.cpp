@@ -22,6 +22,8 @@ LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::VulkanGraphicContext(const
 
 LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
 {
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkQueueWaitIdle(m_presentQueue);
 	vkDestroyBuffer(m_logicDevice, m_lightBuffer, nullptr);
 	vkFreeMemory(m_logicDevice, m_lightBufferMemory, nullptr);
 	vkDestroyBuffer(m_logicDevice, m_cameraBuffer, nullptr);
@@ -38,6 +40,12 @@ LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
 
 	vkDestroySwapchainKHR(m_logicDevice, m_swapChain, nullptr);
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::Flush()
+{
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkQueueWaitIdle(m_presentQueue);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)

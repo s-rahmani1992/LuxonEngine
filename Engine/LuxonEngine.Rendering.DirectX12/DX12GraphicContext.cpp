@@ -21,6 +21,12 @@ LuxonEngine::Rendering::DX12::DX12GraphicContext::DX12GraphicContext(UInt8 buffe
 {
 }
 
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::Flush()
+{
+	if (m_commandExecuter)
+		m_commandExecuter->WaitForIdle();
+}
+
 void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterAssetManager(const ref<GPUAssetManager>& assetManager)
 {
 	m_assetManager = std::dynamic_pointer_cast<DX12AssetManager>(assetManager);

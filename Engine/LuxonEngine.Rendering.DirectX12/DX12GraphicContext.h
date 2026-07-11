@@ -63,6 +63,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	public:
 		DX12GraphicContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager);
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) = 0;
+		virtual void Flush() override;
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& mesh) override;
 		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
 	protected:

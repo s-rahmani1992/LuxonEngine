@@ -12,7 +12,8 @@ LuxonEditor::GUI::QT::SceneEditorWindow::SceneEditorWindow(QWidget *parent)
 
 LuxonEditor::GUI::QT::SceneEditorWindow::~SceneEditorWindow()
 {
-	
+	if (m_context)
+		m_context->Flush();
 }
 
 void LuxonEditor::GUI::QT::SceneEditorWindow::resizeEvent(QResizeEvent * event)

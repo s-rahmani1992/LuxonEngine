@@ -11,6 +11,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		DX12CommandExecuter(ComPtr<ID3D12CommandQueue> commandQueue, ComPtr<ID3D12Fence1> fence);
 		~DX12CommandExecuter();
 		void ExecuteAndWait(ID3D12GraphicsCommandList7* commandList, UInt32 timeOutMilliSeconds = 20000);
+		void WaitForIdle(UInt32 timeOutMilliSeconds = 20000);
 		inline ComPtr<ID3D12CommandQueue> GetQueue() const { return m_commandQueue; }
 	private:
 		ComPtr<ID3D12CommandQueue> m_commandQueue;
