@@ -22,6 +22,9 @@
     <Filter Include="ShaderCreator">
       <UniqueIdentifier>{ad8ef42d-4c23-4e3a-9e85-28b9c73160a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{32bcb0cb-b8a6-4554-b486-2c209c7e3da3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -44,6 +47,12 @@
     </QtUic>
     <QtUic Include="Windows\SceneEditorWindow.ui">
       <Filter>Windows</Filter>
+    </QtUic>
+    <QtUic Include="Mesh\Model3DInspecterWidget.ui">
+      <Filter>Mesh</Filter>
+    </QtUic>
+    <QtUic Include="Mesh\MeshItem.ui">
+      <Filter>Mesh</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -153,6 +162,12 @@
     <ClCompile Include="Windows\SceneEditorWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\Model3DInspecterWidget.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\MeshItem.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -247,6 +262,12 @@
     </QtMoc>
     <QtMoc Include="Windows\SceneEditorWindow.h">
       <Filter>Windows</Filter>
+    </QtMoc>
+    <QtMoc Include="Mesh\Model3DInspecterWidget.h">
+      <Filter>Mesh</Filter>
+    </QtMoc>
+    <QtMoc Include="Mesh\MeshItem.h">
+      <Filter>Mesh</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

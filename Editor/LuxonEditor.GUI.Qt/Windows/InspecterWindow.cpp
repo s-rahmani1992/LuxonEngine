@@ -1,6 +1,7 @@
 #include "InspecterWindow.h"
 #include <LuxonEditorAPI.h>
 #include "../ShaderCreation/ShaderInspecterWidget.h"
+#include "../Mesh/Model3DInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -36,6 +37,23 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 				m_stream.SaveToFile(m_metaPath);
 				});
 			m_currentWidget = shaderWidget;
+			m_currentWidget->show();
+		}
+
+		else if(selectedPath.extension().string() == ".fbx" && std::filesystem::exists(selectedPath))
+		{
+			// Create meta file path by appending .json
+			m_metaPath = selectedObject + ".json";
+			// Create SerializationStream from the meta file
+			m_stream.LoadFromFile(m_metaPath);
+			// Create Model3DInspecterWidget with root widget as parent
+			Model3DInspecterWidget* modelWidget = new Model3DInspecterWidget(ui.container, &m_stream);
+			m_currentWidget = modelWidget;
+			m_currentWidget->show();
+		}
+		else
+		{
+			m_currentWidget = new QLabel("No Inspecter Available", ui.container);
 			m_currentWidget->show();
 		}
 	});
