@@ -8,6 +8,7 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
 
 namespace LuxonEngine {
     using GUID = boost::uuids::uuid;
@@ -39,6 +40,7 @@ namespace LuxonEngine {
         bool GetString(const std::string& fieldName, char** str);
         GUID GetGuid(const std::string& fieldName);
         SerializationStream Object(const std::string& fieldName);
+        std::vector<SerializationStream> Array(const std::string& fieldName);
 
         // Set methods
         void SetInt(const std::string& fieldName, int value);

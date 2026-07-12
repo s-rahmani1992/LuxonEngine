@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Core\AssetDirectoryWatcher.h" />
     <ClInclude Include="Core\AssetRegistry.h" />
+    <ClInclude Include="Core\AssimpModel3DImporter.h" />
     <ClInclude Include="Core\EngineApplication.h" />
     <ClInclude Include="Core\EngineShaderRegistry.h" />
     <ClInclude Include="Core\GuidUtilities.h" />
@@ -31,6 +32,7 @@
   <ItemGroup>
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp" />
     <ClCompile Include="Core\AssetRegistry.cpp" />
+    <ClCompile Include="Core\AssimpModel3DImporter.cpp" />
     <ClCompile Include="Core\EngineApplication.cpp" />
     <ClCompile Include="Core\EngineShaderRegistry.cpp" />
     <ClCompile Include="Core\GuidUtilities.cpp" />
@@ -119,7 +121,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir)ExternalPackages\include\;$(CoreProjectDir);$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -163,7 +165,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir)ExternalPackages\include\;$(CoreProjectDir);$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

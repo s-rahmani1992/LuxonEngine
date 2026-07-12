@@ -3,11 +3,12 @@
 #include <vector>
 #include <string>
 #include "../BasicTypes.h"
+#include "../export.h"
 
 namespace LuxonEngine {
 	class Mesh;
 
-	class Model3DAsset {
+	class LUXON_CORE_API Model3DAsset {
 	public: 
 		Model3DAsset(const std::vector<std::pair<std::string, ref<Mesh>>>& meshes);
 		Model3DAsset(const Model3DAsset& src) = delete;

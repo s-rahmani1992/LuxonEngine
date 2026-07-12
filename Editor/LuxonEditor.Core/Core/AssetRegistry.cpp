@@ -1,6 +1,10 @@
 #include "AssetRegistry.h"
 #include <filesystem>
 #include <fstream>
+#include <EngineAPI.h>
+#include <Core/SerializationStream.h>
+
+#include "AssimpModel3DImporter.h"
 
 namespace fs = std::filesystem;
 
@@ -59,5 +63,58 @@ void LuxonEditor::AssetRegistry::MovePath(const std::string& oldRelativePath, co
 	}
 	if (fs::exists(oldMetaPath)) {
 		fs::rename(oldMetaPath, newMetaPath, ec);
+	}
+}
+
+void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const ref<LuxonEngine::Mesh>& mesh)
+{
+	auto it = m_meshes.find(guid);
+
+	if(it != m_meshes.end()) {
+		(*it).second = mesh;
+	}
+	else {
+		m_meshes.emplace(guid, mesh);
+	}
+}
+
+void LuxonEditor::AssetRegistry::ImportAllAssets()
+{
+	std::string assetPath = m_projectPath + "/Assets";
+
+	// Iterate through all files in the assetPath directory and its subdirectories
+
+	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
+		if (entry.is_regular_file()) {
+			std::string filePath = entry.path().string();
+			std::string extension = entry.path().extension().string();
+			// Check if the file is a mesh file based on its extension
+			if (extension == ".obj" || extension == ".fbx" || extension == ".gltf") {
+				// read file
+				std::ifstream file(filePath, std::ios::binary);
+
+				if (!file) {
+					// Handle error opening the file
+					continue;
+				}
+
+				// Read the file contents into a buffer
+				std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+				file.close();
+
+				SerializationStream stream;
+				stream.LoadFromFile(filePath + ".json");
+
+				// Import the mesh using AssimpModel3DImporter
+				std::string error;
+				auto model = AssimpModel3DImporter::Import(reinterpret_cast<const Byte*>(buffer.data()), buffer.size(), stream, this, error);
+			
+				if(model == nullptr) {
+					Logger::LogError("Failed to import model: " + error);
+					// Handle error importing the model
+					continue;
+				}
+			}
+		}
 	}
 }

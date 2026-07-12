@@ -220,6 +220,25 @@ namespace LuxonEngine {
         return SerializationStream();
     }
 
+    std::vector<SerializationStream> SerializationStream::Array(const std::string& fieldName)
+    {
+        std::vector<SerializationStream> result;
+        try {
+            auto& obj = m_jsonData.as_object();
+            if (obj.contains(fieldName)) {
+                auto& arr = obj[fieldName].as_array();
+                result.reserve(arr.size());
+                for (auto& elem : arr) {
+                    result.push_back(SerializationStream(elem));
+                }
+            }
+        }
+        catch (const std::exception&) {
+            // Return empty vector on error
+        }
+        return result;
+    }
+
     void SerializationStream::SetInt(const std::string& fieldName, int value)
     {
         EnsureFieldExists(fieldName);

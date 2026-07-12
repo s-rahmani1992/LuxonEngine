@@ -28,6 +28,9 @@
     <ClInclude Include="Core\SelectionManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\AssimpModel3DImporter.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -50,6 +53,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\SelectionManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\AssimpModel3DImporter.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

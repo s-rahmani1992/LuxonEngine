@@ -72,6 +72,7 @@ bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
 	m_shaderRegistery->CompileAllShaders();
 	m_selectionManager = new SelectionManager();
+	m_assetManager->ImportAllAssets();
 	return true;
 }
 
