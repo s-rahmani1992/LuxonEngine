@@ -78,6 +78,12 @@ void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const ref<Luxo
 	}
 }
 
+ref<LuxonEngine::Mesh> LuxonEditor::AssetRegistry::GetMesh(boost::uuids::uuid guid)
+{
+	auto it = m_meshes.find(guid);
+	return (it != m_meshes.end()) ? (*it).second : nullptr;
+}
+
 void LuxonEditor::AssetRegistry::ImportAllAssets()
 {
 	std::string assetPath = m_projectPath + "/Assets";

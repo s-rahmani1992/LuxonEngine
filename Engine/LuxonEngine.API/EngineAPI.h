@@ -12,6 +12,7 @@
 #include <Core/Light/Lights.h>
 #include <Core/Scene.h>
 #include <Core/ShapeBuilder.h>
+#include <Core/Mesh.h>
 
 #define LUXON_ENGINE_API extern "C" __declspec(dllexport)
 

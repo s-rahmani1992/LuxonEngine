@@ -18,5 +18,6 @@ namespace LuxonEditor::GUI::QT {
 
 	private:
 		Ui::Model3DInspecterWidgetClass ui;
+		std::vector<LuxonEngine::SerializationStream> m_meshes;
 	};
 }

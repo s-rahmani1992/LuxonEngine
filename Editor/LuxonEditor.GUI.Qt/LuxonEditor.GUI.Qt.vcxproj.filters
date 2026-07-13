@@ -54,6 +54,9 @@
     <QtUic Include="Mesh\MeshItem.ui">
       <Filter>Mesh</Filter>
     </QtUic>
+    <QtUic Include="Mesh\MeshViewWindow.ui">
+      <Filter>Mesh</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -168,6 +171,9 @@
     <ClCompile Include="Mesh\MeshItem.cpp">
       <Filter>Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\MeshViewWindow.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -267,6 +273,9 @@
       <Filter>Mesh</Filter>
     </QtMoc>
     <QtMoc Include="Mesh\MeshItem.h">
+      <Filter>Mesh</Filter>
+    </QtMoc>
+    <QtMoc Include="Mesh\MeshViewWindow.h">
       <Filter>Mesh</Filter>
     </QtMoc>
   </ItemGroup>

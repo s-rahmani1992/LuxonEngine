@@ -1,5 +1,6 @@
 #include "MeshItem.h"
 #include <Core/SerializationStream.h>
+#include "MeshViewWindow.h"
 
 LuxonEditor::GUI::QT::MeshItem::MeshItem(QWidget *parent, LuxonEngine::SerializationStream* stream)
 	: QWidget(parent)
@@ -13,6 +14,13 @@ LuxonEditor::GUI::QT::MeshItem::MeshItem(QWidget *parent, LuxonEngine::Serializa
 	stream->GetString("name", &name);
 	ui.meshName->setText(name);
 	layout()->setAlignment(ui.meshName, Qt::AlignLeft);
+
+	connect(ui.viewButton, &QPushButton::clicked, this, [this, stream]() {
+		MeshViewWindow* window = new MeshViewWindow(this, stream);
+		window->setAttribute(Qt::WA_DeleteOnClose);
+		window->setWindowTitle("Mesh Viewer - " + ui.meshName->text());
+		window->exec();
+		});
 }
 
 LuxonEditor::GUI::QT::MeshItem::~MeshItem()

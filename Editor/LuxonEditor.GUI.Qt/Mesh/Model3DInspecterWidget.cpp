@@ -14,9 +14,9 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 
 	ui.meshList->setStyleSheet("#meshList { background-color: #2b2b5b; }");
 
-	std::vector<LuxonEngine::SerializationStream> meshes = stream->Array("meshes");
+	m_meshes = stream->Array("meshes");
 
-	for (auto& meshStream : meshes)
+	for (auto& meshStream : m_meshes)
 	{
 		MeshItem* item = new MeshItem(ui.meshList, &meshStream);
 		ui.meshList->layout()->addWidget(item);
