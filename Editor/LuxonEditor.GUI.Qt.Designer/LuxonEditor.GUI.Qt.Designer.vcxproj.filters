@@ -17,6 +17,9 @@
       <Filter>Designers</Filter>
     </ClCompile>
     <ClCompile Include="LuxonEditorWidgetsPlugin.cpp" />
+    <ClCompile Include="Designers\FloatFieldDesignInterface.cpp">
+      <Filter>Designers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="designerplugins.json">
@@ -31,5 +34,10 @@
       <Filter>Designers</Filter>
     </QtMoc>
     <QtMoc Include="LuxonEditorWidgetsPlugin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Designers\FloatFieldDesignInterface.h">
+      <Filter>Designers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

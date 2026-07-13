@@ -12,6 +12,9 @@
     <ClCompile Include="Widgets\QTextField.cpp">
       <Filter>Widgets</Filter>
     </ClCompile>
+    <ClCompile Include="Widgets\QFloatField.cpp">
+      <Filter>Widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Widgets\NullableTextField.ui">
@@ -20,12 +23,18 @@
     <QtUic Include="Widgets\QTextField.ui">
       <Filter>Widgets</Filter>
     </QtUic>
+    <QtUic Include="Widgets\QFloatField.ui">
+      <Filter>Widgets</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Widgets\NullableTextField.h">
       <Filter>Widgets</Filter>
     </QtMoc>
     <QtMoc Include="Widgets\QTextField.h">
+      <Filter>Widgets</Filter>
+    </QtMoc>
+    <QtMoc Include="Widgets\QFloatField.h">
       <Filter>Widgets</Filter>
     </QtMoc>
   </ItemGroup>

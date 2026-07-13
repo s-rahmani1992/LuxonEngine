@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Widgets\QFloatField.cpp" />
     <ClCompile Include="Widgets\NullableTextField.cpp" />
     <ClCompile Include="Widgets\QTextField.cpp" />
   </ItemGroup>
@@ -18,11 +19,20 @@
     <QtMoc Include="Widgets\NullableTextField.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtUic Include="Widgets\QFloatField.ui" />
     <QtUic Include="Widgets\NullableTextField.ui" />
     <QtUic Include="Widgets\QTextField.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Widgets\QTextField.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Widgets\QFloatField.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Engine\LuxonEngine.API\LuxonEngine.API.vcxproj">
+      <Project>{96efc921-6887-4aa6-acdd-9dea5d5547fa}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D1A41F29-1B88-4627-878B-EA2F0C2B1F6F}</ProjectGuid>
@@ -80,6 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
