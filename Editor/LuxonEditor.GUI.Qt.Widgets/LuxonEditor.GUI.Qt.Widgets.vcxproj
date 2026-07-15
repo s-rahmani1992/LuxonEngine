@@ -14,6 +14,7 @@
     <ClCompile Include="Widgets\QFloatField.cpp" />
     <ClCompile Include="Widgets\NullableTextField.cpp" />
     <ClCompile Include="Widgets\QTextField.cpp" />
+    <ClCompile Include="Widgets\QVector3Field.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Widgets\NullableTextField.h" />
@@ -22,6 +23,7 @@
     <QtUic Include="Widgets\QFloatField.ui" />
     <QtUic Include="Widgets\NullableTextField.ui" />
     <QtUic Include="Widgets\QTextField.ui" />
+    <QtUic Include="Widgets\QVector3Field.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Widgets\QTextField.h" />
@@ -30,8 +32,11 @@
     <QtMoc Include="Widgets\QFloatField.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Engine\LuxonEngine.API\LuxonEngine.API.vcxproj">
-      <Project>{96efc921-6887-4aa6-acdd-9dea5d5547fa}</Project>
+    <QtMoc Include="Widgets\QVector3Field.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Engine\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
+      <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -90,12 +95,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(APIProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(CoreProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
