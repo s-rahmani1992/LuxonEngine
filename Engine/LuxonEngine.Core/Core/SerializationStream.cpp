@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 #ifdef _DEBUG
 #pragma comment(lib, "libboost_json-vc143-mt-gd-x64-1_90.lib")
@@ -380,8 +381,14 @@ namespace LuxonEngine {
             break;
 
         case json::kind::double_:
-            os << jv.get_double();
+        {
+            auto flags = os.flags();
+            auto prec = os.precision();
+            os << std::setprecision(std::numeric_limits<double>::max_digits10) << std::showpoint << jv.get_double();
+            os.flags(flags);
+            os.precision(prec);
             break;
+        }
 
         case json::kind::bool_:
             if (jv.get_bool())

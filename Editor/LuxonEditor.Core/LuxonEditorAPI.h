@@ -3,6 +3,7 @@
 #include "Core/EngineApplication.h"
 #include "Core/AssetRegistry.h"
 #include "Core/SelectionManager.h"
+#include "Core/AssimpModel3DImporter.h"
 
 LUXON_ENGINE_API LuxonEditor::EngineApplication* CreateEngineApplication(const LuxonEditor::ApplicationConfig& config, std::string& errorString);
 

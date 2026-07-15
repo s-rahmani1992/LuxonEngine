@@ -48,6 +48,12 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			m_stream.LoadFromFile(m_metaPath);
 			// Create Model3DInspecterWidget with root widget as parent
 			Model3DInspecterWidget* modelWidget = new Model3DInspecterWidget(ui.container, &m_stream);
+			
+			connect(modelWidget, &Model3DInspecterWidget::PropertyUpdated, this, [this](LuxonEngine::SerializationStream* stream) {
+				m_stream.SetObject("transform", *stream);
+				std::string b = m_stream.ToString();
+				m_stream.SaveToFile(m_metaPath);
+				});
 			m_currentWidget = modelWidget;
 			m_currentWidget->show();
 		}

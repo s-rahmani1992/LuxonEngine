@@ -196,3 +196,13 @@ void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UnloadAssets()
 		gpuMesh->Release();
 	}
 }
+
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UnloadMesh(const ref<Mesh>& mesh)
+{
+	auto it = m_meshPairs.find(mesh);
+	if(it != m_meshPairs.end())
+	{
+		it->second->Release();
+		m_meshPairs.erase(it);
+	}
+}

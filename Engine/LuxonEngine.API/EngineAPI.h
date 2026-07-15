@@ -3,6 +3,7 @@
 #include <Rendering/GraphicContext.h>
 #include <Rendering/ShaderRegistery.h>
 #include <Rendering/MaterialFactory.h>
+#include <Rendering/GPUAssetManager.h>
 #include <Rendering/MeshRenderer.h>
 #include <Core/Logger.h>
 #include <BasicTypes.h>

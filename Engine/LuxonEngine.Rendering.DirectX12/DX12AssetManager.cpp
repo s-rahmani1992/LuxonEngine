@@ -109,6 +109,16 @@ void LuxonEngine::Rendering::DX12::DX12AssetManager::UnloadAssets()
 	}
 }
 
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UnloadMesh(const ref<Mesh>& mesh)
+{
+	auto it = m_uploadedMeshes.find(mesh);
+
+	if(it != m_uploadedMeshes.end()) {
+		it->second->Release();
+		m_uploadedMeshes.erase(it);
+	}	
+}
+
 bool LuxonEngine::Rendering::DX12::DX12AssetManager::Initialize(ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;

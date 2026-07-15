@@ -14,8 +14,8 @@ namespace LuxonEngine {
     using GUID = boost::uuids::uuid;
     // Forward declarations
     class Color;
-    class Vector2;
-    class Vector3;
+    struct Vector2;
+    struct Vector3;
 
     class LUXON_CORE_API SerializationStream {
     public:

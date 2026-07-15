@@ -37,18 +37,8 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
 
     ModelImportProperties transformProps;
     SerializationStream transformStream = stream.Object("transform");
-
-    Vector3 position, axis, scale;
-
-    transformStream.GetVector3("position", position);
-    transformStream.GetVector3("axis", axis);
-    transformStream.GetVector3("scale", scale);
-
-    transformProps.position = position;
-    transformProps.axis = axis;
-    transformProps.angleDeg = transformStream.GetFloat("angle", 0.0f);
-    transformProps.scale = scale;
-
+	FillPropertiesFromStream(&transformStream, transformProps);
+    
     Matrix4 rotationMatrix = Matrix4::Rotate(transformProps.axis, transformProps.angleDeg);
     Matrix4 transformMatrix = Matrix4::Translate(transformProps.position) * Matrix4::Scale(transformProps.scale) * rotationMatrix;
 
@@ -117,4 +107,31 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
     }
 
     return std::make_shared<Model3DAsset>(meshes);
+}
+
+void LuxonEditor::AssimpModel3DImporter::FillPropertiesFromStream(SerializationStream* stream, ModelImportProperties& properties)
+{
+    if (stream == nullptr) {
+        return;
+    }
+    //SerializationStream transformStream = stream->Object("transform");
+    Vector3 position, axis, scale;
+    stream->GetVector3("position", position);
+    stream->GetVector3("axis", axis);
+    stream->GetVector3("scale", scale);
+    properties.position = position;
+    properties.axis = axis;
+    properties.angleDeg = stream->GetFloat("angle", 0.0f);
+	properties.scale = scale;
+}
+
+void LuxonEditor::AssimpModel3DImporter::SerializePropertiesToStream(const ModelImportProperties& properties, SerializationStream* stream)
+{
+    if (stream == nullptr) {
+        return;
+    }
+    stream->SetVector3("position", properties.position);
+    stream->SetVector3("axis", properties.axis);
+    stream->SetFloat("angle", properties.angleDeg);
+	stream->SetVector3("scale", properties.scale);
 }

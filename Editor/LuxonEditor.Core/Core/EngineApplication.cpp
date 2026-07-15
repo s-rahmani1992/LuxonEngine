@@ -32,10 +32,11 @@ LuxonEngine::Rendering::GPUDeviceManager* LuxonEditor::EngineApplication::GetGPU
 
 
 LuxonEditor::EngineApplication::EngineApplication(const ApplicationConfig& config)
-	:m_projectPath(config.projectPath), m_assetManager(new AssetRegistry(config.projectPath)),
+	:m_projectPath(config.projectPath),
 	m_assetWatcher(new AssetDirectoryWatcher(config.projectPath + "/Assets")),
 	m_graphicAPI(config.graphicAPI)
 {
+	m_assetManager = new AssetRegistry(config.projectPath, m_assetWatcher);
 }
 
 LuxonEditor::EngineApplication::EngineApplication(EngineApplication&& src)
