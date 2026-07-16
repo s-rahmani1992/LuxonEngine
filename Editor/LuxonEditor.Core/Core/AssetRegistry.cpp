@@ -20,6 +20,18 @@ LuxonEditor::AssetRegistry::AssetRegistry(const std::string& projectPath, AssetD
 				ImportAsset(modifiedPath);
 			}
 		}
+
+		for (const auto& created : event.createdFiles) {
+			fs::path createdPath = fs::path(m_projectPath) / "Assets" / created;
+			if (fs::is_regular_file(createdPath)) {
+				ImportAsset(createdPath);
+			}
+		};
+
+		for (auto& deleted : event.deletedFiles) {
+			fs::path deletedPath = fs::path(m_projectPath) / "Assets" / deleted;
+			DeleteAsset(deletedPath);
+		}
 		});
 }
 
@@ -140,6 +152,33 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 			Logger::LogError("Failed to import model: " + error);
 			// Handle error importing the model
 			return;
+		}
+	}
+}
+
+void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
+{
+	std::string filePathStr = filePath.string();
+	std::string extension = filePath.extension().string();
+
+	if(extension == ".obj" || extension == ".fbx") {
+		// Load the metadata file to get the GUID
+		SerializationStream stream;
+		if (!stream.LoadFromFile(filePathStr + ".json")) {
+			Logger::LogError("Failed to load metadata for asset: " + filePathStr);
+			return;
+		}
+
+		std::vector<SerializationStream> meshesArray = stream.Array("meshes");
+
+		for(auto& meshStream : meshesArray) {
+			LuxonEngine::GUID meshGuid = meshStream.GetGuid("uuid");
+			auto mesh = GetMesh(meshGuid);
+			if(mesh) {
+				mesh->Release();
+				EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh(mesh);
+				m_meshes.erase(meshGuid);
+			}
 		}
 	}
 }

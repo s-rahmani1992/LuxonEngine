@@ -23,6 +23,7 @@ namespace LuxonEditor {
 		ref<LuxonEngine::Mesh> GetMesh(boost::uuids::uuid guid);
 		void ImportAllAssets();
 		void ImportAsset(const fs::path& filePath);
+		void DeleteAsset(const fs::path& filePath);
 	private:
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;

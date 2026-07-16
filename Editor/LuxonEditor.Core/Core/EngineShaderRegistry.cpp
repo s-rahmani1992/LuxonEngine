@@ -41,6 +41,12 @@ void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
 void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
 {
 	for (auto& deleted : event.deletedFiles) {
+		fs::path filePath = fs::path(m_assetWatcher->GetRootDirectory()) / (deleted);
+
+		if(filePath.extension() != ".hlsl") {
+			continue;
+		}
+
 		fs::path jsonPath = fs::path(m_assetWatcher->GetRootDirectory())/(deleted + ".json");
 
 		LuxonEngine::SerializationStream metadataStream;
