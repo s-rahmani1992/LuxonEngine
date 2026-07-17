@@ -24,6 +24,7 @@ namespace LuxonEditor {
 		void ImportAllAssets();
 		void ImportAsset(const fs::path& filePath);
 		void DeleteAsset(const fs::path& filePath);
+		void ImportExternalFile(const std::string& sourcePath, const std::string& targetRelativePath);
 	private:
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;

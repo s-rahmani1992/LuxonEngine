@@ -304,6 +304,17 @@ namespace LuxonEngine {
         m_jsonData.as_object()[fieldName] = object.m_jsonData;
     }
 
+    void SerializationStream::SetArray(const std::string& fieldName, const std::vector<SerializationStream>& array)
+    {
+        EnsureFieldExists(fieldName);
+        auto& obj = m_jsonData.as_object();
+        boost::json::array arr;
+        for (const auto& elem : array) {
+            arr.push_back(elem.m_jsonData);
+        }
+		obj[fieldName] = arr;
+    }
+
     void SerializationStream::EnsureFieldExists(const std::string& fieldName)
     {
         auto& obj = m_jsonData.as_object();

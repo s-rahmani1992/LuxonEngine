@@ -51,7 +51,8 @@ namespace LuxonEngine {
         void SetString(const std::string& fieldName, const std::string& str);
         void SetGuid(const std::string& fieldName, const GUID& guid);
         void SetObject(const std::string& fieldName, const SerializationStream& object);
-    
+		void SetArray(const std::string& fieldName, const std::vector<SerializationStream>& array);
+
         void Clear();
     private:
         SerializationStream(boost::json::value& data);

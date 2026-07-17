@@ -26,7 +26,7 @@ AddressBarButton::AddressBarButton(QWidget* parent)
 
 void AddressBarButton::dragEnterEvent(QDragEnterEvent* event)
 {
-	if (event->mimeData()->hasFormat(DRAG_PATH_MIME_FORMAT))
+	if (event->mimeData()->hasFormat(DRAG_PATH_MIME_FORMAT) || event->mimeData()->hasUrls())
 	{
 		event->acceptProposedAction();
 		QPalette pal = palette();
@@ -44,7 +44,7 @@ void AddressBarButton::dragEnterEvent(QDragEnterEvent* event)
 
 void AddressBarButton::dragMoveEvent(QDragMoveEvent* event)
 {
-	if (event->mimeData()->hasFormat(DRAG_PATH_MIME_FORMAT))
+	if (event->mimeData()->hasFormat(DRAG_PATH_MIME_FORMAT) || event->mimeData()->hasUrls())
 	{
 		event->acceptProposedAction();
 	}
@@ -66,10 +66,20 @@ void AddressBarButton::dragLeaveEvent(QDragLeaveEvent* /*event*/)
 void AddressBarButton::dropEvent(QDropEvent* event)
 {
 	auto mime = event->mimeData();
-	auto data = mime->data(DRAG_PATH_MIME_FORMAT);
-	std::string draggedPath(data.constData(), data.size());
 
-	AssetRegistry_MovePath(GetAssetManager(), draggedPath, m_path.toStdString());
+	if(mime->hasUrls()) {
+		auto urls = mime->urls();
+
+		for(auto& url : urls) {
+			GetAssetManager()->ImportExternalFile(url.toLocalFile().toStdString(), m_path.toStdString());
+		}
+	}
+	else {
+		auto data = mime->data(DRAG_PATH_MIME_FORMAT);
+		std::string draggedPath(data.constData(), data.size());
+
+		AssetRegistry_MovePath(GetAssetManager(), draggedPath, m_path.toStdString());
+	}
 
 	// reset visual
 	if (m_hasOriginalPalette) {

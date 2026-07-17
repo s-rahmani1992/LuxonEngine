@@ -10,12 +10,11 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <map>
 #include <vector>
 #include <string>
+#include "GuidUtilities.h"
 
 #pragma comment(lib, "assimp.lib")
 
@@ -134,4 +133,36 @@ void LuxonEditor::AssimpModel3DImporter::SerializePropertiesToStream(const Model
     stream->SetVector3("axis", properties.axis);
     stream->SetFloat("angle", properties.angleDeg);
 	stream->SetVector3("scale", properties.scale);
+}
+
+SerializationStream LuxonEditor::AssimpModel3DImporter::GenerateMetaFromFile(const Byte* data, long size)
+{
+    Assimp::Importer importer;
+
+    const aiScene* pScene = importer.ReadFileFromMemory(
+        data, static_cast<size_t>(size),
+        aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_FlipWindingOrder
+    );
+
+    if (pScene == nullptr) {
+        return SerializationStream();
+    }
+
+    ModelImportProperties transformProps;
+    SerializationStream transformStream;
+    SerializePropertiesToStream(transformProps, &transformStream);
+
+	std::vector<SerializationStream> meshArray(pScene->mNumMeshes);
+
+    for (unsigned int i = 0; i < pScene->mNumMeshes; i++) {
+        const aiMesh* paiMesh = pScene->mMeshes[i];
+		SerializationStream* meshEntry = &meshArray[i];
+		meshEntry->SetInt("index", static_cast<int>(i));
+		meshEntry->SetString("name", std::string(paiMesh->mName.C_Str()));
+		meshEntry->SetGuid("uuid", GuidGenerator::GenerateGUID());
+    }
+	SerializationStream metaStream;
+	metaStream.SetObject("transform", transformStream);
+	metaStream.SetArray("meshes", meshArray);
+    return metaStream;
 }

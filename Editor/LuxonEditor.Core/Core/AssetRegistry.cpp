@@ -182,3 +182,24 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 		}
 	}
 }
+
+void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFilePath, const std::string& targetFolderPath)
+{
+	fs::path sourcePath(sourceFilePath);
+	auto extention = sourcePath.extension().string();
+
+	if(extention == ".obj" || extention == ".fbx") {
+		fs::path targetPath = (fs::path(m_projectPath) / "Assets" / targetFolderPath / sourcePath.filename()).lexically_normal();
+		fs::copy_file(sourcePath, targetPath, fs::copy_options::overwrite_existing);
+		
+		std::ifstream file(sourceFilePath, std::ios::binary);
+		// Read the file contents into a buffer
+		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		file.close();
+		auto meta = AssimpModel3DImporter::GenerateMetaFromFile(reinterpret_cast<const Byte*>(buffer.data()), buffer.size());
+		meta.SaveToFile(targetPath.string() + ".json");
+	}
+	else {
+		Logger::LogError("Unsupported file type for import: " + extention);
+	}
+}

@@ -25,5 +25,6 @@ namespace LuxonEditor {
 		static ref<Model3DAsset> Import(const Byte* data, long size, SerializationStream& stream, AssetRegistry* assetManager, std::string& error);
 		static void FillPropertiesFromStream(SerializationStream* stream, ModelImportProperties& properties);
 		static void SerializePropertiesToStream(const ModelImportProperties& properties, SerializationStream* stream);
+		static SerializationStream GenerateMetaFromFile(const Byte* data, long size);
 	};
 }

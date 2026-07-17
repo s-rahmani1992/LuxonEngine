@@ -263,33 +263,50 @@ bool LuxonEditor::GUI::QT::AssetBrowserWindow::eventFilter(QObject* obj, QEvent*
         
         case QEvent::DragMove:
         {
-            auto* de = static_cast<QDropEvent*>(event);
-
-            if(de->mimeData()->hasFormat(DRAG_PATH_MIME_FORMAT) == false) {
-                de->ignore();
-                return true;
-			}
-
-            QModelIndex index = ui.contentListView->indexAt(static_cast<QDragMoveEvent*>(event)->position().toPoint());
+            auto* de = static_cast<QDragMoveEvent*>(event);
+			auto* mime = de->mimeData();
+            
+            QModelIndex index = ui.contentListView->indexAt(de->position().toPoint());
 			
-            if (index.isValid() == false) {
-                de->ignore();
-            }
-            else {
-                if (index == m_dragStartIndex) {
-                    de->ignore();
+            if(mime->hasUrls())
+            {
+                if (index.isValid() == false) {
+                    de->acceptProposedAction();
                 }
                 else {
-					auto pathInfo = m_fileModel->fileInfo(m_pathFilter->mapToSource(index));
+                    auto pathInfo = m_fileModel->fileInfo(m_pathFilter->mapToSource(index));
                     if(pathInfo.isDir()) {
                         de->acceptProposedAction();
                     }
                     else {
                         de->ignore();
-					}
-				}
+                    }
+                }
             }
 
+            else if (mime->hasFormat(DRAG_PATH_MIME_FORMAT)) {
+                if (index.isValid() == false) {
+                    de->ignore();
+                }
+                else {
+                    if (index == m_dragStartIndex) {
+                        de->ignore();
+                    }
+                    else {
+                        auto pathInfo = m_fileModel->fileInfo(m_pathFilter->mapToSource(index));
+                        if (pathInfo.isDir()) {
+                            de->acceptProposedAction();
+                        }
+                        else {
+                            de->ignore();
+                        }
+                    }
+                }
+            }
+            else {
+				de->ignore();
+            }
+            
             m_lastHoveredIndex = index;
             return true;
         }
@@ -301,7 +318,39 @@ bool LuxonEditor::GUI::QT::AssetBrowserWindow::eventFilter(QObject* obj, QEvent*
             auto* de = static_cast<QDropEvent*>(event);
 
 			auto mime = de->mimeData();
-            if (mime->hasFormat(DRAG_PATH_MIME_FORMAT))
+
+            if (mime->hasUrls())
+            {
+                std::string targetPath;
+                if (!m_lastHoveredIndex.isValid()) {
+                    QModelIndex proxyRoot = ui.contentListView->rootIndex();
+                    QModelIndex srcRoot = m_pathFilter->mapToSource(proxyRoot);
+                    QString currentFolder = m_fileModel->filePath(srcRoot);
+					targetPath = currentFolder.toStdString();
+                }
+                else {
+                    auto targetInfo = m_fileModel->fileInfo(m_pathFilter->mapToSource(m_lastHoveredIndex));
+                    if (targetInfo.isDir()) {
+                        targetPath = targetInfo.filePath().toStdString();
+                    }
+                }
+
+                if(targetPath.empty()) {
+                    de->ignore();
+                    return true;
+				}
+
+                QList<QUrl> urls = mime->urls();
+                for (const QUrl& url : urls)
+                {
+                    QString localPath = url.toLocalFile();
+                    if (!localPath.isEmpty())
+                    {
+						GetAssetManager()->ImportExternalFile(localPath.toStdString(), targetPath);
+                    }
+                }
+            }
+            else if (mime->hasFormat(DRAG_PATH_MIME_FORMAT))
             {
                 QByteArray data = mime->data(DRAG_PATH_MIME_FORMAT);
                 std::string draggedPath = std::string(data.constData(), data.size());
