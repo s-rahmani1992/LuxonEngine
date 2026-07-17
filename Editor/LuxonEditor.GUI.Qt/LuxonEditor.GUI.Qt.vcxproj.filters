@@ -57,6 +57,9 @@
     <QtUic Include="Mesh\MeshViewWindow.ui">
       <Filter>Mesh</Filter>
     </QtUic>
+    <QtUic Include="Windows\SplashStartWidget.ui">
+      <Filter>Windows</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -174,6 +177,9 @@
     <ClCompile Include="Mesh\MeshViewWindow.cpp">
       <Filter>Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="Windows\SplashStartWidget.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -277,6 +283,9 @@
     </QtMoc>
     <QtMoc Include="Mesh\MeshViewWindow.h">
       <Filter>Mesh</Filter>
+    </QtMoc>
+    <QtMoc Include="Windows\SplashStartWidget.h">
+      <Filter>Windows</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

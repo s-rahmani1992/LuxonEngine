@@ -1,4 +1,5 @@
 #include "Windows/LuxonEditorWindow.h"
+#include "Windows/SplashStartWidget.h"
 #include <QtWidgets/QApplication>
 #include <LuxonEditorAPI.h>
 
@@ -57,7 +58,17 @@ int main(int argc, char *argv[])
 	std::string errorString;
 	auto engineApp = CreateEngineApplication(config, errorString);
 
-    QT::LuxonEditorWindow window;
-    window.show();
+    QT::SplashStartWidget splashWindow;
+    splashWindow.show();
+
+	splashWindow.SetProgress(30, "Compiling Shaders...");
+	engineApp->CompileShaders();
+	splashWindow.SetProgress(60, "Loading Assets...");
+    engineApp->LoadAssets();
+	splashWindow.SetProgress(100, "Starting Editor...");
+
+	QT::LuxonEditorWindow mainWindow;
+	splashWindow.close();
+	mainWindow.show();
     return app.exec();
 }

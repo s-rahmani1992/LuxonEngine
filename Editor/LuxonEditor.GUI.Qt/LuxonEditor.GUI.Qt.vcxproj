@@ -74,8 +74,8 @@
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(SolutionDir)Build\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;LuxonEditor.Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -85,8 +85,8 @@
       <PreprocessorDefinitions>ADS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(SolutionDir)Build\$(Configuration)\;$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LuxonEditor.GUI.Qt.Widgets.lib;LuxonEditor.Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -162,6 +162,7 @@
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Windows\SceneEditorWindow.cpp" />
+    <ClCompile Include="Windows\SplashStartWidget.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
     <QtUic Include="Mesh\MeshItem.ui" />
@@ -172,6 +173,7 @@
     <QtUic Include="Windows\InspecterWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
     <QtUic Include="Windows\SceneEditorWindow.ui" />
+    <QtUic Include="Windows\SplashStartWidget.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h" />
@@ -194,6 +196,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Windows\SplashStartWidget.h" />
     <QtMoc Include="Mesh\MeshViewWindow.h" />
     <QtMoc Include="Mesh\MeshItem.h" />
     <QtMoc Include="Mesh\Model3DInspecterWidget.h" />

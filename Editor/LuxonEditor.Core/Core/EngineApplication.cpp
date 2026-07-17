@@ -68,13 +68,22 @@ LuxonEditor::EngineApplication& LuxonEditor::EngineApplication::operator=(Engine
 bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 {
 	m_assetWatcher->Start();
+	m_selectionManager = new SelectionManager();
 	m_gpuApplication = CreateGPUApplication(m_graphicAPI);
+	
+	return true;
+}
+
+void LuxonEditor::EngineApplication::CompileShaders()
+{
 	auto compiler = m_gpuApplication->CreateShaderRegistery();
 	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
 	m_shaderRegistery->CompileAllShaders();
-	m_selectionManager = new SelectionManager();
+}
+
+void LuxonEditor::EngineApplication::LoadAssets()
+{
 	m_assetManager->ImportAllAssets();
-	return true;
 }
 
 void LuxonEditor::EngineApplication::ShutDown()

@@ -1,6 +1,12 @@
 #pragma once
 #include <string>
 
+#ifdef LUXON_EXPORTS
+#define LUXON_EDITOR_CORE_API __declspec(dllexport)
+#else
+#define LUXON_EDITOR_CORE_API __declspec(dllimport)
+#endif
+
 enum Graphic_API;
 
 namespace LuxonEngine::Rendering {
@@ -13,12 +19,12 @@ namespace LuxonEditor {
 	class EngineShaderRegistry;
 	class SelectionManager;
 
-	struct ApplicationConfig {
+	struct LUXON_EDITOR_CORE_API ApplicationConfig {
 		std::string projectPath;
 		Graphic_API graphicAPI;
 	};
 
-	class EngineApplication {
+	class LUXON_EDITOR_CORE_API EngineApplication {
 	public:
 		static EngineApplication* CreateApplication(const ApplicationConfig& config, std::string& error);
 		static std::string& GetProjectPath() { return m_appInstance.m_projectPath; }
@@ -39,6 +45,8 @@ namespace LuxonEditor {
 			ShutDown(); 
 		}
 		bool Initialize(std::string& error);
+		void CompileShaders();
+		void LoadAssets();
 		void ShutDown();
 	private:
 		Graphic_API m_graphicAPI;
