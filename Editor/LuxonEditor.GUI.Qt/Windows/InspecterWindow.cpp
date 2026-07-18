@@ -2,6 +2,7 @@
 #include <LuxonEditorAPI.h>
 #include "../ShaderCreation/ShaderInspecterWidget.h"
 #include "../Mesh/Model3DInspecterWidget.h"
+#include "../Texture/TextureInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -19,8 +20,9 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 		std::filesystem::path selectedPath(selectedObject);
 
 		ui.fileLabel->setText(QString::fromStdString(selectedPath.filename().string()));
+		auto extention = selectedPath.extension().string();
 
-		if (selectedPath.extension().string() == ".hlsl" && std::filesystem::exists(selectedPath))
+		if (extention == ".hlsl" && std::filesystem::exists(selectedPath))
 		{
 			// Create meta file path by appending .json
 			m_metaPath = selectedObject + ".json";
@@ -40,7 +42,7 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			m_currentWidget->show();
 		}
 
-		else if(selectedPath.extension().string() == ".fbx" && std::filesystem::exists(selectedPath))
+		else if(extention == ".fbx" && std::filesystem::exists(selectedPath))
 		{
 			// Create meta file path by appending .json
 			m_metaPath = selectedObject + ".json";
@@ -55,6 +57,17 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 				m_stream.SaveToFile(m_metaPath);
 				});
 			m_currentWidget = modelWidget;
+			m_currentWidget->show();
+		}
+		else if((extention == ".png" || extention == ".jpg" || extention == ".jpeg") && std::filesystem::exists(selectedPath))
+		{
+			// Create meta file path by appending .json
+			m_metaPath = selectedObject + ".json";
+			// Create SerializationStream from the meta file
+			m_stream.LoadFromFile(m_metaPath);
+
+			TextureInspecterWidget* textureWidget = new TextureInspecterWidget(ui.container, &m_stream, selectedObject);
+			m_currentWidget = textureWidget;
 			m_currentWidget->show();
 		}
 		else

@@ -206,3 +206,13 @@ void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UnloadMesh(const ref<Me
 		m_meshPairs.erase(it);
 	}
 }
+
+void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UnloadTexture(const ref<Texture2D>& texture)
+{
+	auto it = m_texturePairs.find(texture);
+	if(it != m_texturePairs.end())
+	{
+		it->second->Release();
+		m_texturePairs.erase(it);
+	}
+}

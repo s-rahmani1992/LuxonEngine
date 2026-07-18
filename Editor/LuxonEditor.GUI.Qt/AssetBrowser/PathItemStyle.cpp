@@ -3,6 +3,7 @@
 #include <qpainter.h>
 #include <QLineEdit>
 #include <LuxonEditorAPI.h>
+#include <Core/SerializationStream.h>
 
 LuxonEditor::GUI::QT::PathItemStyle::PathItemStyle(PathFilter* proxy, QObject* parent)
     : QStyledItemDelegate(parent)
@@ -19,7 +20,6 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
     QString path = m_fileModel->fileName(srcIdx);
     auto fileInfo = m_fileModel->fileInfo(srcIdx);
 	auto iconRect = QRect(opt.rect.left(), opt.rect.top(), opt.rect.width(), opt.rect.width());
-
     if (opt.state & QStyle::State_Selected) {
         p->fillRect(opt.rect, QColor("#1133ee"));
         p->setPen(Qt::white);
@@ -32,8 +32,24 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
         p->drawImage(iconRect, m_folderIcon);
     else if(ext == "hlsl" || ext == "hlsli")
 		p->drawImage(iconRect, m_hlslIcon);
-    else if(ext == "png" || ext == "jpeg" || ext == "jpg")
-        p->drawImage(iconRect, m_textureIcon);
+    else if(ext == "png" || ext == "jpeg" || ext == "jpg") {
+        std::string filePath = fileInfo.absoluteFilePath().toStdString();
+		SerializationStream stream;
+		stream.LoadFromFile(filePath + ".json");
+		auto guid = stream.GetGuid("uuid");
+		auto texture = GetAssetManager()->GetTexture(guid); 
+		while (texture == nullptr) { //TODO: This is a hacky solution, we should have a better way to handle this to render after file import
+            texture = GetAssetManager()->GetTexture(guid);
+		}
+        QImage::Format format = texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? QImage::Format_RGBA8888 : QImage::Format_ARGB32;
+        
+        p->drawImage(iconRect, QImage(
+            texture->GetData(),
+            texture->GetWidth(),
+            texture->GetHeight(),
+            format
+        ));
+    }
     else if (ext == "fbx")
         p->drawImage(iconRect, m_modelIcon);
     else

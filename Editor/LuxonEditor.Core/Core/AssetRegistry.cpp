@@ -6,6 +6,7 @@
 #include <Core/SerializationStream.h>
 
 #include "AssimpModel3DImporter.h"
+#include "WICTextureImporter.h"
 #include "AssetDirectoryWatcher.h"
 
 namespace fs = std::filesystem;
@@ -104,10 +105,33 @@ void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const ref<Luxo
 	}
 }
 
+void LuxonEditor::AssetRegistry::AddTexture(boost::uuids::uuid guid, const ref<LuxonEngine::Texture2D>& texture)
+{
+	auto it = m_textures.find(guid);
+	if(it != m_textures.end()) {
+		(*it).second->Release();
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture((*it).second);
+		(*it).second = texture;
+	}
+	else {
+		m_textures.emplace(guid, texture);
+	}
+}
+
 ref<LuxonEngine::Mesh> LuxonEditor::AssetRegistry::GetMesh(boost::uuids::uuid guid)
 {
 	auto it = m_meshes.find(guid);
 	return (it != m_meshes.end()) ? (*it).second : nullptr;
+}
+
+ref<LuxonEngine::Texture2D> LuxonEditor::AssetRegistry::GetTexture(boost::uuids::uuid guid)
+{
+	auto it = m_textures.find(guid);
+
+	if(it != m_textures.end()) {
+		return (*it).second;
+	}
+	return nullptr;
 }
 
 void LuxonEditor::AssetRegistry::ImportAllAssets()
@@ -121,6 +145,11 @@ void LuxonEditor::AssetRegistry::ImportAllAssets()
 			ImportAsset(entry.path());
 		}
 	}
+}
+
+static bool IsTextureExtension(const std::string& ext)
+{
+	return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tiff" || ext == ".tif";
 }
 
 void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
@@ -150,7 +179,29 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 
 		if (model == nullptr) {
 			Logger::LogError("Failed to import model: " + error);
-			// Handle error importing the model
+			return;
+		}
+	}
+	else if (IsTextureExtension(extension)) {
+		std::ifstream file(filePath, std::ios::binary);
+		if (!file) {
+			return;
+		}
+
+		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		file.close();
+
+		SerializationStream stream;
+		if (!stream.LoadFromFile(filePath + ".json")) {
+			stream = WICTextureImporter::GenerateMetaFromFile(reinterpret_cast<const Byte*>(buffer.data()), buffer.size());
+			stream.SaveToFile(filePath + ".json");
+		}
+
+		std::string error;
+		auto texture = WICTextureImporter::Import(reinterpret_cast<const Byte*>(buffer.data()), buffer.size(), stream, this, error);
+
+		if (texture == nullptr) {
+			Logger::LogError("Failed to import texture: " + error);
 			return;
 		}
 	}
@@ -181,15 +232,29 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 			}
 		}
 	}
+	else if (IsTextureExtension(extension)) {
+		SerializationStream stream;
+		if (!stream.LoadFromFile(filePathStr + ".json")) {
+			return;
+		}
+
+		LuxonEngine::GUID texGuid = stream.GetGuid("uuid");
+		auto it = m_textures.find(texGuid);
+		if (it != m_textures.end()) {
+			it->second->Release();
+			EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture(it->second);
+			m_textures.erase(it);
+		}
+	}
 }
 
 void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFilePath, const std::string& targetFolderPath)
 {
 	fs::path sourcePath(sourceFilePath);
 	auto extention = sourcePath.extension().string();
+	fs::path targetPath = (fs::path(m_projectPath) / "Assets" / targetFolderPath / sourcePath.filename()).lexically_normal();
 
 	if(extention == ".obj" || extention == ".fbx") {
-		fs::path targetPath = (fs::path(m_projectPath) / "Assets" / targetFolderPath / sourcePath.filename()).lexically_normal();
 		fs::copy_file(sourcePath, targetPath, fs::copy_options::overwrite_existing);
 		
 		std::ifstream file(sourceFilePath, std::ios::binary);
@@ -197,6 +262,15 @@ void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFil
 		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 		file.close();
 		auto meta = AssimpModel3DImporter::GenerateMetaFromFile(reinterpret_cast<const Byte*>(buffer.data()), buffer.size());
+		meta.SaveToFile(targetPath.string() + ".json");
+	}
+	else if (IsTextureExtension(extention)) {
+		fs::copy_file(sourcePath, targetPath, fs::copy_options::overwrite_existing);
+
+		std::ifstream file(sourceFilePath, std::ios::binary);
+		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		file.close();
+		auto meta = WICTextureImporter::GenerateMetaFromFile(reinterpret_cast<const Byte*>(buffer.data()), buffer.size());
 		meta.SaveToFile(targetPath.string() + ".json");
 	}
 	else {

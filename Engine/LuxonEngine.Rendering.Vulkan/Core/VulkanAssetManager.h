@@ -19,7 +19,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		virtual void UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes) override;
 		virtual void UnloadAssets() override;
 		virtual void UnloadMesh(const ref<Mesh>& mesh) override;
-
+		virtual void UnloadTexture(const ref<Texture2D>& texture) override;
 	private:
 		VkDevice m_device;
 		VkPhysicalDevice m_physicalDevice;

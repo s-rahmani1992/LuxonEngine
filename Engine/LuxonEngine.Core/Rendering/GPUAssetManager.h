@@ -15,5 +15,6 @@ namespace LuxonEngine::Rendering {
 		virtual void UploadTextureToGPU(const ref<Texture2D>& texture) = 0;
 		virtual void UnloadAssets() = 0;
 		virtual void UnloadMesh(const ref<Mesh>& mesh) = 0;
+		virtual void UnloadTexture(const ref<Texture2D>& texture) = 0;
 	};
 }

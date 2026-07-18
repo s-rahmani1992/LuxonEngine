@@ -20,7 +20,9 @@ namespace LuxonEditor {
 		void MovePath(const std::string& oldRelativePath, const std::string& folderRelativePath);
 	
 		void AddMesh(boost::uuids::uuid guid, const ref<LuxonEngine::Mesh>& mesh);
+		void AddTexture(boost::uuids::uuid guid, const ref<LuxonEngine::Texture2D>& texture);
 		ref<LuxonEngine::Mesh> GetMesh(boost::uuids::uuid guid);
+		ref<LuxonEngine::Texture2D> GetTexture(boost::uuids::uuid guid);
 		void ImportAllAssets();
 		void ImportAsset(const fs::path& filePath);
 		void DeleteAsset(const fs::path& filePath);
@@ -30,5 +32,6 @@ namespace LuxonEditor {
 		AssetDirectoryWatcher* m_assetWatcher;
 
 		std::map<boost::uuids::uuid, ref<LuxonEngine::Mesh>> m_meshes;
+		std::map<boost::uuids::uuid, ref<LuxonEngine::Texture2D>> m_textures;
 	};
 }

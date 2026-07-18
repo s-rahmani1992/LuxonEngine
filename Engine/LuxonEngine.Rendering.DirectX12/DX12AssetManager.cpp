@@ -119,6 +119,10 @@ void LuxonEngine::Rendering::DX12::DX12AssetManager::UnloadMesh(const ref<Mesh>&
 	}	
 }
 
+void LuxonEngine::Rendering::DX12::DX12AssetManager::UnloadTexture(const ref<Texture2D>& texture)
+{
+}
+
 bool LuxonEngine::Rendering::DX12::DX12AssetManager::Initialize(ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;

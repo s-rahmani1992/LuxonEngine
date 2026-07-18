@@ -24,6 +24,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		virtual void UploadMeshesToGPU(const std::vector<ref<Mesh>>& meshes) override;
 		virtual void UnloadAssets() override;
 		virtual void UnloadMesh(const ref<Mesh>& mesh) override;
+		virtual void UnloadTexture(const ref<Texture2D>& texture) override;
 		bool Initialize(ComPtr<ID3D12Device10>& device);
 	private:
 		ComPtr<ID3D12Device10> m_device;

@@ -25,6 +25,9 @@
     <Filter Include="Mesh">
       <UniqueIdentifier>{32bcb0cb-b8a6-4554-b486-2c209c7e3da3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Texture">
+      <UniqueIdentifier>{708a81b8-fa13-457f-a21a-c803475eafba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -59,6 +62,9 @@
     </QtUic>
     <QtUic Include="Windows\SplashStartWidget.ui">
       <Filter>Windows</Filter>
+    </QtUic>
+    <QtUic Include="Texture\TextureInspecterWidget.ui">
+      <Filter>Texture</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +186,9 @@
     <ClCompile Include="Windows\SplashStartWidget.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Texture\TextureInspecterWidget.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -286,6 +295,9 @@
     </QtMoc>
     <QtMoc Include="Windows\SplashStartWidget.h">
       <Filter>Windows</Filter>
+    </QtMoc>
+    <QtMoc Include="Texture\TextureInspecterWidget.h">
+      <Filter>Texture</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
