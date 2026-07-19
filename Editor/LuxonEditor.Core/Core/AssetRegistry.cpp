@@ -7,6 +7,7 @@
 
 #include "AssimpModel3DImporter.h"
 #include "WICTextureImporter.h"
+#include "MaterialImporter.h"
 #include "AssetDirectoryWatcher.h"
 
 namespace fs = std::filesystem;
@@ -118,6 +119,17 @@ void LuxonEditor::AssetRegistry::AddTexture(boost::uuids::uuid guid, const ref<L
 	}
 }
 
+void LuxonEditor::AssetRegistry::AddMaterial(boost::uuids::uuid guid, const ref<LuxonEngine::Rendering::Material>& material)
+{
+	auto it = m_materials.find(guid);
+	if(it != m_materials.end()) {
+		(*it).second = material;
+	}
+	else {
+		m_materials.emplace(guid, material);
+	}
+}
+
 ref<LuxonEngine::Mesh> LuxonEditor::AssetRegistry::GetMesh(boost::uuids::uuid guid)
 {
 	auto it = m_meshes.find(guid);
@@ -134,6 +146,13 @@ ref<LuxonEngine::Texture2D> LuxonEditor::AssetRegistry::GetTexture(boost::uuids:
 	return nullptr;
 }
 
+ref<LuxonEngine::Rendering::Material> LuxonEditor::AssetRegistry::GetMaterial(boost::uuids::uuid guid)
+{
+	auto it = m_materials.find(guid);
+
+	return (it != m_materials.end()) ? (*it).second : nullptr;
+}
+
 void LuxonEditor::AssetRegistry::ImportAllAssets()
 {
 	std::string assetPath = m_projectPath + "/Assets";
@@ -143,6 +162,16 @@ void LuxonEditor::AssetRegistry::ImportAllAssets()
 	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
 		if (entry.is_regular_file()) {
 			ImportAsset(entry.path());
+		}
+	}
+
+	for(auto [guid, texture] : m_textures) {
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UploadTextureToGPU(texture);
+	}
+
+	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
+		if (entry.is_regular_file()) {
+			ImportEngineAsset(entry.path());
 		}
 	}
 }
@@ -204,6 +233,39 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 			Logger::LogError("Failed to import texture: " + error);
 			return;
 		}
+	}
+}
+
+void LuxonEditor::AssetRegistry::ImportEngineAsset(const fs::path& path)
+{
+	std::string filePath = path.string();
+	std::string extension = path.extension().string();
+
+	std::string error;
+	// Check if the file is a mesh file based on its extension
+	if (extension == ".lmat") {
+		std::ifstream file(filePath, std::ios::binary);
+
+		if (!file) {
+			// Handle error opening the file
+			return;
+		}
+
+		// Read the file contents into a buffer
+		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		file.close();
+
+		auto material = MaterialImporter::Import(reinterpret_cast<Byte*>(buffer.data()), buffer.size(), error);
+
+		if (material == nullptr) {
+			Logger::LogError("Failed to import material: " + error);
+			return;
+		}
+
+		SerializationStream stream;
+		stream.LoadFromFile(filePath + ".json");
+
+		AddMaterial(stream.GetGuid("uuid"), material);
 	}
 }
 

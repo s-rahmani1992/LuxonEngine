@@ -65,6 +65,23 @@ namespace LuxonEngine {
         return true;
     }
 
+    bool SerializationStream::LoadFromMemory(Byte* data, UInt64 size)
+    {
+        try {
+            boost::system::error_code ec;
+            m_jsonData = boost::json::parse(boost::json::string_view(reinterpret_cast<const char*>(data),size), ec);
+            if (ec) {
+                m_lastError = "Failed to parse JSON from memory: " + ec.message();
+                return false;
+            }
+            return true;
+        }
+        catch (const std::exception& e) {
+            m_lastError = "Exception while parsing JSON from memory: " + std::string(e.what());
+		}
+        return false;
+    }
+
     std::string SerializationStream::ToString() const
     {
         std::stringstream ss;
@@ -238,6 +255,22 @@ namespace LuxonEngine {
             // Return empty vector on error
         }
         return result;
+    }
+
+    std::map<std::string, SerializationStream> SerializationStream::GetObjectFields()
+    {
+        try {
+            std::map<std::string, SerializationStream> fields;
+            auto& obj = m_jsonData.as_object();
+            for (auto& kv : obj) {
+                fields[kv.key()] = SerializationStream(kv.value());
+            }
+            return fields;
+        }
+        catch (const std::exception&) {
+            // Return empty map on error
+		}
+        return std::map<std::string, SerializationStream>();
     }
 
     void SerializationStream::SetInt(const std::string& fieldName, int value)

@@ -26,8 +26,10 @@ namespace LuxonEditor {
 		EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
 		~EngineShaderRegistry();
 		void CompileAllShaders();
+		LuxonEngine::Rendering::ShaderProgram* GetProgram(GUID guid);
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		static void SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
+	
 	private:
 		void OnAssetChanged(const FileChangeEvent& paths);
 		void CompileAtPath(const fs::path& filePath);

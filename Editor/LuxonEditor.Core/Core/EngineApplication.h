@@ -31,6 +31,7 @@ namespace LuxonEditor {
 		static AssetRegistry* GetAssetManager() { return m_appInstance.m_assetManager; }
 		static SelectionManager* GetSelectionManager();
 		static LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication();
+		static EngineShaderRegistry* GetShaderRegistery() { return m_appInstance.m_shaderRegistery; }
 	private:
 		static EngineApplication m_appInstance;
 

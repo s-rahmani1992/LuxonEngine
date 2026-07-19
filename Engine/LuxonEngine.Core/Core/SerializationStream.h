@@ -9,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <map>
 
 namespace LuxonEngine {
     using GUID = boost::uuids::uuid;
@@ -28,6 +29,8 @@ namespace LuxonEngine {
         // Save JSON to file
         bool SaveToFile(const std::string& filePath);
 
+		bool LoadFromMemory(Byte* data, UInt64 size);
+
 		std::string ToString() const;
 
         // Get methods
@@ -41,6 +44,7 @@ namespace LuxonEngine {
         GUID GetGuid(const std::string& fieldName);
         SerializationStream Object(const std::string& fieldName);
         std::vector<SerializationStream> Array(const std::string& fieldName);
+		std::map<std::string, SerializationStream> GetObjectFields();
 
         // Set methods
         void SetInt(const std::string& fieldName, int value);

@@ -38,6 +38,17 @@ void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
 	}
 }
 
+LuxonEngine::Rendering::ShaderProgram* LuxonEditor::EngineShaderRegistry::GetProgram(GUID guid)
+{
+	auto shaderIT = m_registeredPrograms.find(guid);
+
+	if (shaderIT != m_registeredPrograms.end()) {
+		return (*shaderIT).second;
+	}
+
+	return nullptr;
+}
+
 void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
 {
 	for (auto& deleted : event.deletedFiles) {

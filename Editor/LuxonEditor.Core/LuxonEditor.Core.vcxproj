@@ -25,6 +25,7 @@
     <ClInclude Include="Core\EngineApplication.h" />
     <ClInclude Include="Core\EngineShaderRegistry.h" />
     <ClInclude Include="Core\GuidUtilities.h" />
+    <ClInclude Include="Core\MaterialImporter.h" />
     <ClInclude Include="Core\SelectionManager.h" />
     <ClInclude Include="Core\ShaderCreator.h" />
     <ClInclude Include="Core\WICTextureImporter.h" />
@@ -37,6 +38,7 @@
     <ClCompile Include="Core\EngineApplication.cpp" />
     <ClCompile Include="Core\EngineShaderRegistry.cpp" />
     <ClCompile Include="Core\GuidUtilities.cpp" />
+    <ClCompile Include="Core\MaterialImporter.cpp" />
     <ClCompile Include="Core\SelectionManager.cpp" />
     <ClCompile Include="Core\ShaderCreator.cpp" />
     <ClCompile Include="Core\WICTextureImporter.cpp" />
