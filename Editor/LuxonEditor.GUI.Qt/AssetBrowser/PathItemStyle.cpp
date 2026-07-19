@@ -52,6 +52,8 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
     }
     else if (ext == "fbx")
         p->drawImage(iconRect, m_modelIcon);
+    else if (ext == "lmat")
+		p->drawImage(iconRect, m_materialIcon);
     else
         p->drawImage(iconRect, m_fileIcon);
 

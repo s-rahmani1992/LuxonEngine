@@ -9,5 +9,6 @@
         <file>hlsl.png</file>
         <file>texture.png</file>
         <file>splash.png</file>
+        <file>material.png</file>
     </qresource>
 </RCC>
