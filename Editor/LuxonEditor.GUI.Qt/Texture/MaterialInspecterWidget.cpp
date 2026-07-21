@@ -46,6 +46,10 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 				floatfield->setValue(m_material->GetValue<float>(fieldName, 0.0f));
 				ui.dataFields->layout()->addWidget(floatfield);
 				ui.dataFields->layout()->setAlignment(floatfield, Qt::AlignTop);
+				connect(floatfield, &QFloatField::ValueChanged, this, [this, fieldName](float newValue) {
+					m_material->SetValue(fieldName, newValue);
+					m_context->Render();
+					});
 				break; 
 			}
 			case sizeof(Color):
@@ -54,6 +58,10 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 				colorField->SetColor(m_material->GetValue<Color>(fieldName, Color()));
 				ui.dataFields->layout()->addWidget(colorField);
 				ui.dataFields->layout()->setAlignment(colorField, Qt::AlignTop);
+				connect(colorField, &QColorField::ValueChanged, this, [this, fieldName](Color newColor) {
+					m_material->SetValue(fieldName, newColor);
+					m_context->Render();
+					});
 				break;
 			}
 			default:
