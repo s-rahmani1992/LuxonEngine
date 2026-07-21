@@ -86,6 +86,7 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			m_currentWidget = new QLabel("No Inspecter Available", ui.container);
 			m_currentWidget->show();
 		}
+		ui.container->layout()->addWidget(m_currentWidget);
 	});
 }
 
