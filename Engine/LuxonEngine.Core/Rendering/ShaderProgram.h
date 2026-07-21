@@ -5,6 +5,11 @@
 #include "Shader.h"
 
 namespace LuxonEngine::Rendering {
+	enum class ShaderProgramType {
+		Rasterization = 0,
+		RayTracing = 1,
+		Compute = 2,
+	};
 
 	/// <summary>
 	/// base class for integration of shaders making up a complete shader program pipeline
@@ -35,6 +40,8 @@ namespace LuxonEngine::Rendering {
 			
 			return nullptr;
 		}
+
+		virtual ShaderProgramType GetType() = 0;
 	protected:
 		std::vector<ref<Shader>> m_shaders;
 	};

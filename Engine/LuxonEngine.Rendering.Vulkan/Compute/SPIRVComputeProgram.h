@@ -7,6 +7,7 @@ namespace LuxonEngine::Rendering::Vulkan::Compute {
 	public:
 		SPIRVComputeProgram(Byte* bytecode, UInt64 codeSize, VkDevice device);
 		~SPIRVComputeProgram();
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::Compute; }
 		inline VkPipelineShaderStageCreateInfo& GetComputeStageInfo() { return m_computeStageInfo; }
 		inline std::vector<VkDescriptorSetLayout>& GetDiscriptorLayouts() { return m_descriptorSetLayout; }
 		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }

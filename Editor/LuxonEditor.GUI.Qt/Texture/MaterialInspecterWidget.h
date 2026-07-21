@@ -12,7 +12,16 @@ public:
 	MaterialInspecterWidget(QWidget *parent = nullptr, LuxonEngine::SerializationStream * stream = nullptr, std::string path = "");
 	~MaterialInspecterWidget();
 
+protected:
+	virtual void resizeEvent(QResizeEvent* event) override;
+
 private:
 	Ui::MaterialInspecterWidgetClass ui;
+
+	ref<Scene> m_scene;
+
+	ref<LuxonEngine::Rendering::Material> m_material;
+	ref<LuxonEngine::Rendering::GraphicContext> m_context;
+	ref<LuxonEngine::Platform::GraphicWindow> m_window;
 };
 

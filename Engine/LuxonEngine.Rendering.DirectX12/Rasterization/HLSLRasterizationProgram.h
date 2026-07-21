@@ -15,6 +15,8 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		HLSLRasterizationProgram(const std::vector<ref<HLSLShader>>& shaders);
 		virtual ~HLSLRasterizationProgram() = default;
 
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::Rasterization; }
+
 		/// <summary>
 		/// Creates the DirectX 12 root signature for this shader program
 		/// </summary>

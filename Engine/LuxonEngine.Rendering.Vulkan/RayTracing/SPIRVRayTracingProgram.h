@@ -15,6 +15,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 	public:
 		SPIRVRayTracingProgram(Byte* bytecode, UInt64 codeSize, VkDevice device);
 		~SPIRVRayTracingProgram();
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::RayTracing; }
 		std::vector<VkPipelineShaderStageCreateInfo> GetShaderStages();
 		ref<SPIRVRayTracingProgramVariant> CreateVariantForRT(UInt32& startBinding);
 		UInt32 GetShaderRecordSize();

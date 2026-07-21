@@ -14,6 +14,8 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	public:
 		SPIRVRasterizationProgram(const std::vector<ref<SPIRVShader>>& spirvShaders, const VkDevice device);
 		virtual ~SPIRVRasterizationProgram() override;
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::Rasterization; }
+
 		inline std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() { return m_stageInfos; }
 		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
 		inline std::vector<VkDescriptorSetLayout>& GetDiscriptorLayouts() { return m_descriptorSetLayout; }

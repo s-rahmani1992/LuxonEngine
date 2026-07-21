@@ -27,13 +27,14 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 			UInt32 setIndex;
 			UInt32 binding;
 			VkDescriptorType descriptorType;
+			VkImageView originalImageView = VK_NULL_HANDLE; // stored at construction for re-initialization
 		};
 
 		ref<Material> m_material;
 		VkDevice m_device;
 		ref<SPIRVRasterizationProgram> m_program;
 		VkPipelineLayout m_pipelineLayout;
-		std::vector<pushConstantData> m_pushConstantValues; 
+		std::vector<pushConstantData> m_pushConstantValues;
 		std::vector<VkDescriptorSet> m_descriptorSets;
 		std::vector<DescriptorData> m_descriptorData;
 	};

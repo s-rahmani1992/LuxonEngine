@@ -4,14 +4,9 @@
 #include <boost/uuid/uuid.hpp>
 
 namespace LuxonEngine::Rendering {
+	enum class ShaderProgramType;
 	class ShaderProgram;
 	class Shader;
-
-	enum class ShaderProgramType {
-		Rasterization = 0,
-		RayTracing = 1,
-		Compute = 2,
-	};
 
 	struct RasterizationProgramProperties {
 		char* vertexMain;

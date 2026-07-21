@@ -71,15 +71,24 @@ void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::Bin
     cpuHandle.ptr += offset * incrementSize;
     gpuHandle.ptr += offset * incrementSize;
 
-	auto textureList = m_material->GetTextureFields();
+    auto textureList = m_material->GetTextureFields();
 
-	// Bind material-specific textures to the descriptor handles
+    // Bind material-specific textures to the descriptor handles
     for (auto& heap : m_heapValues) {
-		if (heap.name[0] == '_')
-			continue;
+        if (heap.name[0] == '_')
+            continue;
 
         heap.cpuHandle = cpuHandle;
         heap.gpuHandle = gpuHandle;
+
+        // Copy the texture descriptor into the new heap slot immediately,
+        // so it is valid even if m_modifiedTextures has already been cleared
+        // (e.g. when a context is recreated for the same material).
+        m_device->CopyDescriptorsSimple(
+            1,
+            heap.cpuHandle,
+            heap.originalCpuHandle,
+            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         cpuHandle.ptr += incrementSize;
         gpuHandle.ptr += incrementSize;

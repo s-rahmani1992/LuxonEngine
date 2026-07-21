@@ -18,6 +18,8 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 	public:
 		HLSLRayTracingProgram(Byte* byteCode, UInt64 codeLength, const HLSLRayTracingProgramProperties& properties, ComPtr<ID3D12LibraryReflection>& shaderReflection);
 		
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::RayTracing; }
+
 		/// <summary>
 		/// Creates Root signature from this Ray tracing program
 		/// </summary>

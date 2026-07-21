@@ -10,6 +10,8 @@ namespace LuxonEngine::Rendering::DX12::Compute {
 	public:
 		HLSLComputeProgram(Byte* byteCode, UInt64 codeLength, ComPtr<ID3D12ShaderReflection>& shaderReflection);
 		
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::Compute; }
+
 		/// <summary>
 		/// Creates the root signature for this shader program
 		/// </summary>

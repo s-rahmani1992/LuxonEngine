@@ -12,7 +12,7 @@ LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Vulk
 	auto& reflection = m_program->GetReflection();
 	auto& pushConstants = reflection.GetPushConstants();
 
-	for(auto& pushConstantBlock : pushConstants.blocks)
+	for (auto& pushConstantBlock : pushConstants.blocks)
 	{
 		auto valueLocation = material->GetValueLocation(pushConstantBlock.variables[0].name);
 		if (valueLocation != nullptr)
@@ -33,16 +33,22 @@ LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Vulk
 		if (descriptor.name[0] == '_')
 			continue;
 
+		VkImageView initialImageView = VK_NULL_HANDLE;
+		auto matIt = textureFields->find(descriptor.name);
+		if (matIt != textureFields->end()) {
+			(*matIt).second.fieldIndex = fieldIndex;
+			if (matIt->second.texture && matIt->second.texture->GetGPUHandle()) {
+				initialImageView = std::dynamic_pointer_cast<VulkanTexture2DController>(
+					matIt->second.texture->GetGPUHandle())->GetImageView();
+			}
+		}
+
 		m_descriptorData.push_back(DescriptorData{
 			.setIndex = descriptor.data.set,
 			.binding = descriptor.data.binding,
 			.descriptorType = descriptor.descriptorType,
+			.originalImageView = initialImageView,
 			});
-
-		auto matIt = textureFields->find(descriptor.name);
-
-		if (matIt != textureFields->end())
-			(*matIt).second.fieldIndex = fieldIndex;
 
 		fieldIndex++;
 	}
@@ -67,7 +73,37 @@ bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial:
 		if (vkAllocateDescriptorSets(m_device, &descSetAlloc, m_descriptorSets.data() + i) != VK_SUCCESS)
 			return false;
 	}
-	
+
+	// Write all texture descriptors into the freshly allocated sets using the
+	// image views captured at construction time. This ensures the descriptors
+	// are valid even when a new context is created for a material whose
+	// m_modifiedTextures list has already been cleared by a previous context.
+	for (auto& descriptor : m_descriptorData) {
+		if (descriptor.originalImageView == VK_NULL_HANDLE)
+			continue;
+
+		VkDescriptorImageInfo imageInfo{
+			.sampler = nullptr,
+			.imageView = descriptor.originalImageView,
+			.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		};
+
+		VkWriteDescriptorSet writeDescriptor{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = m_descriptorSets[descriptor.setIndex],
+			.dstBinding = descriptor.binding,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = descriptor.descriptorType,
+			.pImageInfo = &imageInfo,
+			.pBufferInfo = nullptr,
+			.pTexelBufferView = nullptr,
+		};
+
+		vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
+	}
+
 	return true;
 }
 
@@ -82,24 +118,27 @@ void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial:
 		};
 
 		VkWriteDescriptorSet writeDescriptor{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.pNext = nullptr,
-		.dstSet = m_descriptorSets[m_descriptorData[modified->fieldIndex].setIndex],
-		.dstBinding = m_descriptorData[modified->fieldIndex].binding,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = m_descriptorData[modified->fieldIndex].descriptorType,
-		.pImageInfo = &imageInfo,
-		.pBufferInfo = nullptr,
-		.pTexelBufferView = nullptr,
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = nullptr,
+			.dstSet = m_descriptorSets[m_descriptorData[modified->fieldIndex].setIndex],
+			.dstBinding = m_descriptorData[modified->fieldIndex].binding,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = m_descriptorData[modified->fieldIndex].descriptorType,
+			.pImageInfo = &imageInfo,
+			.pBufferInfo = nullptr,
+			.pTexelBufferView = nullptr,
 		};
 
 		vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
+
+		// Also keep originalImageView in sync so future re-initializations are correct
+		m_descriptorData[modified->fieldIndex].originalImageView = imageInfo.imageView;
 	}
 
 	m_material->ClearModifiedTextures();
 
-	for(auto& pushConstant : m_pushConstantValues)
+	for (auto& pushConstant : m_pushConstantValues)
 	{
 		vkCmdPushConstants(commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_ALL_GRAPHICS, pushConstant.offset, pushConstant.size, pushConstant.location);
 	}
@@ -147,22 +186,22 @@ void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial:
 		return;
 
 	VkDescriptorImageInfo imageInfo{
-			.sampler = nullptr,
-			.imageView = imageView,
-			.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		.sampler = nullptr,
+		.imageView = imageView,
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 	};
 
 	VkWriteDescriptorSet writeDescriptor{
-	.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-	.pNext = nullptr,
-	.dstSet = m_descriptorSets[descriptorData->data.set],
-	.dstBinding = descriptorData->data.binding,
-	.dstArrayElement = 0,
-	.descriptorCount = 1,
-	.descriptorType = descriptorData->descriptorType,
-	.pImageInfo = &imageInfo,
-	.pBufferInfo = nullptr,
-	.pTexelBufferView = nullptr,
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = nullptr,
+		.dstSet = m_descriptorSets[descriptorData->data.set],
+		.dstBinding = descriptorData->data.binding,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = descriptorData->descriptorType,
+		.pImageInfo = &imageInfo,
+		.pBufferInfo = nullptr,
+		.pTexelBufferView = nullptr,
 	};
 
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
