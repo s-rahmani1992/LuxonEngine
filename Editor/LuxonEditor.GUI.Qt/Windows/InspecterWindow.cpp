@@ -3,6 +3,7 @@
 #include "../ShaderCreation/ShaderInspecterWidget.h"
 #include "../Mesh/Model3DInspecterWidget.h"
 #include "../Texture/TextureInspecterWidget.h"
+#include "../Texture/MaterialInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -68,6 +69,16 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 
 			TextureInspecterWidget* textureWidget = new TextureInspecterWidget(ui.container, &m_stream, selectedObject);
 			m_currentWidget = textureWidget;
+			m_currentWidget->show();
+		}
+		else if(extention == ".lmat" && std::filesystem::exists(selectedPath))
+		{
+			// Create meta file path by appending .json
+			m_metaPath = selectedObject + ".json";
+			// Create SerializationStream from the meta file
+			m_stream.LoadFromFile(m_metaPath);
+			MaterialInspecterWidget* materialWidget = new MaterialInspecterWidget(ui.container, &m_stream, selectedObject);
+			m_currentWidget = materialWidget;
 			m_currentWidget->show();
 		}
 		else
