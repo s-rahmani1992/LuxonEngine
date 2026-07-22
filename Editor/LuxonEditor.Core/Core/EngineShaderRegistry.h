@@ -20,6 +20,12 @@ namespace LuxonEditor {
 	struct FileChangeEvent;
 
 	using GUID = boost::uuids::uuid;
+
+	struct ShaderEntry {
+		GUID guid;
+		std::string name;
+		LuxonEngine::Rendering::ShaderProgram* program;
+	};
 	
 	class __declspec(dllexport) EngineShaderRegistry {
 	public:
@@ -27,13 +33,15 @@ namespace LuxonEditor {
 		~EngineShaderRegistry();
 		void CompileAllShaders();
 		LuxonEngine::Rendering::ShaderProgram* GetProgram(GUID guid);
+		ShaderEntry* GetShaderEntry(GUID guid);
+		ShaderEntry* GetShaderEntry(const LuxonEngine::Rendering::ShaderProgram* program);
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		static void SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 	
 	private:
 		void OnAssetChanged(const FileChangeEvent& paths);
 		void CompileAtPath(const fs::path& filePath);
-		std::map<GUID, LuxonEngine::Rendering::ShaderProgram*> m_registeredPrograms;
+		std::map<GUID, ShaderEntry> m_registeredPrograms;
 		size_t m_callbackID;
 		Render::ShaderRegistery* m_shaderCompiler;
 		AssetDirectoryWatcher* m_assetWatcher;

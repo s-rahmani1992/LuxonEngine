@@ -10,10 +10,10 @@ namespace LuxonEngine::Rendering {
 
 namespace LuxonEditor {
 
-	class MaterialImporter {
+	class __declspec(dllexport) MaterialImporter {
 	public:
 		static ref<LuxonEngine::Rendering::Material> Import(Byte* data, UInt64 size, std::string& error);
-	
+		static void SerializeMaterial(const ref<LuxonEngine::Rendering::Material>& material, LuxonEngine::SerializationStream& stream);
 	private:
 		static LuxonEngine::SerializationStream CreateDefaultMetaData();
 	};

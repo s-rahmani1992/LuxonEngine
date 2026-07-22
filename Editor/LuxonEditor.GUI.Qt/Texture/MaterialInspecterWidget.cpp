@@ -5,6 +5,7 @@
 #include "../Texture/QColorField.h"
 #include <QResizeEvent>
 #include <QSize>
+#include <Core/MaterialImporter.h>
 
 MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::SerializationStream* stream, std::string path)
 	: QWidget(parent)
@@ -60,7 +61,8 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 				ui.dataFields->layout()->setAlignment(colorField, Qt::AlignTop);
 				connect(colorField, &QColorField::ValueChanged, this, [this, fieldName](Color newColor) {
 					m_material->SetValue(fieldName, newColor);
-					m_context->Render();
+					if(m_context)
+						m_context->Render();
 					});
 				break;
 			}
@@ -85,6 +87,12 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 			m_context->Render();
 			});
 	}
+	layout()->setAlignment(ui.saveButton, Qt::AlignHCenter);
+	connect(ui.saveButton, &QPushButton::clicked, this, [this, path]() {
+		LuxonEngine::SerializationStream stream;
+		LuxonEditor::MaterialImporter::SerializeMaterial(m_material, stream);
+		stream.SaveToFile(path);
+		});
 }
 
 MaterialInspecterWidget::~MaterialInspecterWidget()

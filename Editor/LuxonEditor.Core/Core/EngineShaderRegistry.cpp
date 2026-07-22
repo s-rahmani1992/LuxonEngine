@@ -20,8 +20,8 @@ LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderRegistery*
 
 LuxonEditor::EngineShaderRegistry::~EngineShaderRegistry()
 {
-	for (auto& [guid, program] : m_registeredPrograms)
-		delete program;
+	for (auto& [guid, programEntry] : m_registeredPrograms)
+		delete programEntry.program;
 }
 
 void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
@@ -43,10 +43,29 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEditor::EngineShaderRegistry::GetPro
 	auto shaderIT = m_registeredPrograms.find(guid);
 
 	if (shaderIT != m_registeredPrograms.end()) {
-		return (*shaderIT).second;
+		return (*shaderIT).second.program;
 	}
 
 	return nullptr;
+}
+
+LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(GUID guid)
+{
+	auto shaderIT = m_registeredPrograms.find(guid);
+
+	if (shaderIT != m_registeredPrograms.end()) {
+		return &(*shaderIT).second;
+	}
+
+	return nullptr;
+}
+
+LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(const LuxonEngine::Rendering::ShaderProgram* program)
+{
+	auto shaderIT = std::find_if(m_registeredPrograms.begin(), m_registeredPrograms.end(),
+		[program](const auto& pair) { return pair.second.program == program; });
+
+	return (shaderIT != m_registeredPrograms.end()) ? &(*shaderIT).second : nullptr;
 }
 
 void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
@@ -68,7 +87,7 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 		GUID programGuid = metadataStream.GetGuid("uuid");
 		auto shaderIT = m_registeredPrograms.find(programGuid);
 		if (shaderIT != m_registeredPrograms.end()) {
-			delete (*shaderIT).second;
+			delete (*shaderIT).second.program;
 			m_registeredPrograms.erase(shaderIT);
 		}
 	}
@@ -131,7 +150,7 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 
 	if (compiledProgram == nullptr) {
 		if (shaderIT != m_registeredPrograms.end()) {
-			delete (*shaderIT).second;
+			delete (*shaderIT).second.program;
 			m_registeredPrograms.erase(shaderIT);
 		}
 		LuxonEngine::Logger::LogError(error);
@@ -139,11 +158,11 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 	}
 	
 	if (shaderIT != m_registeredPrograms.end()) {
-		delete (*shaderIT).second;
-		(*shaderIT).second = compiledProgram;
+		delete (*shaderIT).second.program;
+		(*shaderIT).second.program = compiledProgram;
 	}
 	else {
-		m_registeredPrograms[programGuid] = compiledProgram;
+		m_registeredPrograms[programGuid] = { programGuid, filePath.filename().string(), compiledProgram };
 	}
 }
 
