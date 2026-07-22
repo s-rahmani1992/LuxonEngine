@@ -14,7 +14,7 @@ namespace LuxonEditor {
 	class __declspec(dllexport) WICTextureImporter
 	{
 	public:
-		static ref<LuxonEngine::Texture2D> Import(const Byte* data, long size, LuxonEngine::SerializationStream& stream, AssetRegistry* assetRegistry, std::string& error);
+		static ref<LuxonEngine::Texture2D> Import(const Byte* data, long size, LuxonEngine::SerializationStream& stream, const std::string& filePath, std::string& error);
 		static LuxonEngine::SerializationStream GenerateMetaFromFile(const Byte* data, long size);
 	};
 }

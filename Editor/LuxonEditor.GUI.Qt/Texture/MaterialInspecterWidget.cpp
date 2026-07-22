@@ -80,6 +80,10 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 		ui.dataFields->layout()->addWidget(textureField);
 		ui.dataFields->layout()->setAlignment(textureField, Qt::AlignTop);
 		textureField->SetTexture(textureData.texture);
+		connect(textureField, &QTextureField::ValueChanged, this, [this, fieldName](ref<Texture2D> newTexture) {
+			m_material->SetTexture2D(fieldName, newTexture);
+			m_context->Render();
+			});
 	}
 }
 

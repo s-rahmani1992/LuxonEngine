@@ -8,6 +8,7 @@
 #include <wincodec.h>
 #include <string>
 #include "GuidUtilities.h"
+#include "EngineApplication.h"
 
 #pragma comment(lib, "WindowsCodecs.lib")
 
@@ -109,7 +110,7 @@ static ref<LuxonEngine::Texture2D> ImportFromWICStream(IWICImagingFactory* wicFa
 	return std::make_shared<LuxonEngine::Texture2D>(texProperties);
 }
 
-ref<LuxonEngine::Texture2D> LuxonEditor::WICTextureImporter::Import(const Byte* data, long size, LuxonEngine::SerializationStream& stream, AssetRegistry* assetRegistry, std::string& error)
+ref<LuxonEngine::Texture2D> LuxonEditor::WICTextureImporter::Import(const Byte* data, long size, LuxonEngine::SerializationStream& stream, const std::string& filePath, std::string& error)
 {
 	ComPtr<IWICImagingFactory> wicFactory;
 	if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wicFactory)))) {
@@ -133,7 +134,7 @@ ref<LuxonEngine::Texture2D> LuxonEditor::WICTextureImporter::Import(const Byte* 
 		return nullptr;
 
 	auto guid = stream.GetGuid("uuid");
-	assetRegistry->AddTexture(guid, texture);
+	EngineApplication::GetAssetManager()->AddTexture(guid, fs::path(filePath).filename().string(), texture);
 	return texture;
 }
 

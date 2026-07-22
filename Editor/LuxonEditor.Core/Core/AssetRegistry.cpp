@@ -106,16 +106,16 @@ void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const ref<Luxo
 	}
 }
 
-void LuxonEditor::AssetRegistry::AddTexture(boost::uuids::uuid guid, const ref<LuxonEngine::Texture2D>& texture)
+void LuxonEditor::AssetRegistry::AddTexture(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Texture2D>& texture)
 {
-	auto it = m_textures.find(guid);
-	if(it != m_textures.end()) {
-		(*it).second->Release();
-		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture((*it).second);
-		(*it).second = texture;
+	auto it = m_textureEntries.find(guid);
+	if(it != m_textureEntries.end()) {
+		(*it).second.asset->Release();
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture((*it).second.asset);
+		(*it).second.asset = texture;
 	}
 	else {
-		m_textures.emplace(guid, texture);
+		m_textureEntries.emplace(guid, AssetEntry<LuxonEngine::Texture2D>{ texture, guid, name });
 	}
 }
 
@@ -138,10 +138,10 @@ ref<LuxonEngine::Mesh> LuxonEditor::AssetRegistry::GetMesh(boost::uuids::uuid gu
 
 ref<LuxonEngine::Texture2D> LuxonEditor::AssetRegistry::GetTexture(boost::uuids::uuid guid)
 {
-	auto it = m_textures.find(guid);
+	auto it = m_textureEntries.find(guid);
 
-	if(it != m_textures.end()) {
-		return (*it).second;
+	if(it != m_textureEntries.end()) {
+		return (*it).second.asset;
 	}
 	return nullptr;
 }
@@ -151,6 +151,24 @@ ref<LuxonEngine::Rendering::Material> LuxonEditor::AssetRegistry::GetMaterial(bo
 	auto it = m_materials.find(guid);
 
 	return (it != m_materials.end()) ? (*it).second : nullptr;
+}
+
+std::vector<LuxonEditor::AssetEntry<LuxonEngine::Texture2D>*> LuxonEditor::AssetRegistry::GetAllTextureEntries()
+{
+	std::vector<AssetEntry<LuxonEngine::Texture2D>*> entries;
+	for (auto& [guid, entry] : m_textureEntries) {
+		entries.push_back(&entry);
+	}
+	return entries;
+}
+
+LuxonEditor::AssetEntry<LuxonEngine::Texture2D>* LuxonEditor::AssetRegistry::GetTextureEntry(const ref<LuxonEngine::Texture2D> texture)
+{
+	auto it = std::find_if(m_textureEntries.begin(), m_textureEntries.end(), [&texture](const auto& pair) {
+		return pair.second.asset == texture;
+		});
+
+	return (it != m_textureEntries.end()) ? &it->second : nullptr;
 }
 
 void LuxonEditor::AssetRegistry::ImportAllAssets()
@@ -165,8 +183,8 @@ void LuxonEditor::AssetRegistry::ImportAllAssets()
 		}
 	}
 
-	for(auto [guid, texture] : m_textures) {
-		EngineApplication::GetGPUApplication()->CreateAssetManager()->UploadTextureToGPU(texture);
+	for(auto [guid, textureEntry] : m_textureEntries) {
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UploadTextureToGPU(textureEntry.asset);
 	}
 
 	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
@@ -227,7 +245,7 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 		}
 
 		std::string error;
-		auto texture = WICTextureImporter::Import(reinterpret_cast<const Byte*>(buffer.data()), buffer.size(), stream, this, error);
+		auto texture = WICTextureImporter::Import(reinterpret_cast<const Byte*>(buffer.data()), buffer.size(), stream, path.filename().string(), error);
 
 		if (texture == nullptr) {
 			Logger::LogError("Failed to import texture: " + error);
@@ -301,11 +319,11 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 		}
 
 		LuxonEngine::GUID texGuid = stream.GetGuid("uuid");
-		auto it = m_textures.find(texGuid);
-		if (it != m_textures.end()) {
-			it->second->Release();
-			EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture(it->second);
-			m_textures.erase(it);
+		auto it = m_textureEntries.find(texGuid);
+		if (it != m_textureEntries.end()) {
+			it->second.asset->Release();
+			EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture(it->second.asset);
+			m_textureEntries.erase(it);
 		}
 	}
 }

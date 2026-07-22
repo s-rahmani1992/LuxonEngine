@@ -10,6 +10,13 @@ namespace fs = std::filesystem;
 namespace LuxonEditor {
 	class AssetDirectoryWatcher;
 
+	template <typename T>
+		struct AssetEntry {
+		ref<T> asset;
+		boost::uuids::uuid guid;
+		std::string name;
+	};
+
 	class __declspec(dllexport) AssetRegistry {
 	public:
 		AssetRegistry() = default;
@@ -20,11 +27,15 @@ namespace LuxonEditor {
 		void MovePath(const std::string& oldRelativePath, const std::string& folderRelativePath);
 	
 		void AddMesh(boost::uuids::uuid guid, const ref<LuxonEngine::Mesh>& mesh);
-		void AddTexture(boost::uuids::uuid guid, const ref<LuxonEngine::Texture2D>& texture);
+		void AddTexture(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Texture2D>& texture);
 		void AddMaterial(boost::uuids::uuid guid, const ref<LuxonEngine::Rendering::Material>& material);
 		ref<LuxonEngine::Mesh> GetMesh(boost::uuids::uuid guid);
 		ref<LuxonEngine::Texture2D> GetTexture(boost::uuids::uuid guid);
 		ref<LuxonEngine::Rendering::Material> GetMaterial(boost::uuids::uuid guid);
+
+		std::vector<AssetEntry<LuxonEngine::Texture2D>*> GetAllTextureEntries();
+		AssetEntry<LuxonEngine::Texture2D>* GetTextureEntry(const ref<LuxonEngine::Texture2D> texture);
+
 		void ImportAllAssets();
 		void ImportAsset(const fs::path& filePath);
 		void ImportEngineAsset(const fs::path& filePath);
@@ -35,7 +46,8 @@ namespace LuxonEditor {
 		AssetDirectoryWatcher* m_assetWatcher;
 
 		std::map<boost::uuids::uuid, ref<LuxonEngine::Mesh>> m_meshes;
-		std::map<boost::uuids::uuid, ref<LuxonEngine::Texture2D>> m_textures;
 		std::map<boost::uuids::uuid, ref<LuxonEngine::Rendering::Material>> m_materials;
+
+		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Texture2D>> m_textureEntries;
 	};
 }
