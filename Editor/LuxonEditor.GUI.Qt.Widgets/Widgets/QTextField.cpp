@@ -33,6 +33,20 @@ void QTextField::setPlaceHolder(const QString& t)
 	ui.inputText->setPlaceholderText(t);
 }
 
+void QTextField::Validate()
+{
+	if (m_validationFunc) {
+		m_hasValidValue = m_validationFunc(ui.inputText->text());
+		if (!m_hasValidValue) {
+			ui.inputText->setStyleSheet("border: 1px solid red;");
+		}
+		else {
+			ui.inputText->setStyleSheet("border: none;");
+		}
+		emit ValueChanged(m_hasValidValue);
+	}
+}
+
 char* QTextField::GetText()
 {
 	m_strValue = ui.inputText->text().toStdString();

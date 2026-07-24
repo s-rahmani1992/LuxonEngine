@@ -20,6 +20,7 @@ public:
 	void setPlaceHolder(const QString& t);
 
 	QLineEdit* InputText() const { return ui.inputText; }
+	void Validate();
 
 	char* GetText();
 

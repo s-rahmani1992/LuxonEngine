@@ -19,6 +19,10 @@ namespace LuxonEditor::GUI::QT {
 	{
 		ui.setupUi(this);
 
+		ui.pathPanel->layout()->setAlignment(ui.nameField, Qt::AlignmentFlag::AlignLeft);
+		ui.pathPanel->layout()->setAlignment(ui.browseButton, Qt::AlignmentFlag::AlignLeft);
+		static_cast<QHBoxLayout*>(ui.pathPanel->layout())->addStretch(1);
+		
 		auto shaderEntries = m_shaderRegistry->GetAllShaderEntries();
 
 		for (auto* entry : shaderEntries)
@@ -59,16 +63,28 @@ namespace LuxonEditor::GUI::QT {
 				view->setRootIndex(rootIndex);
 			}
 
-			dlg.setDirectory(QString::fromStdString(GetProjectPath() + m_folderPath.string()));
-			//dlg.setDirectory(QString::fromStdString(m_folderPath.string()));
+			dlg.setDirectory(QString::fromStdString(m_folderPath.string()));
 			if (dlg.exec() == QDialog::Accepted) {
 				m_folderPath = dlg.selectedFiles().first().toStdString();
+				ui.nameField->Validate();
 				ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).string()));
 			}
 			});
 
-		if (ui.programBox->count() > 0)
-			OnProgramIndexChanged(0);
+		int index = 0;
+		std::string name = "NewMaterial_0";
+
+		while (true)
+		{
+			fs::path filePath = m_folderPath / (name + ".lmat");
+			if (!fs::exists(filePath))
+				break;
+			name = "NewMaterial_" + std::to_string(index++);
+		}
+
+		ui.nameField->InputText()->setText(QString::fromStdString(name));
+		ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).string()));
+		ui.createButton->setEnabled(false);
 	}
 
 	MaterialCreationWindow::~MaterialCreationWindow()
@@ -111,7 +127,8 @@ namespace LuxonEditor::GUI::QT {
 
 	void MaterialCreationWindow::RefreshCreateButton()
 	{
-		ui.createButton->setEnabled(m_nameIsValid && m_currentProgram != nullptr);
+		int h = ui.programBox->currentIndex();
+		ui.createButton->setEnabled(ui.programBox->currentIndex() >= 0 && m_nameIsValid && m_currentProgram != nullptr);
 	}
 
 	void MaterialCreationWindow::OnCreateButtonClicked()

@@ -84,7 +84,8 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 		textureField->SetTexture(textureData.texture);
 		connect(textureField, &QTextureField::ValueChanged, this, [this, fieldName](ref<Texture2D> newTexture) {
 			m_material->SetTexture2D(fieldName, newTexture);
-			m_context->Render();
+			if (m_context)
+				m_context->Render();
 			});
 	}
 	layout()->setAlignment(ui.saveButton, Qt::AlignHCenter);
