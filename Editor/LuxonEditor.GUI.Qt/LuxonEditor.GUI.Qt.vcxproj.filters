@@ -72,13 +72,13 @@
     <QtUic Include="Texture\QTextureField.ui">
       <Filter>Texture</Filter>
     </QtUic>
-    <QtUic Include="Texture\MaterialInspecterWidget.ui">
-      <Filter>Texture</Filter>
-    </QtUic>
     <QtUic Include="Texture\QColorField.ui">
       <Filter>Texture</Filter>
     </QtUic>
     <QtUic Include="Material\MaterialCreationWindow.ui">
+      <Filter>Material</Filter>
+    </QtUic>
+    <QtUic Include="Material\MaterialInspecterWidget.ui">
       <Filter>Material</Filter>
     </QtUic>
   </ItemGroup>
@@ -207,13 +207,13 @@
     <ClCompile Include="Texture\QTextureField.cpp">
       <Filter>Texture</Filter>
     </ClCompile>
-    <ClCompile Include="Texture\MaterialInspecterWidget.cpp">
-      <Filter>Texture</Filter>
-    </ClCompile>
     <ClCompile Include="Texture\QColorField.cpp">
       <Filter>Texture</Filter>
     </ClCompile>
     <ClCompile Include="Material\MaterialCreationWindow.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\MaterialInspecterWidget.cpp">
       <Filter>Material</Filter>
     </ClCompile>
   </ItemGroup>
@@ -329,13 +329,13 @@
     <QtMoc Include="Texture\QTextureField.h">
       <Filter>Texture</Filter>
     </QtMoc>
-    <QtMoc Include="Texture\MaterialInspecterWidget.h">
-      <Filter>Texture</Filter>
-    </QtMoc>
     <QtMoc Include="Texture\QColorField.h">
       <Filter>Texture</Filter>
     </QtMoc>
     <QtMoc Include="Material\MaterialCreationWindow.h">
+      <Filter>Material</Filter>
+    </QtMoc>
+    <QtMoc Include="Material\MaterialInspecterWidget.h">
       <Filter>Material</Filter>
     </QtMoc>
   </ItemGroup>

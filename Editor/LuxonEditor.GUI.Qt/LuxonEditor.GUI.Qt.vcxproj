@@ -154,12 +154,12 @@
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="Material\MaterialCreationWindow.cpp" />
+    <ClCompile Include="Material\MaterialInspecterWidget.cpp" />
     <ClCompile Include="Mesh\MeshItem.cpp" />
     <ClCompile Include="Mesh\MeshViewWindow.cpp" />
     <ClCompile Include="Mesh\Model3DInspecterWidget.cpp" />
     <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp" />
     <ClCompile Include="ShaderCreation\ShaderInspecterWidget.cpp" />
-    <ClCompile Include="Texture\MaterialInspecterWidget.cpp" />
     <ClCompile Include="Texture\QColorField.cpp" />
     <ClCompile Include="Texture\QTextureField.cpp" />
     <ClCompile Include="Texture\TextureInspecterWidget.cpp" />
@@ -171,12 +171,12 @@
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
     <QtUic Include="Material\MaterialCreationWindow.ui" />
+    <QtUic Include="Material\MaterialInspecterWidget.ui" />
     <QtUic Include="Mesh\MeshItem.ui" />
     <QtUic Include="Mesh\MeshViewWindow.ui" />
     <QtUic Include="Mesh\Model3DInspecterWidget.ui" />
     <QtUic Include="ShaderCreation\ShaderCreationWindow.ui" />
     <QtUic Include="ShaderCreation\ShaderInspecterWidget.ui" />
-    <QtUic Include="Texture\MaterialInspecterWidget.ui" />
     <QtUic Include="Texture\QColorField.ui" />
     <QtUic Include="Texture\QTextureField.ui" />
     <QtUic Include="Texture\TextureInspecterWidget.ui" />
@@ -206,9 +206,9 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Material\MaterialInspecterWidget.h" />
     <QtMoc Include="Material\MaterialCreationWindow.h" />
     <QtMoc Include="Texture\QColorField.h" />
-    <QtMoc Include="Texture\MaterialInspecterWidget.h" />
     <QtMoc Include="Texture\QTextureField.h" />
     <QtMoc Include="Texture\TextureInspecterWidget.h" />
     <QtMoc Include="Windows\SplashStartWidget.h" />

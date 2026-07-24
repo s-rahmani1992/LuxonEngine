@@ -3,7 +3,7 @@
 #include "../ShaderCreation/ShaderInspecterWidget.h"
 #include "../Mesh/Model3DInspecterWidget.h"
 #include "../Texture/TextureInspecterWidget.h"
-#include "../Texture/MaterialInspecterWidget.h"
+#include "../Material/MaterialInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
