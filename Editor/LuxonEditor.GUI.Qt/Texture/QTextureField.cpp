@@ -45,6 +45,9 @@ QTextureField::~QTextureField()
 
 void QTextureField::SetTexture(ref<LuxonEngine::Texture2D> texture)
 {
+	if(texture == m_texture)
+		return;
+
 	m_textureImage = QImage(
 		texture->GetData(),
 		texture->GetWidth(),

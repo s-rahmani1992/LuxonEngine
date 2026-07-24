@@ -28,6 +28,9 @@
     <Filter Include="Texture">
       <UniqueIdentifier>{708a81b8-fa13-457f-a21a-c803475eafba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Material">
+      <UniqueIdentifier>{09fdd37d-1ab3-47a3-b9b4-f972e5e2ae12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -74,6 +77,9 @@
     </QtUic>
     <QtUic Include="Texture\QColorField.ui">
       <Filter>Texture</Filter>
+    </QtUic>
+    <QtUic Include="Material\MaterialCreationWindow.ui">
+      <Filter>Material</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +213,9 @@
     <ClCompile Include="Texture\QColorField.cpp">
       <Filter>Texture</Filter>
     </ClCompile>
+    <ClCompile Include="Material\MaterialCreationWindow.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -325,6 +334,9 @@
     </QtMoc>
     <QtMoc Include="Texture\QColorField.h">
       <Filter>Texture</Filter>
+    </QtMoc>
+    <QtMoc Include="Material\MaterialCreationWindow.h">
+      <Filter>Material</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

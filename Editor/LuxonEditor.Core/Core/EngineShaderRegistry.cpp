@@ -68,6 +68,15 @@ LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(cons
 	return (shaderIT != m_registeredPrograms.end()) ? &(*shaderIT).second : nullptr;
 }
 
+std::vector<LuxonEditor::ShaderEntry*> LuxonEditor::EngineShaderRegistry::GetAllShaderEntries() const
+{
+	std::vector<ShaderEntry*> entries;
+	for (const auto& [guid, entry] : m_registeredPrograms) {
+		entries.push_back(const_cast<ShaderEntry*>(&entry));
+	}
+	return entries;
+}
+
 void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& event)
 {
 	for (auto& deleted : event.deletedFiles) {
@@ -148,21 +157,20 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 	GUID programGuid = metadataStream.GetGuid("uuid");
 	auto shaderIT = m_registeredPrograms.find(programGuid);
 
-	if (compiledProgram == nullptr) {
-		if (shaderIT != m_registeredPrograms.end()) {
-			delete (*shaderIT).second.program;
-			m_registeredPrograms.erase(shaderIT);
-		}
-		LuxonEngine::Logger::LogError(error);
-		return;
-	}
-	
 	if (shaderIT != m_registeredPrograms.end()) {
-		delete (*shaderIT).second.program;
+		if((*shaderIT).second.program)
+			delete (*shaderIT).second.program;
+
+		(*shaderIT).second.name = filePath.filename().string();
 		(*shaderIT).second.program = compiledProgram;
+		(*shaderIT).second.compileError = error;
 	}
 	else {
-		m_registeredPrograms[programGuid] = { programGuid, filePath.filename().string(), compiledProgram };
+		m_registeredPrograms[programGuid] = { programGuid, filePath.filename().string(), error, compiledProgram };
+	}
+
+	if(compiledProgram == nullptr) {
+		LuxonEngine::Logger::LogError(error);
 	}
 }
 

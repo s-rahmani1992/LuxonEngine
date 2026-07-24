@@ -3,6 +3,7 @@
 #include "Console/ConsoleLogWindow.h"
 #include "AssetBrowser/AssetBrowserWindow.h"
 #include "ShaderCreation/ShaderCreationWindow.h"
+#include "Material/MaterialCreationWindow.h"
 #include "InspecterWindow.h"
 #include "SceneEditorWindow.h"
 
@@ -19,6 +20,10 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
         ShaderCreationWindow shaderWindow(this);
         shaderWindow.exec();
         });
+    connect(ui.createMaterialMenuItem, &QAction::triggered, [this]() {
+        MaterialCreationWindow materialWindow(this);
+        materialWindow.exec();
+		});
     connect(ui.closeMenuItem, &QAction::triggered, [this]() {
         QApplication::quit();
         });

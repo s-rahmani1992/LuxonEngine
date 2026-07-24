@@ -24,6 +24,7 @@ namespace LuxonEditor {
 	struct ShaderEntry {
 		GUID guid;
 		std::string name;
+		std::string compileError;
 		LuxonEngine::Rendering::ShaderProgram* program;
 	};
 	
@@ -35,6 +36,7 @@ namespace LuxonEditor {
 		LuxonEngine::Rendering::ShaderProgram* GetProgram(GUID guid);
 		ShaderEntry* GetShaderEntry(GUID guid);
 		ShaderEntry* GetShaderEntry(const LuxonEngine::Rendering::ShaderProgram* program);
+		std::vector<ShaderEntry*> GetAllShaderEntries() const;
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		static void SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 	

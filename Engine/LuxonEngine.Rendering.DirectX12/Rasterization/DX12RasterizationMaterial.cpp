@@ -28,7 +28,6 @@ LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::DX12Rast
 	auto& resourceVariableList = reflectionData->GetResourceVariables();
 
 	for (auto& resVar : *textureFields) {
-		ref<DX12Texture2DController> dx12Texture = std::dynamic_pointer_cast<DX12Texture2DController>(resVar.second.texture->GetGPUHandle());
 		auto it = std::find_if(
 			resourceVariableList.begin(),
 			resourceVariableList.end(),
@@ -36,10 +35,12 @@ LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::DX12Rast
 				return binding.name == resVar.first;
 			});
 
+		ref<DX12Texture2DController> dx12Texture = resVar.second.texture != nullptr ? std::dynamic_pointer_cast<DX12Texture2DController>(resVar.second.texture->GetGPUHandle()) : nullptr;
+
 		m_heapValues[resVar.second.fieldIndex] = HeapData{
 			.rootParamIndex = (*it).rootParameterIndex,
 			.name = resVar.first,
-			.originalCpuHandle = dx12Texture->GetShaderView()->GetCPUDescriptorHandleForHeapStart(),
+			.originalCpuHandle = dx12Texture ? dx12Texture->GetShaderView()->GetCPUDescriptorHandleForHeapStart() : D3D12_CPU_DESCRIPTOR_HANDLE{},
 		};
 	}
 
@@ -84,12 +85,14 @@ void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::Bin
         // Copy the texture descriptor into the new heap slot immediately,
         // so it is valid even if m_modifiedTextures has already been cleared
         // (e.g. when a context is recreated for the same material).
-        m_device->CopyDescriptorsSimple(
-            1,
-            heap.cpuHandle,
-            heap.originalCpuHandle,
-            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+		if (heap.originalCpuHandle.ptr != 0) {
+			m_device->CopyDescriptorsSimple(
+				1,
+				heap.cpuHandle,
+				heap.originalCpuHandle,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		}
+        
         cpuHandle.ptr += incrementSize;
         gpuHandle.ptr += incrementSize;
     }
@@ -99,6 +102,9 @@ void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::Bin
 {
 	// Update Modified Textures
     for(auto& modified : m_material->GetModifiedTextures()) {
+		if (modified->texture == nullptr)
+			continue;
+
         auto& heapData = m_heapValues[modified->fieldIndex];
         m_device->CopyDescriptorsSimple(
             1,

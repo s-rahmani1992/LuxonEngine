@@ -153,6 +153,7 @@
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
+    <ClCompile Include="Material\MaterialCreationWindow.cpp" />
     <ClCompile Include="Mesh\MeshItem.cpp" />
     <ClCompile Include="Mesh\MeshViewWindow.cpp" />
     <ClCompile Include="Mesh\Model3DInspecterWidget.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="Windows\SplashStartWidget.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
+    <QtUic Include="Material\MaterialCreationWindow.ui" />
     <QtUic Include="Mesh\MeshItem.ui" />
     <QtUic Include="Mesh\MeshViewWindow.ui" />
     <QtUic Include="Mesh\Model3DInspecterWidget.ui" />
@@ -204,6 +206,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Material\MaterialCreationWindow.h" />
     <QtMoc Include="Texture\QColorField.h" />
     <QtMoc Include="Texture\MaterialInspecterWidget.h" />
     <QtMoc Include="Texture\QTextureField.h" />

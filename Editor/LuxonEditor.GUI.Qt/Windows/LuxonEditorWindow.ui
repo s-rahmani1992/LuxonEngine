@@ -63,6 +63,7 @@
      <string>Edit</string>
     </property>
     <addaction name="createShaderMenuItem"/>
+    <addaction name="createMaterialMenuItem"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -75,6 +76,11 @@
   <action name="createShaderMenuItem">
    <property name="text">
     <string>Create Shader</string>
+   </property>
+  </action>
+  <action name="createMaterialMenuItem">
+   <property name="text">
+    <string>Create Material</string>
    </property>
   </action>
  </widget>
