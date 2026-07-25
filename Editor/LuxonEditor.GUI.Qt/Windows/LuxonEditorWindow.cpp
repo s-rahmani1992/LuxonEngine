@@ -38,6 +38,11 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
     m_dockManager = new ads::CDockManager(ui.windowDocker);
     ui.windowDocker->layout()->addWidget(m_dockManager);
 
+    m_dockManager->setStyleSheet(m_dockManager->styleSheet() +
+        "ads--CDockSplitter::handle:horizontal { width: 3px; background-color: #222222; image: none; }"
+        "ads--CDockSplitter::handle:vertical   { height: 3px; background-color: #222222; image: none; }"
+    );
+
     m_consoleDock = AddWindow<ConsoleLogWindow>("Console", m_dockManager);
     m_assetBrowserDock = AddWindow<AssetBrowserWindow>("Browser", QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
     m_inspecterDock = AddWindow<InspecterWindow>("Inspecter", m_dockManager);
