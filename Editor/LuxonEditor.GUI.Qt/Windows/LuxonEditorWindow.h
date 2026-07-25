@@ -19,12 +19,23 @@ namespace LuxonEditor::GUI::QT {
         LuxonEditorWindow(QWidget* parent = nullptr);
         ~LuxonEditorWindow();
 
+    protected:
+        void closeEvent(QCloseEvent* event) override;
+
     private:
+        void setupDefaultDockLayout();
+        void restoreDockState();
+
         template<class T, class... Args>
         auto AddWindow(QString name, Args&&... args);
 
         Ui::LuxonEditorWindowClass ui;
-        ads::CDockManager* m_dockManager;
+        ads::CDockManager* m_dockManager = nullptr;
+        ads::CDockWidget* m_consoleDock = nullptr;
+        ads::CDockWidget* m_assetBrowserDock = nullptr;
+        ads::CDockWidget* m_inspecterDock = nullptr;
+        ads::CDockWidget* m_sceneEditorDock = nullptr;
+        ads::CDockWidget* m_sceneHierarchyDock = nullptr;
     };
 
     template<class T, class ...Args>

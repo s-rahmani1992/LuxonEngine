@@ -167,6 +167,7 @@
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Windows\SceneEditorWindow.cpp" />
+    <ClCompile Include="Windows\SceneHierarchyWindow.cpp" />
     <ClCompile Include="Windows\SplashStartWidget.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
@@ -183,6 +184,7 @@
     <QtUic Include="Windows\InspecterWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
     <QtUic Include="Windows\SceneEditorWindow.ui" />
+    <QtUic Include="Windows\SceneHierarchyWindow.ui" />
     <QtUic Include="Windows\SplashStartWidget.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +208,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Windows\SceneHierarchyWindow.h" />
     <QtMoc Include="Material\MaterialInspecterWidget.h" />
     <QtMoc Include="Material\MaterialCreationWindow.h" />
     <QtMoc Include="Texture\QColorField.h" />

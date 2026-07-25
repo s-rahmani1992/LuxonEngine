@@ -5,9 +5,12 @@
 
 namespace QT = LuxonEditor::GUI::QT;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    app.setOrganizationName("LuxonEngine");
+    app.setApplicationName("LuxonEditor");
 
     QPalette dark;
     dark.setColor(QPalette::Window, QColor(53, 53, 53));
@@ -26,7 +29,7 @@ int main(int argc, char *argv[])
 
     app.setPalette(dark);
 
-	app.setStyleSheet(R"(
+    app.setStyleSheet(R"(
         QMenuBar {
             background-color: #353535;
             color: white;
@@ -55,20 +58,20 @@ int main(int argc, char *argv[])
         .projectPath = QCoreApplication::applicationDirPath().toStdString(),
         .graphicAPI = Graphic_API::DIRECTX_12,
     };
-	std::string errorString;
-	auto engineApp = CreateEngineApplication(config, errorString);
+    std::string errorString;
+    auto engineApp = CreateEngineApplication(config, errorString);
 
     QT::SplashStartWidget splashWindow;
     splashWindow.show();
 
-	splashWindow.SetProgress(30, "Compiling Shaders...");
-	engineApp->CompileShaders();
-	splashWindow.SetProgress(60, "Loading Assets...");
+    splashWindow.SetProgress(30, "Compiling Shaders...");
+    engineApp->CompileShaders();
+    splashWindow.SetProgress(60, "Loading Assets...");
     engineApp->LoadAssets();
-	splashWindow.SetProgress(100, "Starting Editor...");
+    splashWindow.SetProgress(100, "Starting Editor...");
 
-	QT::LuxonEditorWindow mainWindow;
-	splashWindow.close();
-	mainWindow.show();
+    QT::LuxonEditorWindow mainWindow;
+    splashWindow.close();
+    mainWindow.showMaximized();
     return app.exec();
 }

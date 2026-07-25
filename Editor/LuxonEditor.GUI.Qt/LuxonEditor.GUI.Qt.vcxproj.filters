@@ -81,6 +81,9 @@
     <QtUic Include="Material\MaterialInspecterWidget.ui">
       <Filter>Material</Filter>
     </QtUic>
+    <QtUic Include="Windows\SceneHierarchyWindow.ui">
+      <Filter>Windows</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -216,6 +219,9 @@
     <ClCompile Include="Material\MaterialInspecterWidget.cpp">
       <Filter>Material</Filter>
     </ClCompile>
+    <ClCompile Include="Windows\SceneHierarchyWindow.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -337,6 +343,9 @@
     </QtMoc>
     <QtMoc Include="Material\MaterialInspecterWidget.h">
       <Filter>Material</Filter>
+    </QtMoc>
+    <QtMoc Include="Windows\SceneHierarchyWindow.h">
+      <Filter>Windows</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -6,12 +6,18 @@
 #include "Material/MaterialCreationWindow.h"
 #include "InspecterWindow.h"
 #include "SceneEditorWindow.h"
+#include "SceneHierarchyWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
 #include "../ADS/src/DockSplitter.h"
 
+#include <QSettings>
+#include <QCloseEvent>
+#include <QTimer>
 
-LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
+static const QString k_dockStateKey = "LuxonEditor/DockManagerState";
+
+LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
@@ -23,7 +29,7 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     connect(ui.createMaterialMenuItem, &QAction::triggered, [this]() {
         MaterialCreationWindow materialWindow(this);
         materialWindow.exec();
-		});
+        });
     connect(ui.closeMenuItem, &QAction::triggered, [this]() {
         QApplication::quit();
         });
@@ -32,33 +38,63 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget *parent)
     m_dockManager = new ads::CDockManager(ui.windowDocker);
     ui.windowDocker->layout()->addWidget(m_dockManager);
 
-    auto* consoleDock = AddWindow<ConsoleLogWindow>("Console", m_dockManager);
-    auto* assetBrowserDock = AddWindow<AssetBrowserWindow>("Browser", QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
-    auto* inspecterDock = AddWindow<InspecterWindow>("Inspecter", m_dockManager);
-    auto* sceneEditorDock = AddWindow<SceneEditorWindow>("Scene", m_dockManager);
+    m_consoleDock = AddWindow<ConsoleLogWindow>("Console", m_dockManager);
+    m_assetBrowserDock = AddWindow<AssetBrowserWindow>("Browser", QString::fromStdString(GetProjectPath() + "/Assets"), QString::fromStdString(GetProjectPath() + "/Assets"));
+    m_inspecterDock = AddWindow<InspecterWindow>("Inspecter", m_dockManager);
+    m_sceneEditorDock = AddWindow<SceneEditorWindow>("Scene", m_dockManager);
+    m_sceneHierarchyDock = AddWindow<SceneHierarchyWindow>("Hierarchy", m_dockManager);
 
+    // Always build the default layout first so every CDockWidget is
+    // registered in DockWidgetsMap before any restore attempt.
+    setupDefaultDockLayout();
 
-	auto* rightArea0 = m_dockManager->addDockWidget(ads::RightDockWidgetArea, inspecterDock);
-    auto* leftArea0 = m_dockManager->addDockWidget(ads::LeftDockWidgetArea, sceneEditorDock);
-
-    auto* splitter = leftArea0->parentSplitter();
-
-    int total = splitter->width();
-    int left = total * 0.8;
-    int right = total * 0.2;
-
-    splitter->setSizes({ left, right });
-
-    auto* bottomArea0 = m_dockManager->addDockWidget(ads::BottomDockWidgetArea, consoleDock, leftArea0);
-
-	splitter = bottomArea0->parentSplitter();
-	total = splitter->height();
-    int top = total * 0.5;
-    int bottom = total * 0.5;
-	splitter->setSizes({ top, bottom });
-
-    m_dockManager->addDockWidget(ads::RightDockWidgetArea, assetBrowserDock, bottomArea0);
+    // Defer restore until after show() so the dock manager has real dimensions.
+    QTimer::singleShot(0, this, &LuxonEditorWindow::restoreDockState);
 }
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::~LuxonEditorWindow()
-{}
+{
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::closeEvent(QCloseEvent* event)
+{
+    QSettings settings;
+    settings.setValue(k_dockStateKey, m_dockManager->saveState());
+    QMainWindow::closeEvent(event);
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::setupDefaultDockLayout()
+{
+    auto* rightArea0 = m_dockManager->addDockWidget(ads::RightDockWidgetArea, m_inspecterDock);
+    auto* leftArea0 = m_dockManager->addDockWidget(ads::LeftDockWidgetArea, m_sceneEditorDock);
+
+    auto* splitter = leftArea0->parentSplitter();
+    int total = splitter->width();
+    splitter->setSizes({ (int)(total * 0.7), (int)(total * 0.3) });
+
+    auto* bottomArea0 = m_dockManager->addDockWidget(ads::BottomDockWidgetArea, m_consoleDock, leftArea0);
+    splitter = bottomArea0->parentSplitter();
+    total = splitter->height();
+    splitter->setSizes({ (int)(total * 0.5), (int)(total * 0.5) });
+
+    auto* bottomRightArea = m_dockManager->addDockWidget(ads::RightDockWidgetArea, m_assetBrowserDock, bottomArea0);
+    splitter = bottomRightArea->parentSplitter();
+    total = splitter->width();
+    splitter->setSizes({ (int)(total * 0.5), (int)(total * 0.5) });
+
+    m_dockManager->addDockWidget(ads::LeftDockWidgetArea, m_sceneHierarchyDock, leftArea0);
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::restoreDockState()
+{
+    QSettings settings;
+    if (settings.contains(k_dockStateKey))
+    {
+        QByteArray savedState = settings.value(k_dockStateKey).toByteArray();
+        if (!m_dockManager->restoreState(savedState))
+        {
+            // Saved state was invalid or from an older layout — discard it.
+            settings.remove(k_dockStateKey);
+        }
+    }
+}
