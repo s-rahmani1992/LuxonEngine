@@ -25,7 +25,10 @@ namespace LuxonEditor::GUI::QT {
     private:
         void setupDefaultDockLayout();
         void restoreDockState();
-
+		void SetupMenuItems(ads::CDockWidget* dockWidget, QAction* menuItem);
+        void OnMenuItemTriggered(ads::CDockWidget* dockWidget, QAction* menuItem);
+		void UpdateDockWidgetMenuItemState(ads::CDockWidget* dockWidget, QAction* menuItem);
+        
         template<class T, class... Args>
         auto AddWindow(QString name, Args&&... args);
 

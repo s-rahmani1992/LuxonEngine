@@ -81,8 +81,25 @@
     <addaction name="createShaderMenuItem"/>
     <addaction name="createMaterialMenuItem"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuWindow">
+     <property name="title">
+      <string>Window</string>
+     </property>
+     <addaction name="consoleWindowMenuItem"/>
+     <addaction name="inspecterMenuItem"/>
+     <addaction name="assetBrowserMenuItem"/>
+     <addaction name="sceneViewMenuItem"/>
+     <addaction name="sceneHierarchyMenuItem"/>
+    </widget>
+    <addaction name="menuWindow"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
   </widget>
   <action name="closeMenuItem">
    <property name="text">
@@ -97,6 +114,46 @@
   <action name="createMaterialMenuItem">
    <property name="text">
     <string>Create Material</string>
+   </property>
+  </action>
+  <action name="consoleWindowMenuItem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Console</string>
+   </property>
+  </action>
+  <action name="inspecterMenuItem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Inspecter</string>
+   </property>
+  </action>
+  <action name="assetBrowserMenuItem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Asset Browser</string>
+   </property>
+  </action>
+  <action name="sceneViewMenuItem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Scene View</string>
+   </property>
+  </action>
+  <action name="sceneHierarchyMenuItem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Scene Hierarchy</string>
    </property>
   </action>
  </widget>

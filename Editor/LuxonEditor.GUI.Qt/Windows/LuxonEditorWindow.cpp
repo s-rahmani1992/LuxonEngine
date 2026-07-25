@@ -50,6 +50,12 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
 
     // Defer restore until after show() so the dock manager has real dimensions.
     QTimer::singleShot(0, this, &LuxonEditorWindow::restoreDockState);
+
+	SetupMenuItems(m_consoleDock, ui.consoleWindowMenuItem);
+	SetupMenuItems(m_inspecterDock, ui.inspecterMenuItem);
+	SetupMenuItems(m_assetBrowserDock, ui.assetBrowserMenuItem);
+	SetupMenuItems(m_sceneEditorDock, ui.sceneViewMenuItem);
+	SetupMenuItems(m_sceneHierarchyDock, ui.sceneHierarchyMenuItem);
 }
 
 LuxonEditor::GUI::QT::LuxonEditorWindow::~LuxonEditorWindow()
@@ -61,6 +67,20 @@ void LuxonEditor::GUI::QT::LuxonEditorWindow::closeEvent(QCloseEvent* event)
     QSettings settings;
     settings.setValue(k_dockStateKey, m_dockManager->saveState());
     QMainWindow::closeEvent(event);
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::OnMenuItemTriggered(ads::CDockWidget* dockWidget, QAction* menuItem)
+{
+    if (!dockWidget->isClosed())
+        return;
+
+    dockWidget->toggleView(true);
+	UpdateDockWidgetMenuItemState(dockWidget, menuItem);
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::UpdateDockWidgetMenuItemState(ads::CDockWidget* dockWidget, QAction* menuItem)
+{
+    menuItem->setChecked(!dockWidget->isClosed());
 }
 
 void LuxonEditor::GUI::QT::LuxonEditorWindow::setupDefaultDockLayout()
@@ -97,4 +117,23 @@ void LuxonEditor::GUI::QT::LuxonEditorWindow::restoreDockState()
             settings.remove(k_dockStateKey);
         }
     }
+
+	UpdateDockWidgetMenuItemState(m_consoleDock, ui.consoleWindowMenuItem);
+	UpdateDockWidgetMenuItemState(m_inspecterDock, ui.inspecterMenuItem);
+	UpdateDockWidgetMenuItemState(m_assetBrowserDock, ui.assetBrowserMenuItem);
+	UpdateDockWidgetMenuItemState(m_sceneEditorDock, ui.sceneViewMenuItem);
+	UpdateDockWidgetMenuItemState(m_sceneHierarchyDock, ui.sceneHierarchyMenuItem);
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::SetupMenuItems(ads::CDockWidget* dockWidget, QAction* menuItem)
+{
+    connect(menuItem, &QAction::triggered, [this, dockWidget, menuItem]() {
+        OnMenuItemTriggered(dockWidget, menuItem);
+        });
+
+    connect(dockWidget, &ads::CDockWidget::closed, [this, dockWidget, menuItem]() {
+        UpdateDockWidgetMenuItemState(dockWidget, menuItem);
+        });
+    
+	UpdateDockWidgetMenuItemState(dockWidget, menuItem);
 }
