@@ -9,6 +9,17 @@ LuxonEditor::GUI::QT::ConsoleLogWindow::ConsoleLogWindow(QWidget *parent)
 {
 	ui.setupUi(this);
 
+    auto uiLayout = qobject_cast<QHBoxLayout*>(ui.uiPanel->layout());
+
+    int clearButtonIndex = uiLayout->indexOf(ui.clearButton);
+    if (clearButtonIndex > 0)
+        uiLayout->insertStretch(clearButtonIndex, 1);
+
+    uiLayout->setAlignment(ui.logFilterCheckBox, Qt::AlignLeft);
+    uiLayout->setAlignment(ui.warningFilterCheckBox, Qt::AlignLeft);
+    uiLayout->setAlignment(ui.errorFilterCheckBox, Qt::AlignLeft);
+    uiLayout->setAlignment(ui.clearButton, Qt::AlignRight);
+
     m_logModel = new LogModel();
     m_filter = new LogFilter();
     m_filter->setSourceModel(m_logModel);

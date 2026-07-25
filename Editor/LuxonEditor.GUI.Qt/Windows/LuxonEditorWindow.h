@@ -44,6 +44,7 @@ namespace LuxonEditor::GUI::QT {
         T* window = new T(std::forward<Args>(args)...);
         auto* dock = m_dockManager->createDockWidget(name);
         dock->setWidget(window);
+        dock->setMinimumSizeHintMode(ads::CDockWidget::MinimumSizeHintFromContentMinimumSize);
         return dock;
     }
 }
