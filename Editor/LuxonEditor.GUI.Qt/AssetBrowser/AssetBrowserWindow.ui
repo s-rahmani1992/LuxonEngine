@@ -10,6 +10,12 @@
     <height>400</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>0</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>AssetBrowserWindow</string>
   </property>
@@ -36,7 +42,10 @@
          <height>30</height>
         </size>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout" stretch="">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>3</number>
+        </property>
         <property name="sizeConstraint">
          <enum>QLayout::SizeConstraint::SetFixedSize</enum>
         </property>
@@ -51,6 +60,9 @@
      </item>
      <item>
       <widget class="QListView" name="contentListView">
+       <property name="verticalScrollMode">
+        <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+       </property>
        <property name="spacing">
         <number>5</number>
        </property>

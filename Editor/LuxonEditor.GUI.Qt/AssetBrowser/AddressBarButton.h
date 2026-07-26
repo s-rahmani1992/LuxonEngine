@@ -16,6 +16,7 @@ namespace LuxonEditor::GUI::QT {
 		QString path() const { return m_path; }
 
 	protected:
+		bool event(QEvent* event) override;
 		void dragEnterEvent(QDragEnterEvent* event) override;
 		void dragMoveEvent(QDragMoveEvent* event) override;
 		void dragLeaveEvent(QDragLeaveEvent* event) override;

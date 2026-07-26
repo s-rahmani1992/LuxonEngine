@@ -37,10 +37,15 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
 		SerializationStream stream;
 		stream.LoadFromFile(filePath + ".json");
 		auto guid = stream.GetGuid("uuid");
-		auto texture = GetAssetManager()->GetTexture(guid); 
+		auto texture = GetAssetManager()->GetTexture(guid);
+		int iterationCount = 0;
 		while (texture == nullptr) { //TODO: This is a hacky solution, we should have a better way to handle this to render after file import
             texture = GetAssetManager()->GetTexture(guid);
+            iterationCount++;
+			if (iterationCount > 100)
+                return;
 		}
+
         QImage::Format format = texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? QImage::Format_RGBA8888 : QImage::Format_ARGB32;
         
         p->drawImage(iconRect, QImage(
@@ -121,8 +126,30 @@ void LuxonEditor::GUI::QT::PathItemStyle::updateEditorGeometry(QWidget* editor, 
 QImage LuxonEditor::GUI::QT::PathItemStyle::GetIconForIndex(const QModelIndex& idx) const
 {
     auto fileInfo = m_fileModel->fileInfo(idx);
+    auto ext = fileInfo.suffix().toLower();
     if (fileInfo.isDir())
         return m_folderIcon;
+    else if(ext == "hlsl" || ext == "hlsli")
+		return m_hlslIcon;
+    else if (ext == "png" || ext == "jpeg" || ext == "jpg") {
+        std::string filePath = fileInfo.absoluteFilePath().toStdString();
+        SerializationStream stream;
+        stream.LoadFromFile(filePath + ".json");
+        auto guid = stream.GetGuid("uuid");
+        auto texture = GetAssetManager()->GetTexture(guid);
+        QImage::Format format = texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? QImage::Format_RGBA8888 : QImage::Format_ARGB32;
+
+        return QImage(
+            texture->GetData(),
+            texture->GetWidth(),
+            texture->GetHeight(),
+            format
+        );
+    }
+    else if(ext == "fbx" || ext == "obj")
+		return m_modelIcon;
+    else if(ext == "lmat")
+		return m_materialIcon;
     else
 		return m_fileIcon;
 }

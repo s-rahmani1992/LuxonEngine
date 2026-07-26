@@ -1,6 +1,7 @@
 #include "AddressBarButton.h"
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QEvent>
 #include <QMimeData>
 #include <Core/Logger.h>
 #include <qstyle.h>
@@ -17,11 +18,34 @@ AddressBarButton::AddressBarButton(QWidget* parent)
 	setAcceptDrops(true);
 	setAutoRaise(true);
 	setCursor(Qt::PointingHandCursor);
+	setAttribute(Qt::WA_Hover, true);
 
 	m_originalPalette = palette();
 	m_hasOriginalPalette = true;
 
 	setAutoFillBackground(false);
+}
+
+bool AddressBarButton::event(QEvent* event)
+{
+	if (event->type() == QEvent::HoverEnter)
+	{
+		QPalette pal = m_originalPalette;
+		pal.setColor(QPalette::Button, QColor(80, 80, 80));
+		setAutoFillBackground(true);
+		setPalette(pal);
+		update();
+	}
+	else if (event->type() == QEvent::HoverLeave)
+	{
+		if (m_hasOriginalPalette) {
+			setPalette(m_originalPalette);
+		}
+		setAutoFillBackground(false);
+		update();
+	}
+
+	return QToolButton::event(event);
 }
 
 void AddressBarButton::dragEnterEvent(QDragEnterEvent* event)
