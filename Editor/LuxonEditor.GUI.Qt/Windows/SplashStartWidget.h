@@ -16,6 +16,7 @@ namespace LuxonEditor::GUI::QT {
 		void SetProgress(int value, const std::string& status) {
 			ui.progressBar->setValue(value);
 			ui.statusLabel->setText(QString::fromStdString(status));
+			QApplication::processEvents();
 		}
 
 	protected:

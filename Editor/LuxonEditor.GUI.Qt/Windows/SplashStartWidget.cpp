@@ -1,4 +1,5 @@
 #include "SplashStartWidget.h"
+#include <QGraphicsDropShadowEffect>
 
 namespace LuxonEditor::GUI::QT {
 	SplashStartWidget::SplashStartWidget(QWidget* parent)
@@ -19,6 +20,13 @@ namespace LuxonEditor::GUI::QT {
 			"  border-radius: 3px;"
 			"}"
 		);
+
+		QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect;
+		effect->setBlurRadius(20);
+		effect->setOffset(2, 2);
+		effect->setColor(Qt::darkRed);
+
+		ui.engineLabel->setGraphicsEffect(effect);
 	}
 
 	SplashStartWidget::~SplashStartWidget()

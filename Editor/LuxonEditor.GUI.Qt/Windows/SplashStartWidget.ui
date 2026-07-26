@@ -10,6 +10,11 @@
     <height>400</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>Mongolian Baiti</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>SplashStartWidget</string>
   </property>
@@ -19,7 +24,7 @@
      <x>50</x>
      <y>340</y>
      <width>531</width>
-     <height>64</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -31,6 +36,11 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="statusLabel">
+      <property name="font">
+       <font>
+        <family>Segoe UI</family>
+       </font>
+      </property>
       <property name="text">
        <string>TextLabel</string>
       </property>
@@ -42,7 +52,7 @@
     <item>
      <widget class="QProgressBar" name="progressBar">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -50,7 +60,7 @@
       <property name="minimumSize">
        <size>
         <width>400</width>
-        <height>24</height>
+        <height>18</height>
        </size>
       </property>
       <property name="maximum">
@@ -65,6 +75,37 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="engineLabel">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>0</y>
+     <width>561</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Cooper</family>
+     <pointsize>55</pointsize>
+     <bold>true</bold>
+     <strikeout>false</strikeout>
+     <kerning>true</kerning>
+    </font>
+   </property>
+   <property name="text">
+    <string>Luxun Engine</string>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::TextInteractionFlag::NoTextInteraction</set>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
