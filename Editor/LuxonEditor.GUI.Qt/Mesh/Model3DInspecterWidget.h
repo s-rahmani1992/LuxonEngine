@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "ui_Model3DInspecterWidget.h"
+#include <Core/SerializationStream.h>
 
 class QVector3Field;
 class QFloatField;
@@ -11,6 +12,8 @@ namespace LuxonEngine {
 }
 
 namespace LuxonEditor::GUI::QT {
+	class MeshItem;
+
 	class Model3DInspecterWidget : public QWidget
 	{
 		Q_OBJECT
@@ -25,9 +28,12 @@ namespace LuxonEditor::GUI::QT {
 	private:
 		Ui::Model3DInspecterWidgetClass ui;
 		std::vector<LuxonEngine::SerializationStream> m_meshes;
+		std::vector<MeshItem*> m_meshItems;
 		QVector3Field* m_positionField;
 		QFloatField* m_rotationAngleField;
 		QVector3Field* m_rotationAxisField;
 		QVector3Field* m_scaleField;
+
+		LuxonEngine::SerializationStream m_stream;
 	};
 }

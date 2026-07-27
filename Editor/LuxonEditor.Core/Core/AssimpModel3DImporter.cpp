@@ -40,11 +40,10 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
     
     Matrix4 rotationMatrix = Matrix4::Rotate(transformProps.axis, transformProps.angleDeg);
     Matrix4 transformMatrix = Matrix4::Translate(transformProps.position) * Matrix4::Scale(transformProps.scale) * rotationMatrix;
-
+    auto meshArray = stream.Array("meshes");
     // Build a map from mesh index -> UUID using the "meshes" array in the stream
     std::map<int, boost::uuids::uuid> meshIndexToGuid;
     {
-        auto meshArray = stream.Array("meshes");
         for (auto& meshEntry : meshArray) {
             int index = meshEntry.GetInt("index", -1);
             auto guid = meshEntry.GetGuid("uuid");
@@ -99,7 +98,13 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
         }
 
         if (assetRegistry != nullptr) {
-            assetRegistry->AddMesh(meshGuid, mesh);
+            std::string n;
+
+            if(meshArray[i].GetString("imported_name", n) == false) {
+                meshArray[i].GetString("name", n);
+			}
+
+            assetRegistry->AddMesh(meshGuid, n, mesh);
         }
 
         meshes.push_back(std::make_pair(std::string(paiMesh->mName.C_Str()), mesh));

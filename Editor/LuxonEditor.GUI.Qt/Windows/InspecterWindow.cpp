@@ -53,7 +53,7 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			Model3DInspecterWidget* modelWidget = new Model3DInspecterWidget(ui.container, &m_stream);
 			
 			connect(modelWidget, &Model3DInspecterWidget::PropertyUpdated, this, [this](LuxonEngine::SerializationStream* stream) {
-				m_stream.SetObject("transform", *stream);
+				m_stream = *stream;
 				std::string b = m_stream.ToString();
 				m_stream.SaveToFile(m_metaPath);
 				});

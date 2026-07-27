@@ -5,7 +5,7 @@
 #include <QPainter>
 
 LuxonEditor::GUI::QT::MeshItem::MeshItem(QWidget* parent, LuxonEngine::SerializationStream* stream)
-	: QWidget(parent)
+	: QWidget(parent), m_originalStream(*stream), m_currentStream(*stream)
 {
 	ui.setupUi(this);
 	this->setProperty("tag", "MeshItemClass");
@@ -16,7 +16,10 @@ LuxonEditor::GUI::QT::MeshItem::MeshItem(QWidget* parent, LuxonEngine::Serializa
 	ui.infoPanel->layout()->setAlignment(ui.meshName, Qt::AlignLeft);
 	ui.infoPanel->layout()->setAlignment(ui.importNameField, Qt::AlignLeft);
 
-	ui.importNameField->InputText()->setText(name);
+	char* importedName = nullptr;
+	if (stream->GetString("imported_name", &importedName) == false)
+		importedName = name;
+	ui.importNameField->InputText()->setText(importedName);
 
 	connect(ui.viewButton, &QPushButton::clicked, this, [this, stream]() {
 		MeshViewWindow* window = new MeshViewWindow(this, stream);
@@ -24,10 +27,30 @@ LuxonEditor::GUI::QT::MeshItem::MeshItem(QWidget* parent, LuxonEngine::Serializa
 		window->setWindowTitle("Mesh Viewer - " + ui.meshName->text());
 		window->exec();
 		});
+
+	connect(ui.importNameField, &QTextField::ValueChanged, this, [this](bool isValid) {
+		if (isValid)
+		{
+			QString newName = ui.importNameField->InputText()->text();
+			m_currentStream.SetString("imported_name", newName.toStdString());
+		}
+		else
+		{
+			m_currentStream.SetString("imported_name", ui.meshName->text().toStdString());
+		}
+		});
 }
 
 LuxonEditor::GUI::QT::MeshItem::~MeshItem()
 {
+}
+
+void LuxonEditor::GUI::QT::MeshItem::Revert()
+{
+	char* originalName;
+	if(m_originalStream.GetString("imported_name", &originalName) == false)
+		m_originalStream.GetString("name", &originalName);
+	ui.importNameField->InputText()->setText(originalName);
 }
 
 void LuxonEditor::GUI::QT::MeshItem::paintEvent(QPaintEvent* event)

@@ -5,7 +5,7 @@
 #include <Widgets/QVector3Field.h>
 
 LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *parent, LuxonEngine::SerializationStream* stream)
-	: QWidget(parent)
+	: QWidget(parent), m_stream(*stream)
 {
 	ui.setupUi(this);
 	ui.transformPanel->setStyleSheet(ui.transformPanel->styleSheet() + "#transformPanel {border: 1px solid #f1f1f1; border-radius: 12px; }");
@@ -41,8 +41,9 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 	m_scaleField->setLabelText("Scale");
 	m_scaleField->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_scaleField->setValue(properties.scale);
-	ui.scrollArea->setWidget(ui.meshList);
 
+
+	ui.scrollArea->setWidget(ui.meshList);
 	ui.scrollArea->setStyleSheet(ui.scrollArea->styleSheet() + "#scrollArea { padding-left: 6px; border-radius: 12px; border: 1px solid #f1f1f1; }");
 
 	m_meshes = stream->Array("meshes");
@@ -52,6 +53,7 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 		MeshItem* item = new MeshItem(ui.meshList, &meshStream);
 		ui.meshList->layout()->addWidget(item);
 		ui.meshList->layout()->setAlignment(item, Qt::AlignTop);
+		m_meshItems.push_back(item);
 	}
 
 	connect(ui.importButton, &QPushButton::clicked, this, [this, stream]() {
@@ -62,7 +64,34 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 		properties.scale = m_scaleField->value();
 		SerializationStream propStream;
 		AssimpModel3DImporter::SerializePropertiesToStream(properties, &propStream);
-		emit PropertyUpdated(&propStream);
+		std::vector<SerializationStream> meshesStream;
+
+		for (auto& meshItem : m_meshItems)
+		{
+			meshItem->ApplyChanges();
+			meshesStream.push_back(*meshItem->GetCurrentStream());
+		}
+
+		//SerializationStream mesheImportStream;
+		m_stream.SetArray("meshes", meshesStream);
+		m_stream.SetObject("transform", propStream);
+
+		emit PropertyUpdated(&m_stream);
+		});
+
+	connect(ui.revertButton, &QPushButton::clicked, this, [this]() {
+		for (auto& meshItem : m_meshItems)
+		{
+			meshItem->Revert();
+		}
+		ModelImportProperties properties;
+		auto transformStream = m_stream.Object("transform");
+		AssimpModel3DImporter::FillPropertiesFromStream(&transformStream, properties);
+
+		m_positionField->setValue(properties.position);
+		m_rotationAngleField->setValue(properties.angleDeg);
+		m_rotationAxisField->setValue(properties.axis);
+		m_scaleField->setValue(properties.scale);
 		});
 }
 

@@ -43,8 +43,9 @@ void QTextField::Validate()
 		else {
 			ui.inputText->setStyleSheet("border: none;");
 		}
-		emit ValueChanged(m_hasValidValue);
 	}
+
+	emit ValueChanged(m_hasValidValue);
 }
 
 char* QTextField::GetText()
@@ -63,7 +64,6 @@ void QTextField::OnTextChanged(const QString& text)
 		else {
 			ui.inputText->setStyleSheet("border: none;");
 		}
-
-		emit ValueChanged(m_hasValidValue);
 	}
+	emit ValueChanged(m_hasValidValue);
 }

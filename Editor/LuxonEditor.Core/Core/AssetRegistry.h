@@ -26,7 +26,7 @@ namespace LuxonEditor {
 		void RenamePath(const std::string& oldRelativePath, const std::string& newName);
 		void MovePath(const std::string& oldRelativePath, const std::string& folderRelativePath);
 	
-		void AddMesh(boost::uuids::uuid guid, const ref<LuxonEngine::Mesh>& mesh);
+		void AddMesh(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Mesh>& mesh);
 		void AddTexture(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Texture2D>& texture);
 		void AddMaterial(boost::uuids::uuid guid, const ref<LuxonEngine::Rendering::Material>& material);
 		ref<LuxonEngine::Mesh> GetMesh(boost::uuids::uuid guid);
@@ -35,7 +35,7 @@ namespace LuxonEditor {
 
 		std::vector<AssetEntry<LuxonEngine::Texture2D>*> GetAllTextureEntries();
 		AssetEntry<LuxonEngine::Texture2D>* GetTextureEntry(const ref<LuxonEngine::Texture2D> texture);
-
+		AssetEntry<LuxonEngine::Mesh>* GetMeshEntry(const ref<LuxonEngine::Mesh> mesh);
 		void ImportAllAssets();
 		void ImportAsset(const fs::path& filePath);
 		void ImportEngineAsset(const fs::path& filePath);
@@ -44,10 +44,9 @@ namespace LuxonEditor {
 	private:
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;
-
-		std::map<boost::uuids::uuid, ref<LuxonEngine::Mesh>> m_meshes;
 		std::map<boost::uuids::uuid, ref<LuxonEngine::Rendering::Material>> m_materials;
 
 		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Texture2D>> m_textureEntries;
+		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Mesh>> m_meshEntries;
 	};
 }

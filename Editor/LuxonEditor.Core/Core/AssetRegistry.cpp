@@ -90,19 +90,19 @@ void LuxonEditor::AssetRegistry::MovePath(const std::string& oldRelativePath, co
 	}
 }
 
-void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const ref<LuxonEngine::Mesh>& mesh)
+void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Mesh>& mesh)
 {
-	auto it = m_meshes.find(guid);
+	auto it = m_meshEntries.find(guid);
 
-	if(it != m_meshes.end()) {
+	if(it != m_meshEntries.end()) {
 
-		(*it).second->Release();
-		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh((*it).second);
-
-		(*it).second = mesh;
+		(*it).second.asset->Release();
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh((*it).second.asset);
+		(*it).second.name = name;
+		(*it).second.asset = mesh;
 	}
 	else {
-		m_meshes.emplace(guid, mesh);
+		m_meshEntries.emplace(guid, AssetEntry<LuxonEngine::Mesh>{ mesh, guid, name });
 	}
 }
 
@@ -132,8 +132,8 @@ void LuxonEditor::AssetRegistry::AddMaterial(boost::uuids::uuid guid, const ref<
 
 ref<LuxonEngine::Mesh> LuxonEditor::AssetRegistry::GetMesh(boost::uuids::uuid guid)
 {
-	auto it = m_meshes.find(guid);
-	return (it != m_meshes.end()) ? (*it).second : nullptr;
+	auto it = m_meshEntries.find(guid);
+	return (it != m_meshEntries.end()) ? (*it).second.asset : nullptr;
 }
 
 ref<LuxonEngine::Texture2D> LuxonEditor::AssetRegistry::GetTexture(boost::uuids::uuid guid)
@@ -169,6 +169,15 @@ LuxonEditor::AssetEntry<LuxonEngine::Texture2D>* LuxonEditor::AssetRegistry::Get
 		});
 
 	return (it != m_textureEntries.end()) ? &it->second : nullptr;
+}
+
+LuxonEditor::AssetEntry<LuxonEngine::Mesh>* LuxonEditor::AssetRegistry::GetMeshEntry(const ref<LuxonEngine::Mesh> mesh)
+{
+	auto it = std::find_if(m_meshEntries.begin(), m_meshEntries.end(), [&mesh](const auto& pair) {
+		return pair.second.asset == mesh;
+		});
+
+	return (it != m_meshEntries.end()) ? &it->second : nullptr;
 }
 
 void LuxonEditor::AssetRegistry::ImportAllAssets()
@@ -308,7 +317,7 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 			if(mesh) {
 				mesh->Release();
 				EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh(mesh);
-				m_meshes.erase(meshGuid);
+				m_meshEntries.erase(meshGuid);
 			}
 		}
 	}
