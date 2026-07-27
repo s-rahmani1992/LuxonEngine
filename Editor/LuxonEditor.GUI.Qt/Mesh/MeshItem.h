@@ -16,6 +16,9 @@ namespace LuxonEditor::GUI::QT {
 		MeshItem(QWidget* parent = nullptr, LuxonEngine::SerializationStream* stream = nullptr);
 		~MeshItem();
 
+	protected:
+		void paintEvent(QPaintEvent* event) override;
+
 	private:
 		Ui::MeshItemClass ui;
 	};

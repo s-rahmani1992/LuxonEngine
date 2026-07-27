@@ -7,6 +7,9 @@ QVector3Field::QVector3Field(QWidget *parent)
 	ui.fields->layout()->setAlignment(ui.xField, Qt::AlignTop);
 	ui.fields->layout()->setAlignment(ui.yField, Qt::AlignTop);
 	ui.fields->layout()->setAlignment(ui.zField, Qt::AlignTop);
+
+	ui.label->setStyleSheet(ui.label->styleSheet() + "#label { padding-top: 5px; }");
+
 	ui.horizontalLayout->setAlignment(ui.label, Qt::AlignTop);
 
 	connect(ui.xField, &QFloatField::ValueChanged, this, &QVector3Field::OnXChanged);

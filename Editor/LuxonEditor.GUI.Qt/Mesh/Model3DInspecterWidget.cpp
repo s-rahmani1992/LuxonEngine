@@ -8,7 +8,8 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-
+	ui.transformPanel->setStyleSheet(ui.transformPanel->styleSheet() + "#transformPanel {border: 1px solid #f1f1f1; border-radius: 12px; }");
+	ui.transformPanel->layout()->setAlignment(ui.transformTitle, Qt::AlignTop);
 	LuxonEditor::ModelImportProperties properties;
 	auto transformStream = stream->Object("transform");
 	AssimpModel3DImporter::FillPropertiesFromStream(&transformStream, properties);
@@ -40,8 +41,9 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 	m_scaleField->setLabelText("Scale");
 	m_scaleField->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_scaleField->setValue(properties.scale);
+	ui.scrollArea->setWidget(ui.meshList);
 
-	ui.meshList->setStyleSheet("#meshList { background-color: #2b2b5b; }");
+	ui.scrollArea->setStyleSheet(ui.scrollArea->styleSheet() + "#scrollArea { padding-left: 6px; border-radius: 12px; border: 1px solid #f1f1f1; }");
 
 	m_meshes = stream->Array("meshes");
 

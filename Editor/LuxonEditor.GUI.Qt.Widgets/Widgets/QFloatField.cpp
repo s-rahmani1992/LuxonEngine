@@ -5,6 +5,8 @@ QFloatField::QFloatField(QWidget* parent)
 {
 	ui.setupUi(this);
 
+	layout()->setAlignment(ui.label, Qt::AlignLeft);
+
 	m_validator = new QDoubleValidator(this);
 	m_validator->setNotation(QDoubleValidator::StandardNotation);
 	ui.inputText->setValidator(m_validator);

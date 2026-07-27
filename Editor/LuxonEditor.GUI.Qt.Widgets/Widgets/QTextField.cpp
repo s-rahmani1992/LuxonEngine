@@ -4,7 +4,7 @@ QTextField::QTextField(QWidget* parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-
+	layout()->setAlignment(ui.label, Qt::AlignLeft);
 	connect(ui.inputText, &QLineEdit::textChanged, this, [this](const QString& text) {
 		OnTextChanged(text);
 		});
