@@ -31,6 +31,9 @@
     <Filter Include="Material">
       <UniqueIdentifier>{09fdd37d-1ab3-47a3-b9b4-f972e5e2ae12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{c652bff7-af78-4caf-8927-af03b411809c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -83,6 +86,9 @@
     </QtUic>
     <QtUic Include="Windows\SceneHierarchyWindow.ui">
       <Filter>Windows</Filter>
+    </QtUic>
+    <QtUic Include="Core\TransformWidget.ui">
+      <Filter>Core</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -222,6 +228,9 @@
     <ClCompile Include="Windows\SceneHierarchyWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Core\TransformWidget.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -346,6 +355,9 @@
     </QtMoc>
     <QtMoc Include="Windows\SceneHierarchyWindow.h">
       <Filter>Windows</Filter>
+    </QtMoc>
+    <QtMoc Include="Core\TransformWidget.h">
+      <Filter>Core</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -4,15 +4,30 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <StringUtilities.h>
+#include "../Core/TransformWidget.h"
+#include <QSplitter>
 
 MeshViewWindow::MeshViewWindow(QWidget *parent, LuxonEngine::SerializationStream* stream)
 	: QDialog(parent), m_stream(stream)
 {
 	ui.setupUi(this);
 	ui.context->setAttribute(Qt::WA_NativeWindow);
-	ui.panel->layout()->setAlignment(ui.vectexLabel, Qt::AlignTop);
-	ui.panel->layout()->setAlignment(ui.triangleLabel, Qt::AlignTop);
-	layout()->setAlignment(ui.panel, Qt::AlignTop);
+	ui.panel->layout()->setAlignment(ui.infoPanel, Qt::AlignTop);
+	ui.panel->layout()->setAlignment(ui.transformPanel, Qt::AlignTop);
+	ui.infoPanel->setStyleSheet(ui.infoPanel->styleSheet() + "#infoPanel { border: 1px solid #555555; border-radius: 5px; }");
+	ui.transformPanel->setStyleSheet(ui.transformPanel->styleSheet() + "#transformPanel { border: 1px solid #555555; border-radius: 5px; }");
+
+	m_transformWidget = new TransformWidget(ui.transformPanel);
+	ui.transformPanel->layout()->addWidget(m_transformWidget);
+	ui.transformPanel->layout()->setAlignment(m_transformWidget, Qt::AlignTop);
+	m_transformWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
+	connect(m_transformWidget, &TransformWidget::ValueChanged, this, [this]() {
+		if(m_context && m_scene)
+			m_context->Render();
+		});
+
+	static_cast<QVBoxLayout*>(ui.panel->layout())->addStretch(1);
 
 	auto id = m_stream->GetGuid("uuid");
 	m_mesh = GetAssetManager()->GetMesh(id);
@@ -22,6 +37,26 @@ MeshViewWindow::MeshViewWindow(QWidget *parent, LuxonEngine::SerializationStream
 
 	ui.vectexLabel->setText("Vertex Count: " + QString::number(m_mesh->GetVertexCount()));
 	ui.triangleLabel->setText("Triangle Count: " + QString::number(m_mesh->GetIndexCount() / 3));
+	
+	delete this->layout();
+
+	QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
+	splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QBoxLayout* mainLayout = new QBoxLayout(QBoxLayout::LeftToRight, this);
+	mainLayout->setContentsMargins(0, 0, 0, 0);
+	mainLayout->addWidget(splitter, 1);
+	setLayout(mainLayout);
+	splitter->setHandleWidth(2);
+	splitter->setStyleSheet(splitter->styleSheet() +
+		"QSplitter::handle { background: #444444 }"
+		"QSplitter::handle:hover { background: #666666; }"
+	);
+
+	splitter->addWidget(ui.context);
+	splitter->addWidget(ui.panel);
+	splitter->setCollapsible(0, false);
+	splitter->setCollapsible(1, false);
+	ui.context->installEventFilter(this);
 }
 
 MeshViewWindow::~MeshViewWindow()
@@ -30,9 +65,12 @@ MeshViewWindow::~MeshViewWindow()
 		m_context->Flush();
 }
 
-void MeshViewWindow::resizeEvent(QResizeEvent * event)
+void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 {
 	auto size = ui.context->size();
+
+	if(size.width() <= 0 || size.height() <= 0)
+		return;
 
 	if (m_context == nullptr) {
 		HWND h = (HWND)ui.context->winId();
@@ -85,6 +123,7 @@ void MeshViewWindow::resizeEvent(QResizeEvent * event)
 		m_scene->behaviours = { };
 		m_scene->rtGlobalMaterial = nullptr;
 		m_context->PrepareScene(m_scene);
+		m_transformWidget->SetTransform(meshTransform);
 	}
 
 	std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
@@ -147,5 +186,20 @@ void MeshViewWindow::keyPressEvent(QKeyEvent* event)
 
 void MeshViewWindow::paintEvent(QPaintEvent* event)
 {
+	if(m_context == nullptr || m_scene == nullptr)
+		return;
 	m_context->Render();
+}
+
+bool MeshViewWindow::eventFilter(QObject* widget, QEvent* event)
+{
+	if(widget == ui.context)
+	{
+		if(event->type() == QEvent::Resize)
+		{
+			QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
+			resizeEvent1(resizeEvent);
+		}
+	}
+	return false;
 }

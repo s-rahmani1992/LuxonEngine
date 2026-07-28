@@ -13,6 +13,8 @@ namespace LuxonEngine {
 using namespace LuxonEngine;
 using namespace LuxonEngine::Rendering;
 
+class TransformWidget;
+
 class MeshViewWindow : public QDialog
 {
 	Q_OBJECT
@@ -22,12 +24,13 @@ public:
 	~MeshViewWindow();
 
 protected:
-	void resizeEvent(QResizeEvent* event) override;
+	void resizeEvent1(QResizeEvent* event);
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void paintEvent(QPaintEvent* event) override;
+	bool eventFilter(QObject* obj, QEvent* event) override;
 private:
 	Ui::MeshViewWindowClass ui;
 
@@ -39,5 +42,6 @@ private:
 
 	bool m_isMoveMode = false;
 	QPointF m_lastMousePos;
+	TransformWidget* m_transformWidget;
 };
 
