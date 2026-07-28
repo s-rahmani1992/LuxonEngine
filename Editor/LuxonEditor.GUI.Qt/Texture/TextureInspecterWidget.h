@@ -20,6 +20,7 @@ namespace LuxonEditor::GUI::QT {
 		~TextureInspecterWidget();
 	protected:
 		virtual void resizeEvent(QResizeEvent* event) override;
+		bool eventFilter(QObject* watched, QEvent* event) override;
 	private:
 		void updateImageDisplay();
 		Ui::TextureInspecterWidgetClass ui;

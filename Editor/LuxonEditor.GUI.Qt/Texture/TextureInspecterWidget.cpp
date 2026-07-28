@@ -3,12 +3,15 @@
 #include <LuxonEditorAPI.h>
 #include <QTimer>
 #include <QResizeEvent>
+#include <QPainter>
+#include <QStyleOption>
 
 namespace LuxonEditor::GUI::QT {
 	TextureInspecterWidget::TextureInspecterWidget(QWidget* parent, LuxonEngine::SerializationStream* stream, std::string path)
 		: QWidget(parent)
 	{
 		ui.setupUi(this);
+		ui.image->installEventFilter(this);
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 		auto guid = stream->GetGuid("uuid");
 		m_texture = GetAssetManager()->GetTexture(guid);
@@ -21,15 +24,15 @@ namespace LuxonEditor::GUI::QT {
 			format
 		).copy());
 
-		ui.image->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
+		layout()->setAlignment(ui.dimensionLabel, Qt::AlignTop);
 		ui.dimensionLabel->setText(
 			"Dimension: " + QString::number(m_texture->GetWidth()) +
-			" x " + QString::number(m_texture->GetHeight())
+			" x " + QString::number(m_texture->GetHeight()) + "\n" +
+			"Format: " + (m_texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? "RGBA32" : "RBGA32")
 		);
-
-		// Initial display once the widget is shown and layout is resolved
-		QTimer::singleShot(0, this, [this]() { updateImageDisplay(); });
+		ui.dimensionLabel->setStyleSheet(ui.dimensionLabel->styleSheet() + "border: 1px solid white; border-radius: 4px; padding: 6px;"); // Optional: Set the text color to white
+		ui.image->setStyleSheet(ui.image->styleSheet() + "background: #222222;"); // Optional: Add a border to the image label
+		update();
 	}
 
 	TextureInspecterWidget::~TextureInspecterWidget()
@@ -38,9 +41,8 @@ namespace LuxonEditor::GUI::QT {
 
 	void TextureInspecterWidget::resizeEvent(QResizeEvent* event)
 	{
+		update();
 		QWidget::resizeEvent(event);
-		// Defer until after the layout engine has distributed the new size
-		QTimer::singleShot(0, this, [this]() { updateImageDisplay(); });
 	}
 
 	void TextureInspecterWidget::updateImageDisplay()
@@ -62,5 +64,46 @@ namespace LuxonEditor::GUI::QT {
 			Qt::IgnoreAspectRatio,   // already calculated exact size manually
 			Qt::SmoothTransformation
 		));
+	}
+
+	bool TextureInspecterWidget::eventFilter(QObject* watched, QEvent* event)
+	{
+		if (watched == ui.image && event->type() == QEvent::Paint)
+		{
+			QPainter painter(ui.image);
+
+			int availableWidth = ui.image->width();
+			int availableHeight = ui.image->height();
+
+			// Draw the stylesheet background first
+			QStyleOption opt;
+			opt.initFrom(ui.image);
+			ui.image->style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, ui.image);
+
+			if (m_originalPixmap.isNull())
+				return true;
+
+			float textureAspect = (float)m_texture->GetWidth() / m_texture->GetHeight();
+			float containerAspect = (float)availableWidth / availableHeight;
+
+			int drawWidth, drawHeight;
+			if (textureAspect > containerAspect)
+			{
+				drawWidth = availableWidth;
+				drawHeight = static_cast<int>(availableWidth / textureAspect);
+			}
+			else
+			{
+				drawHeight = availableHeight;
+				drawWidth = static_cast<int>(availableHeight * textureAspect);
+			}
+
+			int x = (availableWidth - drawWidth) / 2;
+			int y = (availableHeight - drawHeight) / 2;
+
+			painter.drawPixmap(QRect(x, y, drawWidth, drawHeight), m_originalPixmap);
+			return true;
+		}
+		return QWidget::eventFilter(watched, event);
 	}
 }
