@@ -6,6 +6,7 @@
 #include <StringUtilities.h>
 #include "../Core/TransformWidget.h"
 #include <QSplitter>
+#include <LuxonEditorAPI.h>
 
 MeshViewWindow::MeshViewWindow(QWidget *parent, LuxonEngine::SerializationStream* stream)
 	: QDialog(parent), m_stream(stream)
@@ -82,19 +83,19 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
 		m_context = GetGPUApplication()->CreateHybridContextForWindows(m_window);
 
-		auto camtransform = std::make_shared<Transform>(Vector3(-5.2f, 1.9f, -1.1f), Vector3(1.0f), Vector3(-0.17f, -0.95f, 0.17f), 84);
+		auto camtransform = std::make_shared<Transform>(Vector3(-5.2f, 2.8f, 3.6f), Vector3(1.0f), Vector3(-0.06f, -0.72f, 0.11f), 121);
 		ref<PerspectiveCamera> mainCamera = std::make_shared<PerspectiveCamera>(camtransform, 0.1f, 1000.0f, (float)props.width / props.height, 45);
 
 		std::wstring root = CharToString((GetProjectPath() + "/Data/InternalShaders/").c_str());
 		std::string errorStr;
-		auto shaderRegistery = GetGPUApplication()->CreateShaderRegistery();
-		std::wstring simpleLightRasterPath = root + L"simple_color.hlsl";
-		auto lightRasterProgram = shaderRegistery->CompileProgram(simpleLightRasterPath, errorStr);
 
-		if (lightRasterProgram == nullptr) {
-			errorStr = "Error in Compiling Shader At: \n" + WStringToString(simpleLightRasterPath) + "Error: \n" + errorStr;
-			return;
-		}
+
+		auto shaderRegistery = LuxonEditor::EngineApplication::GetShaderRegistery();
+		auto guid = LuxonEditor::GuidGenerator::GenerateGUIDFromString("467ac325-1305-45bf-8088-f45f249077db");
+		auto program = shaderRegistery->GetProgram(guid);
+		auto lightRasterProgram = std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program, [](LuxonEngine::Rendering::ShaderProgram*) {
+			// do nothing
+			});
 
 		auto materialFactory = GetGPUApplication()->CreateMaterialFactory();
 
@@ -108,6 +109,37 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		auto meshRenderer = std::make_shared<MeshRenderer>(m_mesh, meshMaterial);
 		auto meshEntity = std::make_shared<LuxonEngine::GameEntity>(meshTransform, meshRenderer, nullptr);
 
+		std::vector<Vertex> planeVertices = {
+		Vertex(Vector3(-1.0f, 0, -1.0f), Vector2(0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)),
+		Vertex(Vector3(1.0f, 0, -1.0f), Vector2(10.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)),
+		Vertex(Vector3(1.0f, 0, 1.0f), Vector2(10.0f, 10.0f), Vector3(0.0f, 1.0f, 0.0f)),
+		Vertex(Vector3(-1.0f, 0, 1.0f), Vector2(0.0f, 10.0f), Vector3(0.0f, 1.0f, 0.0f)),
+		};
+
+		std::vector<UInt32> planeIndices = {
+			0, 1, 2, 0, 2, 3,
+		};
+
+		std::shared_ptr<Mesh> planeMesh = std::make_shared<Mesh>(planeVertices, planeIndices);
+
+		auto textureProgram = shaderRegistery->GetProgram(LuxonEditor::GuidGenerator::GenerateGUIDFromString("e0086dc4-3a59-4d7b-ae27-69f04a52b154"));
+		auto textureProgramRef = std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(textureProgram, [](LuxonEngine::Rendering::ShaderProgram*) {
+			// do nothing
+			});
+		
+		auto gridTex = GetAssetManager()->GetTexture(LuxonEditor::GuidGenerator::GenerateGUIDFromString("c51c0339-7e57-42e6-901d-bc634b212166"));
+
+		auto groundMaterial = materialFactory->CreateMaterial(textureProgramRef);
+		groundMaterial->SetTexture2D("mainTexture", gridTex);
+		groundMaterial->SetValue("ambient", 0.1f);
+		groundMaterial->SetValue("diffuse", 0.8f);
+		groundMaterial->SetValue("specular", 0.4f);
+		auto groundTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
+		auto groundMeshRenderer = std::make_shared<MeshRenderer>(planeMesh, groundMaterial);
+		//auto rtComponent4 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial);
+		auto groundEntity = std::make_shared<LuxonEngine::GameEntity>(groundTransform, groundMeshRenderer, nullptr);
+
+
 		SceneLightData lightData;
 
 		lightData.directionalLights.push_back(DirectionalLight{
@@ -119,7 +151,7 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		m_scene = std::make_shared<Scene>();
 		m_scene->mainCamera = mainCamera;
 		m_scene->lightData = lightData;
-		m_scene->entities = { meshEntity };
+		m_scene->entities = { meshEntity, groundEntity };
 		m_scene->behaviours = { };
 		m_scene->rtGlobalMaterial = nullptr;
 		m_context->PrepareScene(m_scene);
@@ -132,6 +164,9 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 
 void MeshViewWindow::mousePressEvent(QMouseEvent* event)
 {
+	if(event->button() != Qt::MouseButton::RightButton)
+		return;
+
 	QPoint localPos = ui.context->mapFromGlobal(event->globalPosition().toPoint());
 	if (ui.context->rect().contains(localPos))
 	{

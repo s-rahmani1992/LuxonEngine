@@ -183,10 +183,16 @@ LuxonEditor::AssetEntry<LuxonEngine::Mesh>* LuxonEditor::AssetRegistry::GetMeshE
 void LuxonEditor::AssetRegistry::ImportAllAssets()
 {
 	std::string assetPath = m_projectPath + "/Assets";
-
+	std::string internalAssetPath = m_projectPath + "/Data/InternalAssets";
 	// Iterate through all files in the assetPath directory and its subdirectories
 
 	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
+		if (entry.is_regular_file()) {
+			ImportAsset(entry.path());
+		}
+	}
+
+	for(const auto& entry : fs::recursive_directory_iterator(internalAssetPath)) {
 		if (entry.is_regular_file()) {
 			ImportAsset(entry.path());
 		}
@@ -197,6 +203,12 @@ void LuxonEditor::AssetRegistry::ImportAllAssets()
 	}
 
 	for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
+		if (entry.is_regular_file()) {
+			ImportEngineAsset(entry.path());
+		}
+	}
+
+	for(const auto& entry : fs::recursive_directory_iterator(internalAssetPath)) {
 		if (entry.is_regular_file()) {
 			ImportEngineAsset(entry.path());
 		}

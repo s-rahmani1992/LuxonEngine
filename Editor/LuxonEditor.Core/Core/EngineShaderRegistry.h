@@ -1,4 +1,4 @@
-#pragma 
+#pragma once
 #include <boost/uuid/uuid.hpp>
 #include <map>
 #include <filesystem>

@@ -8,6 +8,7 @@
 #include <EngineAPI.h>
 #include <StringUtilities.h>
 #include <boost/uuid/uuid_io.hpp>
+#include "EngineApplication.h"
 
 
 LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
@@ -30,6 +31,16 @@ void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
 	fs::path rootPath(rootDir);
 
 	for (const auto& entry : fs::recursive_directory_iterator(rootPath)) {
+		if (!entry.is_regular_file()) {
+			continue;
+		}
+
+		CompileAtPath(entry.path());
+	}
+
+	rootPath = fs::path(EngineApplication::GetProjectPath() + "/Data/InternalShaders/");
+
+	for (const auto& entry : fs::directory_iterator(rootPath)) {
 		if (!entry.is_regular_file()) {
 			continue;
 		}
