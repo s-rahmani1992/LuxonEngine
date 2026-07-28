@@ -62,12 +62,5 @@ void LuxonEngine::Transform::UpdateDirections()
 
 void LuxonEngine::Transform::UpdateMatrix()
 {
-	Matrix4 ST{
-		m_scale.x, 0.0f, 0.0f, m_position.x,
-		0.0f, m_scale.y, 0.0f, m_position.y,
-		0.0f, 0.0f, m_scale.z, m_position.z,
-		0.0f, 0.0f, 0.0f, 1.0f,
-	};
-
-	m_matrix = ST * Matrix4::Rotate(m_axis, m_angle);
+	m_matrix = Matrix4::Translate(m_position) * Matrix4::Rotate(m_axis, m_angle) * Matrix4::Scale(m_scale);
 }

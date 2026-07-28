@@ -41,9 +41,9 @@ LuxonEngine::Matrix4 LuxonEngine::Matrix4::operator*(const Matrix4& matrixB)
 
 LuxonEngine::Vector3 LuxonEngine::Matrix4::operator*(const Vector3& vector)
 {
-	return Vector3(m_values[0] * vector.x + m_values[1] * vector.y + m_values[2] * vector.z,
-		m_values[4] * vector.x + m_values[5] * vector.y + m_values[6] * vector.z,
-		m_values[8] * vector.x + m_values[9] * vector.y + m_values[10] * vector.z);
+	return Vector3(m_values[0] * vector.x + m_values[1] * vector.y + m_values[2] * vector.z + m_values[3],
+		m_values[4] * vector.x + m_values[5] * vector.y + m_values[6] * vector.z + m_values[7],
+		m_values[8] * vector.x + m_values[9] * vector.y + m_values[10] * vector.z + m_values[11]);
 }
 
 LuxonEngine::Matrix4 LuxonEngine::Matrix4::Scale(const Vector3& scale)

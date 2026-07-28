@@ -39,7 +39,7 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
 	FillPropertiesFromStream(&transformStream, transformProps);
     
     Matrix4 rotationMatrix = Matrix4::Rotate(transformProps.axis, transformProps.angleDeg);
-    Matrix4 transformMatrix = Matrix4::Translate(transformProps.position) * Matrix4::Scale(transformProps.scale) * rotationMatrix;
+    Matrix4 transformMatrix = Matrix4::Translate(transformProps.position) * rotationMatrix * Matrix4::Scale(transformProps.scale);
     auto meshArray = stream.Array("meshes");
     // Build a map from mesh index -> UUID using the "meshes" array in the stream
     std::map<int, boost::uuids::uuid> meshIndexToGuid;
