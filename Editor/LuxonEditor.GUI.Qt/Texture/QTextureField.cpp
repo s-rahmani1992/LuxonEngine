@@ -19,8 +19,8 @@ QTextureField::QTextureField(QWidget *parent, std::string fieldName)
 
 	auto textures = GetAssetManager()->GetAllTextureEntries();
 	ui.selectBox->view()->setMinimumWidth(200);
+
 	int index = 0;
-	int currentIndex;
 	for(auto& texture : textures)
 	{
 		// Do something with each texture entry
@@ -28,6 +28,8 @@ QTextureField::QTextureField(QWidget *parent, std::string fieldName)
 		ui.selectBox->setItemData(index, QString::fromStdString(texture->name), Qt::ToolTipRole);
 		index++;
 	}
+
+	ui.selectBox->setCurrentIndex(-1);
 	
 	connect(ui.selectBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
 		if (index >= 0)

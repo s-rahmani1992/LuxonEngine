@@ -79,7 +79,11 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="QComboBox" name="selectBox"/>
+       <widget class="QComboBox" name="selectBox">
+        <property name="placeholderText">
+         <string>Select Texture</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

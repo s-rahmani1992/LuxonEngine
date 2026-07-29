@@ -126,6 +126,9 @@ void LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationMaterial::Bin
 
 	// Set Descriptor Parameters
     for(auto& heap : m_heapValues) {
+		if (heap.gpuHandle.ptr == 0)
+			continue;
+
         commandList->SetGraphicsRootDescriptorTable(
             heap.rootParamIndex,
             heap.gpuHandle);

@@ -18,12 +18,19 @@ namespace LuxonEditor::GUI::QT {
 		: QDialog(parent), m_folderPath(GetProjectPath() + "/Assets/"), m_shaderRegistry(EngineApplication::GetShaderRegistery()), m_currentProgram(nullptr)
 	{
 		ui.setupUi(this);
-
+		ui.errorScroll->setVisible(false);
+		ui.errorScroll->setWidget(ui.errorLabel);
+		ui.errorScroll->setStyleSheet(ui.errorScroll->styleSheet() + "#errorScroll {border: 2px solid darkred; border-radius: 4px; }");
 		ui.pathPanel->layout()->setAlignment(ui.nameField, Qt::AlignmentFlag::AlignLeft);
 		ui.pathPanel->layout()->setAlignment(ui.browseButton, Qt::AlignmentFlag::AlignLeft);
+		ui.errorLabel->setStyleSheet(ui.errorLabel->styleSheet() + "padding: 6px;");
+		layout()->setAlignment(ui.shaderTypeField, Qt::AlignmentFlag::AlignTop);
+		layout()->setAlignment(ui.errorScroll, Qt::AlignmentFlag::AlignTop);
+		layout()->setAlignment(ui.createButton, Qt::AlignmentFlag::AlignBottom | Qt::AlignmentFlag::AlignHCenter);
+		layout()->setAlignment(ui.pathPanel, Qt::AlignmentFlag::AlignTop);
 		static_cast<QHBoxLayout*>(ui.pathPanel->layout())->addStretch(1);
-		
-		auto shaderEntries = m_shaderRegistry->GetAllShaderEntries();
+
+		static_cast<QVBoxLayout*>(layout())->insertStretch(layout()->indexOf(ui.createButton), 1);		auto shaderEntries = m_shaderRegistry->GetAllShaderEntries();
 
 		for (auto* entry : shaderEntries)
 		{
@@ -113,10 +120,12 @@ namespace LuxonEditor::GUI::QT {
 
 		if (entry && !entry->compileError.empty())
 		{
+			ui.errorScroll->setVisible(true);
 			ui.errorLabel->setText(QString::fromStdString(entry->compileError));
 		}
 		else
 		{
+			ui.errorScroll->setVisible(false);
 			ui.errorLabel->clear();
 			if (entry)
 				m_currentProgram = entry->program;
@@ -156,7 +165,6 @@ namespace LuxonEditor::GUI::QT {
 		metaStream.SaveToFile((filePath.string() + ".json").c_str());
 		
 		GetAssetManager()->AddMaterial(metaStream.GetGuid("uuid"), material);
-		//GetAssetManager()->ImportAsset(filePath);
 
 		accept();
 	}
