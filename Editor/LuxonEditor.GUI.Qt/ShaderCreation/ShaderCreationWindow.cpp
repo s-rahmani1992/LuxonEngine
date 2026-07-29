@@ -81,6 +81,10 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 		CreateShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString());
 		accept();
 		});
+
+	connect(ui.cancelButton, &QPushButton::clicked, this, [this]() {
+		reject();
+		});
 }
 
 LuxonEditor::GUI::QT::ShaderCreationWindow::~ShaderCreationWindow()

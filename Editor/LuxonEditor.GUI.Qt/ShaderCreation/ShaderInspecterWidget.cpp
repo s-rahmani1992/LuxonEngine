@@ -11,6 +11,15 @@ LuxonEditor::GUI::QT::ShaderInspecterWidget::ShaderInspecterWidget(QWidget *pare
 {
 	ui.setupUi(this);
 	layout()->setAlignment(ui.propertiesContainer, Qt::AlignTop);
+	layout()->setAlignment(ui.buttonPanel, Qt::AlignTop);
+	static_cast<QVBoxLayout*>(layout())->addStretch(1);
+
+	ui.propertiesContainer->layout()->setAlignment(ui.shaderTypeField, Qt::AlignTop);
+	ui.propertiesContainer->layout()->setAlignment(ui.rasterizationContainer, Qt::AlignTop);
+	ui.propertiesContainer->layout()->setAlignment(ui.rayTracingContainer, Qt::AlignTop);
+	ui.propertiesContainer->layout()->setAlignment(ui.computeContainer, Qt::AlignTop);
+
+	ui.shaderTypeField->layout()->setAlignment(ui.label, Qt::AlignLeft);
 
 	if (stream == nullptr) {
 		return;

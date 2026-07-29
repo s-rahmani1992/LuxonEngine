@@ -6,6 +6,7 @@ QNullableTextField::QNullableTextField(QWidget* parent, bool isDesignerMode)
 	: QWidget(parent), m_isDesignerMode(isDesignerMode)
 {
 	ui.setupUi(this);
+	layout()->setAlignment(ui.labelBox, Qt::AlignVCenter | Qt::AlignLeft);
 
 	// runtime only
 	if (m_isDesignerMode == false) {
