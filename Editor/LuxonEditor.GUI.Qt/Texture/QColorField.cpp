@@ -2,15 +2,16 @@
 #include <qpainter.h>
 #include <QColorDialog>
 #include <QMouseEvent>
+#include <qpainterpath.h>
 
 QColorField::QColorField(QWidget* parent, std::string fieldName)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
 	ui.label->setText(QString::fromStdString(fieldName));
-	layout()->setAlignment(ui.label, Qt::AlignTop | Qt::AlignLeft);
+	layout()->setAlignment(ui.label, Qt::AlignVCenter | Qt::AlignLeft);
 	layout()->setAlignment(ui.textureArea, Qt::AlignVCenter | Qt::AlignLeft);
-
+	ui.textureArea->setStyleSheet(ui.textureArea->styleSheet() + "QWidget { border: 2px solid #111111; border-radius: 4px; }");
 	static_cast<QHBoxLayout*>(layout())->addStretch(1);
 }
 
@@ -27,6 +28,12 @@ void QColorField::SetColor(LuxonEngine::Color color)
 void QColorField::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
+	p.setRenderHint(QPainter::Antialiasing);
+
+	QPainterPath path;
+	path.addRoundedRect(ui.textureArea->geometry(), 4, 4); // match border-radius: 4px
+
+	p.setClipPath(path);
 	p.fillRect(ui.textureArea->geometry(), m_color);
 }
 

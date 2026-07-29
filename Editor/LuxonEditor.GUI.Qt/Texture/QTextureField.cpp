@@ -2,6 +2,7 @@
 #include <qpainter.h>
 #include <LuxonEditorAPI.h>
 #include <qabstractitemview.h>
+#include <qpainterpath.h>
 
 QTextureField::QTextureField(QWidget *parent, std::string fieldName)
 	: QWidget(parent)
@@ -11,6 +12,7 @@ QTextureField::QTextureField(QWidget *parent, std::string fieldName)
 	layout()->setAlignment(ui.label, Qt::AlignTop | Qt::AlignLeft);
 
 	ui.textureArea->setFixedSize(90, 90);
+	ui.textureArea->setStyleSheet(ui.textureArea->styleSheet() + "QWidget { border: 2px solid #111111; border-radius: 4px; }");
 	layout()->setAlignment(ui.textureArea, Qt::AlignVCenter | Qt::AlignLeft);
 	ui.textureArea->layout()->setAlignment(ui.selectBox, Qt::AlignBottom);
 	static_cast<QHBoxLayout*>(layout())->addStretch(1);
@@ -72,8 +74,14 @@ void QTextureField::paintEvent(QPaintEvent* event)
 	if (!m_textureImage.isNull())
 	{
 		QPainter painter(this);
+		painter.setRenderHint(QPainter::Antialiasing);
+
+		QPainterPath path;
+		path.addRoundedRect(ui.textureArea->geometry(), 4, 4); // match border-radius: 4px
+
+		painter.setClipPath(path);
+
 		QRect textureAreaRect = ui.textureArea->geometry();
-		QPixmap pixmap = QPixmap::fromImage(m_textureImage);
-		painter.drawPixmap(textureAreaRect, pixmap.scaled(textureAreaRect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		painter.drawImage(textureAreaRect, m_textureImage);
 	}
 }
