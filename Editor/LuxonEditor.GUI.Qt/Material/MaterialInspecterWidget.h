@@ -13,8 +13,7 @@ public:
 	~MaterialInspecterWidget();
 
 protected:
-	virtual void resizeEvent(QResizeEvent* event) override;
-
+	virtual bool eventFilter(QObject* obj, QEvent* event) override;
 private:
 	Ui::MaterialInspecterWidgetClass ui;
 

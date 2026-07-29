@@ -6,13 +6,37 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <Core/MaterialImporter.h>
+#include <qsplitter.h>
 
 MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::SerializationStream* stream, std::string path)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
 	ui.context->setAttribute(Qt::WA_NativeWindow);
-	layout()->setAlignment(ui.dataFields, Qt::AlignTop);
+	ui.scrollArea->setWidget(ui.dataFields);
+	ui.scrollArea->setStyleSheet(ui.scrollArea->styleSheet() + "#scrollArea { padding-left: 6px; border-radius: 6px; border: 1px solid #f1f1f1; }");
+	
+	ui.saveButton->setStyleSheet(ui.saveButton->styleSheet() + "QPushButton { margin: 8px; padding: 4px 8px; }");
+	ui.uiSection->layout()->setAlignment(ui.saveButton, Qt::AlignHCenter);
+	QSplitter* splitter = new QSplitter(Qt::Vertical, this);
+	splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QBoxLayout* mainLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
+	mainLayout->setContentsMargins(0, 0, 0, 0);
+	mainLayout->addWidget(splitter, 1);
+	setLayout(mainLayout);
+	splitter->setHandleWidth(2);
+	splitter->setStyleSheet(splitter->styleSheet() +
+		"QSplitter::handle { background: #444444 }"
+		"QSplitter::handle:hover { background: #666666; }"
+	);
+
+	splitter->addWidget(ui.uiSection);
+	splitter->addWidget(ui.context);
+	splitter->setCollapsible(0, false);
+	splitter->setCollapsible(1, false);
+
+	ui.context->installEventFilter(this);
+
 	auto guid = stream->GetGuid("uuid");
 	m_material = GetAssetManager()->GetMaterial(guid);
 
@@ -102,51 +126,60 @@ MaterialInspecterWidget::~MaterialInspecterWidget()
 		m_context->Flush();
 }
 
-void MaterialInspecterWidget::resizeEvent(QResizeEvent * event)
+bool MaterialInspecterWidget::eventFilter(QObject* widget, QEvent* event)
 {
-	if(m_material->GetProgram()->GetType() != LuxonEngine::Rendering::ShaderProgramType::Rasterization) {
-		return;
+	if (widget == ui.context)
+	{
+		if (event->type() == QEvent::Resize)
+		{
+			QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
+
+			if (m_material->GetProgram()->GetType() != LuxonEngine::Rendering::ShaderProgramType::Rasterization) {
+				return false;
+			}
+
+			auto& size = resizeEvent->size();
+
+			if (m_context == nullptr) {
+				HWND h = (HWND)ui.context->winId();
+				LuxonEngine::Platform::WindowProperties props{
+					.width = (UInt16)(size.width() * 10),
+					.height = (UInt16)(size.height() * 10),
+				};
+
+				m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
+				m_context = GetGPUApplication()->CreateHybridContextForWindows(m_window);
+
+				auto camtransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 7.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 180);
+				ref<PerspectiveCamera> mainCamera = std::make_shared<PerspectiveCamera>(camtransform, 0.1f, 1000.0f, (float)props.width / props.height, 45);
+
+				ref<Mesh> sphereMesh = ShapeBuilder::CreateSphere(1.0f, 30, 30);
+
+				auto sphereTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.5f), Vector3(1.0f, 0.0f, 0.0f), 90);
+				auto sphereGBufferRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(sphereMesh, m_material);
+				auto sphereEntity = std::make_shared<LuxonEngine::GameEntity>(sphereTransform, sphereGBufferRenderer, nullptr);
+
+				SceneLightData lightData;
+
+				lightData.directionalLights.push_back(DirectionalLight{
+					.color = Color(1.0f, 1.0f, 1.0f, 1.0f),
+					.direction = Vector3(-2.0f, 0.0f, -2.0f),
+					.intensity = 0.5f,
+					});
+
+				m_scene = std::make_shared<Scene>();
+				m_scene->mainCamera = mainCamera;
+				m_scene->lightData = lightData;
+				m_scene->entities = { sphereEntity };
+				m_scene->behaviours = { };
+				m_scene->rtGlobalMaterial = nullptr;
+				m_context->PrepareScene(m_scene);
+			}
+
+			std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
+			m_context->Render();
+		}
 	}
-
-	auto size = ui.context->size();
-
-	if (m_context == nullptr) {
-		HWND h = (HWND)ui.context->winId();
-		LuxonEngine::Platform::WindowProperties props{
-			.width = (UInt16)(size.width() * 10),
-			.height = (UInt16)(size.height() * 10),
-		};
-
-		m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
-		m_context = GetGPUApplication()->CreateHybridContextForWindows(m_window);
-
-		auto camtransform = std::make_shared<Transform>(Vector3(-5.2f, 1.9f, -1.1f), Vector3(1.0f), Vector3(-0.17f, -0.95f, 0.17f), 84);
-		ref<PerspectiveCamera> mainCamera = std::make_shared<PerspectiveCamera>(camtransform, 0.1f, 1000.0f, (float)props.width / props.height, 45);
-
-		ref<Mesh> sphereMesh = ShapeBuilder::CreateSphere(1.0f, 30, 30);
-
-		auto sphereTransform = std::make_shared<Transform>(Vector3(0.2f, 0.0f, 0.0f), Vector3(2.5f), Vector3(0.0f, 0.0f, 1.0f), 0);
-		auto sphereGBufferRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(sphereMesh, m_material);
-		auto sphereEntity = std::make_shared<LuxonEngine::GameEntity>(sphereTransform, sphereGBufferRenderer, nullptr);
-
-		SceneLightData lightData;
-
-		lightData.directionalLights.push_back(DirectionalLight{
-			.color = Color(1.0f, 1.0f, 1.0f, 1.0f),
-			.direction = Vector3(2.0f, -6.0f, 2.0f),
-			.intensity = 0.5f,
-			});
-
-		m_scene = std::make_shared<Scene>();
-		m_scene->mainCamera = mainCamera;
-		m_scene->lightData = lightData;
-		m_scene->entities = { sphereEntity };
-		m_scene->behaviours = { };
-		m_scene->rtGlobalMaterial = nullptr;
-		m_context->PrepareScene(m_scene);
-	}
-
-	std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
-	m_context->Render();
+	return false;
 }
 
