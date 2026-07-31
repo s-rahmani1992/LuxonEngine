@@ -6,6 +6,7 @@
 #include <StringUtilities.h>
 #include "EngineShaderRegistry.h"
 #include "SelectionManager.h"
+#include "EngineSceneManager.h"
 #include <Rendering/ShaderRegistery.h>
 
 LuxonEditor::EngineApplication LuxonEditor::EngineApplication::m_appInstance;
@@ -70,7 +71,7 @@ bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 	m_assetWatcher->Start();
 	m_selectionManager = new SelectionManager();
 	m_gpuApplication = CreateGPUApplication(m_graphicAPI);
-	
+	m_sceneManager = new EngineSceneManager();
 	return true;
 }
 
@@ -84,6 +85,11 @@ void LuxonEditor::EngineApplication::CompileShaders()
 void LuxonEditor::EngineApplication::LoadAssets()
 {
 	m_assetManager->ImportAllAssets();
+}
+
+void LuxonEditor::EngineApplication::LoadScene()
+{
+	m_sceneManager->Initialize();
 }
 
 void LuxonEditor::EngineApplication::ShutDown()

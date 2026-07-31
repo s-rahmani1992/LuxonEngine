@@ -34,6 +34,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{c652bff7-af78-4caf-8927-af03b411809c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{fcffdd19-bc1a-4b10-b703-b1f1b1bb5dfc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -231,6 +234,12 @@
     <ClCompile Include="Core\TransformWidget.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\GameEntityModel.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\GameEntityItemDelegate.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -358,6 +367,12 @@
     </QtMoc>
     <QtMoc Include="Core\TransformWidget.h">
       <Filter>Core</Filter>
+    </QtMoc>
+    <QtMoc Include="Scene\GameEntityModel.h">
+      <Filter>Scene</Filter>
+    </QtMoc>
+    <QtMoc Include="Scene\GameEntityItemDelegate.h">
+      <Filter>Scene</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

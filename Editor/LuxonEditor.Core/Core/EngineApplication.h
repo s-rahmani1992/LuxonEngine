@@ -18,6 +18,7 @@ namespace LuxonEditor {
 	class AssetDirectoryWatcher;
 	class EngineShaderRegistry;
 	class SelectionManager;
+	class EngineSceneManager;
 
 	struct LUXON_EDITOR_CORE_API ApplicationConfig {
 		std::string projectPath;
@@ -32,6 +33,7 @@ namespace LuxonEditor {
 		static SelectionManager* GetSelectionManager();
 		static LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication();
 		static EngineShaderRegistry* GetShaderRegistery() { return m_appInstance.m_shaderRegistery; }
+		static EngineSceneManager* GetSceneManager() { return m_appInstance.m_sceneManager; }
 	private:
 		static EngineApplication m_appInstance;
 
@@ -48,6 +50,7 @@ namespace LuxonEditor {
 		bool Initialize(std::string& error);
 		void CompileShaders();
 		void LoadAssets();
+		void LoadScene();
 		void ShutDown();
 	private:
 		Graphic_API m_graphicAPI;
@@ -57,5 +60,6 @@ namespace LuxonEditor {
 		AssetDirectoryWatcher* m_assetWatcher;
 		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication = nullptr;
 		SelectionManager* m_selectionManager = nullptr;
+		EngineSceneManager* m_sceneManager = nullptr;
 	};
 }

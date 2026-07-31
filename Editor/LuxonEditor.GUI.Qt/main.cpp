@@ -64,10 +64,12 @@ int main(int argc, char* argv[])
     QT::SplashStartWidget splashWindow;
     splashWindow.show();
 
-    splashWindow.SetProgress(30, "Compiling Shaders...");
+    splashWindow.SetProgress(25, "Compiling Shaders...");
     engineApp->CompileShaders();
-    splashWindow.SetProgress(60, "Loading Assets...");
+    splashWindow.SetProgress(50, "Loading Assets...");
     engineApp->LoadAssets();
+    splashWindow.SetProgress(75, "Loading Scene...");
+    engineApp->LoadScene();
     splashWindow.SetProgress(100, "Starting Editor...");
 
     QT::LuxonEditorWindow mainWindow;

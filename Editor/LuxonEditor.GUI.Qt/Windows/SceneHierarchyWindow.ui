@@ -15,7 +15,18 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeView" name="treeView"/>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Game Entities</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListView" name="gameEntityList">
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

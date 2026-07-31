@@ -23,6 +23,7 @@
     <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\AssimpModel3DImporter.h" />
     <ClInclude Include="Core\EngineApplication.h" />
+    <ClInclude Include="Core\EngineSceneManager.h" />
     <ClInclude Include="Core\EngineShaderRegistry.h" />
     <ClInclude Include="Core\GuidUtilities.h" />
     <ClInclude Include="Core\MaterialImporter.h" />
@@ -36,6 +37,7 @@
     <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\AssimpModel3DImporter.cpp" />
     <ClCompile Include="Core\EngineApplication.cpp" />
+    <ClCompile Include="Core\EngineSceneManager.cpp" />
     <ClCompile Include="Core\EngineShaderRegistry.cpp" />
     <ClCompile Include="Core\GuidUtilities.cpp" />
     <ClCompile Include="Core\MaterialImporter.cpp" />
