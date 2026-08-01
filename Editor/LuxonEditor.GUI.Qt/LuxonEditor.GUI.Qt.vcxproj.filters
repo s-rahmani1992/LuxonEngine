@@ -240,6 +240,9 @@
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\GameEntityInspecterWidget.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -372,6 +375,9 @@
       <Filter>Scene</Filter>
     </QtMoc>
     <QtMoc Include="Scene\GameEntityItemDelegate.h">
+      <Filter>Scene</Filter>
+    </QtMoc>
+    <QtMoc Include="Scene\GameEntityInspecterWidget.h">
       <Filter>Scene</Filter>
     </QtMoc>
   </ItemGroup>

@@ -4,6 +4,7 @@
 #include "../Mesh/Model3DInspecterWidget.h"
 #include "../Texture/TextureInspecterWidget.h"
 #include "../Material/MaterialInspecterWidget.h"
+#include "../Scene/GameEntityInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -17,6 +18,23 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			m_currentWidget->deleteLater();
 			m_currentWidget = nullptr;
 		}
+
+		if(selectedObject.starts_with("GameEntity:"))
+		{
+			std::string entityIdStr = selectedObject.substr(std::string("GameEntity:").length());
+			auto entityId = GuidGenerator::GenerateGUIDFromString(entityIdStr);
+			auto entity = EngineApplication::GetSceneManager()->GetEntityByUUID(entityId);
+			if (entity)
+			{
+				ui.fileLabel->setText(QString::fromStdString(entity->GetName()));
+				GameEntityInspecterWidget* entityWidget = new GameEntityInspecterWidget(ui.container, entity);
+				m_currentWidget = entityWidget;
+				m_currentWidget->show();
+				ui.container->layout()->addWidget(m_currentWidget);
+				return;
+			}
+		}
+
 		// Check if selected object is a path with .hlsl extension
 		std::filesystem::path selectedPath(selectedObject);
 

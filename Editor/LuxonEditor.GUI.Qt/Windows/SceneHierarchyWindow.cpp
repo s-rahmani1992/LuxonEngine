@@ -23,6 +23,11 @@ namespace LuxonEditor::GUI::QT {
 
 		// Install event filter to intercept Delete key
 		ui.gameEntityList->installEventFilter(this);
+
+		connect(ui.gameEntityList, &QListView::clicked, this, [this](const QModelIndex& idx) {
+			auto data = idx.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString();
+			GetSelectionManager()->SetSelectedObject("GameEntity:" + data.toStdString());
+			});
 	}
 
 	SceneHierarchyWindow::~SceneHierarchyWindow()

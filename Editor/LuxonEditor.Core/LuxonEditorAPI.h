@@ -5,6 +5,7 @@
 #include "Core/SelectionManager.h"
 #include "Core/AssimpModel3DImporter.h"
 #include "Core/EngineShaderRegistry.h"
+#include "Core/EngineSceneManager.h"
 #include "Core/GuidUtilities.h"
 
 LUXON_ENGINE_API LuxonEditor::EngineApplication* CreateEngineApplication(const LuxonEditor::ApplicationConfig& config, std::string& errorString);

@@ -159,6 +159,7 @@
     <ClCompile Include="Mesh\MeshItem.cpp" />
     <ClCompile Include="Mesh\MeshViewWindow.cpp" />
     <ClCompile Include="Mesh\Model3DInspecterWidget.cpp" />
+    <ClCompile Include="Scene\GameEntityInspecterWidget.cpp" />
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp" />
     <ClCompile Include="Scene\GameEntityModel.cpp" />
     <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp" />
@@ -212,6 +213,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Scene\GameEntityInspecterWidget.h" />
     <QtMoc Include="Scene\GameEntityItemDelegate.h" />
     <QtMoc Include="Scene\GameEntityModel.h" />
     <QtMoc Include="Core\TransformWidget.h" />
