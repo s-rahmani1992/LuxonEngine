@@ -20,6 +20,8 @@ namespace LuxonEngine::Rendering {
 		ref<Mesh> GetMesh() const { return m_mesh; }
 		ref<Material> GetMaterial() const { return material; }
 
+		void SetMesh(const ref<Mesh>& mesh) { m_mesh = mesh; }
+		void SetMaterial(const ref<Material>& material) { this->material = material; }
 	private:
 		ref<Mesh> m_mesh;
 		ref<Material> material;

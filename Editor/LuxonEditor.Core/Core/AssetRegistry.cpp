@@ -119,14 +119,15 @@ void LuxonEditor::AssetRegistry::AddTexture(boost::uuids::uuid guid, const std::
 	}
 }
 
-void LuxonEditor::AssetRegistry::AddMaterial(boost::uuids::uuid guid, const ref<LuxonEngine::Rendering::Material>& material)
+void LuxonEditor::AssetRegistry::AddMaterial(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Rendering::Material>& material)
 {
-	auto it = m_materials.find(guid);
-	if(it != m_materials.end()) {
-		(*it).second = material;
+	auto it = m_materialEntries.find(guid);
+	if(it != m_materialEntries.end()) {
+		(*it).second.asset = material;
+		(*it).second.name = name;
 	}
 	else {
-		m_materials.emplace(guid, material);
+		m_materialEntries.emplace(guid, AssetEntry<LuxonEngine::Rendering::Material>{ material, guid, name });
 	}
 }
 
@@ -148,9 +149,9 @@ ref<LuxonEngine::Texture2D> LuxonEditor::AssetRegistry::GetTexture(boost::uuids:
 
 ref<LuxonEngine::Rendering::Material> LuxonEditor::AssetRegistry::GetMaterial(boost::uuids::uuid guid)
 {
-	auto it = m_materials.find(guid);
+	auto it = m_materialEntries.find(guid);
 
-	return (it != m_materials.end()) ? (*it).second : nullptr;
+	return (it != m_materialEntries.end()) ? (*it).second.asset : nullptr;
 }
 
 std::vector<LuxonEditor::AssetEntry<LuxonEngine::Texture2D>*> LuxonEditor::AssetRegistry::GetAllTextureEntries()
@@ -171,6 +172,24 @@ LuxonEditor::AssetEntry<LuxonEngine::Texture2D>* LuxonEditor::AssetRegistry::Get
 	return (it != m_textureEntries.end()) ? &it->second : nullptr;
 }
 
+std::vector<LuxonEditor::AssetEntry<LuxonEngine::Mesh>*> LuxonEditor::AssetRegistry::GetAllMeshEntries()
+{
+	std::vector<AssetEntry<LuxonEngine::Mesh>*> entries;
+	for (auto& [guid, entry] : m_meshEntries) {
+		entries.push_back(&entry);
+	}
+	return entries;
+}
+
+std::vector<LuxonEditor::AssetEntry<LuxonEngine::Rendering::Material>*> LuxonEditor::AssetRegistry::GetAllMaterialEntries()
+{
+	std::vector<AssetEntry<LuxonEngine::Rendering::Material>*> entries;
+	for (auto& [guid, entry] : m_materialEntries) {
+		entries.push_back(&entry);
+	}
+	return entries;
+}
+
 LuxonEditor::AssetEntry<LuxonEngine::Mesh>* LuxonEditor::AssetRegistry::GetMeshEntry(const ref<LuxonEngine::Mesh> mesh)
 {
 	auto it = std::find_if(m_meshEntries.begin(), m_meshEntries.end(), [&mesh](const auto& pair) {
@@ -178,6 +197,15 @@ LuxonEditor::AssetEntry<LuxonEngine::Mesh>* LuxonEditor::AssetRegistry::GetMeshE
 		});
 
 	return (it != m_meshEntries.end()) ? &it->second : nullptr;
+}
+
+LuxonEditor::AssetEntry<LuxonEngine::Rendering::Material>* LuxonEditor::AssetRegistry::GetMaterialEntry(const ref<LuxonEngine::Rendering::Material> material)
+{
+	auto it = std::find_if(m_materialEntries.begin(), m_materialEntries.end(), [&material](const auto& pair) {
+		return pair.second.asset == material;
+		});
+
+	return (it != m_materialEntries.end()) ? &it->second : nullptr;
 }
 
 void LuxonEditor::AssetRegistry::ImportAllAssets()
@@ -304,7 +332,7 @@ void LuxonEditor::AssetRegistry::ImportEngineAsset(const fs::path& path)
 		SerializationStream stream;
 		stream.LoadFromFile(filePath + ".json");
 
-		AddMaterial(stream.GetGuid("uuid"), material);
+		AddMaterial(stream.GetGuid("uuid"), path.filename().string(), material);
 	}
 }
 

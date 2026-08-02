@@ -37,6 +37,9 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{fcffdd19-bc1a-4b10-b703-b1f1b1bb5dfc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{1d4a3e61-e0ed-44db-bb29-53f57ff9a9cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -92,6 +95,12 @@
     </QtUic>
     <QtUic Include="Core\TransformWidget.ui">
       <Filter>Core</Filter>
+    </QtUic>
+    <QtUic Include="Mesh\QMeshField.ui">
+      <Filter>Mesh</Filter>
+    </QtUic>
+    <QtUic Include="Material\QMaterialField.ui">
+      <Filter>Material</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -243,6 +252,15 @@
     <ClCompile Include="Scene\GameEntityInspecterWidget.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\MeshRendererWidget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\QMeshField.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\QMaterialField.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -379,6 +397,15 @@
     </QtMoc>
     <QtMoc Include="Scene\GameEntityInspecterWidget.h">
       <Filter>Scene</Filter>
+    </QtMoc>
+    <QtMoc Include="Renderer\MeshRendererWidget.h">
+      <Filter>Renderer</Filter>
+    </QtMoc>
+    <QtMoc Include="Mesh\QMeshField.h">
+      <Filter>Mesh</Filter>
+    </QtMoc>
+    <QtMoc Include="Material\QMaterialField.h">
+      <Filter>Material</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

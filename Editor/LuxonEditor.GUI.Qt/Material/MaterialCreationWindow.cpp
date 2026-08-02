@@ -164,7 +164,7 @@ namespace LuxonEditor::GUI::QT {
 		LuxonEngine::SerializationStream metaStream = LuxonEditor::MaterialImporter::CreateDefaultMetaData();
 		metaStream.SaveToFile((filePath.string() + ".json").c_str());
 		
-		GetAssetManager()->AddMaterial(metaStream.GetGuid("uuid"), material);
+		GetAssetManager()->AddMaterial(metaStream.GetGuid("uuid"), name, material);
 
 		accept();
 	}
