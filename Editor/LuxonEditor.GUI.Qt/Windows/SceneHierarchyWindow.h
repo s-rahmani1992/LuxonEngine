@@ -27,5 +27,8 @@ namespace LuxonEditor::GUI::QT {
 		Ui::SceneHierarchyWindowClass ui;
 		LuxonEditor::GUI::QT::GameEntityModel* m_entityModel = nullptr;
 		LuxonEditor::GUI::QT::GameEntityItemDelegate* m_entityDelegate = nullptr;
+
+		QListWidgetItem* m_lightItem = nullptr;
+		QListWidgetItem* m_cameraItem = nullptr;
 	};
 }

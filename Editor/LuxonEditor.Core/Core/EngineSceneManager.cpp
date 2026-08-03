@@ -1,11 +1,36 @@
-#include "../Core/EngineSceneManager.h"
-#include "../Core/GuidUtilities.h"
+#include "EngineSceneManager.h"
+#include "GuidUtilities.h"
+#include "EngineApplication.h"
+#include <filesystem>
+#include <Core/SerializationStream.h>
+#include "SerializationStreamExtensions.h"
 
 namespace LuxonEditor {
 
 	void EngineSceneManager::Initialize()
 	{
 		using namespace LuxonEngine;
+
+		std::filesystem::path projectPath = EngineApplication::GetProjectPath();
+
+		m_currentScenePath = (projectPath / "Assets" / "DefaultScene.lscene").string();
+		m_currentScene = std::make_shared<Scene>();
+
+		if(std::filesystem::exists(m_currentScenePath)) {
+			LuxonEngine::SerializationStream stream;
+			if(stream.LoadFromFile(m_currentScenePath)) {
+				auto entitiesArray = stream.Array("entities");
+
+				for(auto& entityStream : entitiesArray) {
+					auto entity = DeserializeGameEntity(entityStream);
+					if(entity) {
+						AddEntity(entity);
+					}
+				}
+				InvokeEntityListChangedCallbacks();
+				return;
+			}
+		}
 
 		auto transform1 = std::make_shared<Transform>(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
 		auto entity1 = std::make_shared<LuxonEngine::GameEntity>(transform1, nullptr, nullptr);
@@ -15,7 +40,6 @@ namespace LuxonEditor {
 		auto entity2 = std::make_shared<LuxonEngine::GameEntity>(transform2, nullptr, nullptr);
 		entity2->SetName("Second Entity");
 
-		m_currentScene = std::make_shared<Scene>();
 		AddEntity(entity1);
 		AddEntity(entity2);
 	}
@@ -73,6 +97,20 @@ namespace LuxonEditor {
 	void EngineSceneManager::UnregisterEntityListChangedCallback(size_t id)
 	{
 		m_entityListChangedCallbacks.erase(id);
+	}
+
+	void EngineSceneManager::SaveCurrentScene()
+	{
+		LuxonEngine::SerializationStream stream;
+		std::vector<LuxonEngine::SerializationStream> entitiesArray;
+		for (const auto& entry : m_entityList)
+		{
+			LuxonEngine::SerializationStream entityStream;
+			SerializeGameEntity(entityStream, entry.entity);
+			entitiesArray.push_back(entityStream);
+		}
+		stream.SetArray("entities", entitiesArray);
+		stream.SaveToFile(m_currentScenePath);
 	}
 
 	void EngineSceneManager::InvokeEntityListChangedCallbacks()

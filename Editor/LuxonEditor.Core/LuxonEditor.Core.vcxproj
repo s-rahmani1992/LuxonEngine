@@ -28,6 +28,7 @@
     <ClInclude Include="Core\GuidUtilities.h" />
     <ClInclude Include="Core\MaterialImporter.h" />
     <ClInclude Include="Core\SelectionManager.h" />
+    <ClInclude Include="Core\SerializationStreamExtensions.h" />
     <ClInclude Include="Core\ShaderCreator.h" />
     <ClInclude Include="Core\WICTextureImporter.h" />
     <ClInclude Include="LuxonEditorAPI.h" />
@@ -42,6 +43,7 @@
     <ClCompile Include="Core\GuidUtilities.cpp" />
     <ClCompile Include="Core\MaterialImporter.cpp" />
     <ClCompile Include="Core\SelectionManager.cpp" />
+    <ClCompile Include="Core\SerializationStreamExtensions.cpp" />
     <ClCompile Include="Core\ShaderCreator.cpp" />
     <ClCompile Include="Core\WICTextureImporter.cpp" />
     <ClCompile Include="LuxonEditorAPI.cpp" />

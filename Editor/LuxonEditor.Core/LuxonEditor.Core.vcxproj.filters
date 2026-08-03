@@ -40,6 +40,9 @@
     <ClInclude Include="Core\EngineSceneManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\SerializationStreamExtensions.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -74,6 +77,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\EngineSceneManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\SerializationStreamExtensions.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

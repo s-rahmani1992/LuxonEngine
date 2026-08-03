@@ -35,6 +35,27 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			}
 		}
 
+		if(selectedObject == "Light")
+		{
+			ui.fileLabel->setText("Light");
+			// Create a light inspecter widget
+			// For now, just show a label
+			m_currentWidget = new QLabel("Light Inspecter", ui.container);
+			m_currentWidget->show();
+			ui.container->layout()->addWidget(m_currentWidget);
+			return;
+		}
+		if(selectedObject == "Camera")
+		{
+			ui.fileLabel->setText("Camera");
+			// Create a camera inspecter widget
+			// For now, just show a label
+			m_currentWidget = new QLabel("Camera Inspecter", ui.container);
+			m_currentWidget->show();
+			ui.container->layout()->addWidget(m_currentWidget);
+			return;
+		}
+
 		// Check if selected object is a path with .hlsl extension
 		std::filesystem::path selectedPath(selectedObject);
 

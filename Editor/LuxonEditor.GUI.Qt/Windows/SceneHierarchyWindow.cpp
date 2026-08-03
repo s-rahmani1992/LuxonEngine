@@ -11,7 +11,17 @@ namespace LuxonEditor::GUI::QT {
 		: QWidget(parent)
 	{
 		ui.setupUi(this);
+		ui.otherComponents->setStyleSheet(R"(
+			QListWidget::item:selected {
+				background-color: #2a82da;
+			}
+		)");
+		ui.otherComponents->setFocusPolicy(Qt::NoFocus);
+		m_lightItem = new QListWidgetItem("Lights", ui.otherComponents);
+		m_lightItem->setFlags(m_lightItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
+		m_cameraItem = new QListWidgetItem("Camera", ui.otherComponents);
+		m_cameraItem->setFlags(m_cameraItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 		m_entityModel = new LuxonEditor::GUI::QT::GameEntityModel(EngineApplication::GetSceneManager(), this);
 		m_entityDelegate = new LuxonEditor::GUI::QT::GameEntityItemDelegate(this);
 
@@ -27,6 +37,17 @@ namespace LuxonEditor::GUI::QT {
 		connect(ui.gameEntityList, &QListView::clicked, this, [this](const QModelIndex& idx) {
 			auto data = idx.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString();
 			GetSelectionManager()->SetSelectedObject("GameEntity:" + data.toStdString());
+			});
+
+		connect(ui.otherComponents, &QListWidget::itemClicked, this, [this](QListWidgetItem* item) {
+			if (item == m_lightItem)
+			{
+				GetSelectionManager()->SetSelectedObject(std::string("Light"));
+			}
+			else if (item == m_cameraItem)
+			{
+				GetSelectionManager()->SetSelectedObject(std::string("Camera"));
+			}
 			});
 	}
 

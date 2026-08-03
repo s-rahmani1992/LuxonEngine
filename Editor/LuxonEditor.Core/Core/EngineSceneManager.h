@@ -23,7 +23,7 @@ namespace LuxonEditor {
 
 		size_t RegisterEntityListChangedCallback(EntityListChangedCallback cb);
 		void UnregisterEntityListChangedCallback(size_t id);
-
+		void SaveCurrentScene();
 	private:
 		void InvokeEntityListChangedCallbacks();
 
@@ -33,5 +33,6 @@ namespace LuxonEditor {
 
 		std::map<size_t, EntityListChangedCallback> m_entityListChangedCallbacks;
 		size_t m_lastCallbackId = 0;
+		std::string m_currentScenePath;
 	};
 }

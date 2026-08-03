@@ -33,6 +33,9 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
     connect(ui.closeMenuItem, &QAction::triggered, [this]() {
         QApplication::quit();
         });
+    connect(ui.saveMenuItem, &QAction::triggered, [this]() {
+        EngineApplication::GetSceneManager()->SaveCurrentScene();
+		});
 
     ads::CDockManager::setConfigFlag(ads::CDockManager::DefaultDockAreaButtons, false);
     m_dockManager = new ads::CDockManager(ui.windowDocker);
