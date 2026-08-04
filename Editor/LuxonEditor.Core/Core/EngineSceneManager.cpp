@@ -51,6 +51,31 @@ namespace LuxonEditor {
 		auto camTransform = std::make_shared<Transform>(Vector3(0.0f, 1.0f, -5.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
 		m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, 0.1f, 100.0f, 16.0f / 9.0f, 60.0f);
 
+		m_currentScene->lightData.directionalLights.push_back(LuxonEngine::DirectionalLight{ 
+			.color = LuxonEngine::Color(1.0f, 1.0f, 1.0f, 1.0f), 
+			.direction = LuxonEngine::Vector3(-1.0f, -1.0f, -1.0f), 
+			.intensity = 1.0f
+			}
+		);
+
+		m_currentScene->lightData.pointLights.push_back(LuxonEngine::PointLight{
+			.color = LuxonEngine::Color(1.0f, 0.0f, 0.0f, 1.0f),
+			.position = LuxonEngine::Vector3(-2.0f, 2.0f, 2.0f),
+			.intensity = 5.0f,
+			.attenuation = LuxonEngine::Attenuation{ .c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
+			.radius = 10.0f
+			}
+		);
+
+		m_currentScene->lightData.pointLights.push_back(LuxonEngine::PointLight{
+			.color = LuxonEngine::Color(1.0f, 0.0f, 1.0f, 1.0f),
+			.position = LuxonEngine::Vector3(2.0f, 2.0f, 2.0f),
+			.intensity = 5.0f,
+			.attenuation = LuxonEngine::Attenuation{ .c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
+			.radius = 10.0f
+			}
+		);
+
 		AddEntity(entity1);
 		AddEntity(entity2);
 	}

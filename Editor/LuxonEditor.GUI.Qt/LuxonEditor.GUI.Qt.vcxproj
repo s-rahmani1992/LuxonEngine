@@ -155,6 +155,9 @@
     <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="Core\PerspectiveCameraWidget.cpp" />
     <ClCompile Include="Core\TransformWidget.cpp" />
+    <ClCompile Include="Lights\DirectionalLightItem.cpp" />
+    <ClCompile Include="Lights\PointLightItem.cpp" />
+    <ClCompile Include="Lights\SceneLightInspecterWidget.cpp" />
     <ClCompile Include="Material\MaterialCreationWindow.cpp" />
     <ClCompile Include="Material\MaterialInspecterWidget.cpp" />
     <ClCompile Include="Material\QMaterialField.cpp" />
@@ -219,6 +222,9 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Lights\SceneLightInspecterWidget.h" />
+    <QtMoc Include="Lights\DirectionalLightItem.h" />
+    <QtMoc Include="Lights\PointLightItem.h" />
     <QtMoc Include="Core\PerspectiveCameraWidget.h" />
     <QtMoc Include="Material\QMaterialField.h" />
     <QtMoc Include="Mesh\QMeshField.h" />

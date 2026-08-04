@@ -40,6 +40,12 @@
     <Filter Include="Renderer">
       <UniqueIdentifier>{1d4a3e61-e0ed-44db-bb29-53f57ff9a9cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{c334624d-3f99-4913-8c28-e90b2dd9258f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lights">
+      <UniqueIdentifier>{206d1d48-874e-4bb7-9fc1-9d55a3c6c0ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -264,6 +270,15 @@
     <ClCompile Include="Core\PerspectiveCameraWidget.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Lights\PointLightItem.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Lights\DirectionalLightItem.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Lights\SceneLightInspecterWidget.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -412,6 +427,15 @@
     </QtMoc>
     <QtMoc Include="Core\PerspectiveCameraWidget.h">
       <Filter>Core</Filter>
+    </QtMoc>
+    <QtMoc Include="Lights\PointLightItem.h">
+      <Filter>Lights</Filter>
+    </QtMoc>
+    <QtMoc Include="Lights\DirectionalLightItem.h">
+      <Filter>Lights</Filter>
+    </QtMoc>
+    <QtMoc Include="Lights\SceneLightInspecterWidget.h">
+      <Filter>Lights</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

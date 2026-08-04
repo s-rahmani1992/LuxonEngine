@@ -6,6 +6,7 @@
 #include "../Material/MaterialInspecterWidget.h"
 #include "../Scene/GameEntityInspecterWidget.h"
 #include "../Core/PerspectiveCameraWidget.h"
+#include "../Lights/SceneLightInspecterWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -39,9 +40,8 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 		if(selectedObject == "Light")
 		{
 			ui.fileLabel->setText("Light");
-			// Create a light inspecter widget
-			// For now, just show a label
-			m_currentWidget = new QLabel("Light Inspecter", ui.container);
+			auto lightWidget = new SceneLightInspecterWidget(&EngineApplication::GetSceneManager()->GetCurrentScene()->lightData, ui.container );
+			m_currentWidget = lightWidget;
 			m_currentWidget->show();
 			ui.container->layout()->addWidget(m_currentWidget);
 			return;
