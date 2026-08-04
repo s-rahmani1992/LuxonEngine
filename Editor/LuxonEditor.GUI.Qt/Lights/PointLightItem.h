@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QPushButton>
 #include <EngineAPI.h>
 #include "../Texture/QColorField.h"
 #include <Widgets/QVector3Field.h>
@@ -17,6 +18,11 @@ public:
 	PointLightItem(LuxonEngine::PointLight* light, int index, QWidget* parent = nullptr);
 	~PointLightItem();
 
+	void SetLight(LuxonEngine::PointLight* light, int index);
+
+signals:
+	void RemoveRequested(LuxonEngine::PointLight* light);
+
 private:
 	void OnColorChanged(LuxonEngine::Color newColor);
 	void OnPositionChanged(LuxonEngine::Vector3 newPosition);
@@ -29,6 +35,7 @@ private:
 	LuxonEngine::PointLight* m_light;
 
 	QLabel* m_titleLabel;
+	QPushButton* m_removeButton;
 	QColorField* m_colorField;
 	QVector3Field* m_positionField;
 	QFloatField* m_intensityField;

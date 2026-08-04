@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QPushButton>
 #include <EngineAPI.h>
 #include "../Texture/QColorField.h"
 #include "../../LuxonEditor.GUI.Qt.Widgets/Widgets/QVector3Field.h"
@@ -17,6 +18,11 @@ public:
 	DirectionalLightItem(LuxonEngine::DirectionalLight* light, int index, QWidget* parent = nullptr);
 	~DirectionalLightItem();
 
+	void SetLight(LuxonEngine::DirectionalLight* light, int index);
+
+signals:
+	void RemoveRequested(LuxonEngine::DirectionalLight* light);
+
 private:
 	void OnColorChanged(LuxonEngine::Color newColor);
 	void OnDirectionChanged(LuxonEngine::Vector3 newDirection);
@@ -25,6 +31,7 @@ private:
 	LuxonEngine::DirectionalLight* m_light;
 
 	QLabel* m_titleLabel;
+	QPushButton* m_removeButton;
 	QColorField* m_colorField;
 	QVector3Field* m_directionField;
 	QFloatField* m_intensityField;

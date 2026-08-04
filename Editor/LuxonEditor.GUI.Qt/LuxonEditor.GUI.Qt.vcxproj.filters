@@ -40,9 +40,6 @@
     <Filter Include="Renderer">
       <UniqueIdentifier>{1d4a3e61-e0ed-44db-bb29-53f57ff9a9cb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Light">
-      <UniqueIdentifier>{c334624d-3f99-4913-8c28-e90b2dd9258f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Lights">
       <UniqueIdentifier>{206d1d48-874e-4bb7-9fc1-9d55a3c6c0ba}</UniqueIdentifier>
     </Filter>

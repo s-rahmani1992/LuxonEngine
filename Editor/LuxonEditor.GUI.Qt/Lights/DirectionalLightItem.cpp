@@ -1,4 +1,5 @@
 #include "DirectionalLightItem.h"
+#include <QHBoxLayout>
 
 DirectionalLightItem::DirectionalLightItem(LuxonEngine::DirectionalLight* light, int index, QWidget* parent)
 	: QWidget(parent), m_light(light)
@@ -7,9 +8,14 @@ DirectionalLightItem::DirectionalLightItem(LuxonEngine::DirectionalLight* light,
 	layout->setContentsMargins(4, 4, 4, 4);
 	layout->setSpacing(4);
 
-	// Title
+	// Title row
+	auto* titleRow = new QHBoxLayout();
 	m_titleLabel = new QLabel(QString("Directional Light %1").arg(index), this);
-	layout->addWidget(m_titleLabel);
+	m_removeButton = new QPushButton("Remove", this);
+	titleRow->addWidget(m_titleLabel);
+	titleRow->addStretch();
+	titleRow->addWidget(m_removeButton);
+	layout->addLayout(titleRow);
 
 	// Color
 	m_colorField = new QColorField(this, "Color");
@@ -39,10 +45,19 @@ DirectionalLightItem::DirectionalLightItem(LuxonEngine::DirectionalLight* light,
 	connect(m_colorField, &QColorField::ValueChanged, this, &DirectionalLightItem::OnColorChanged);
 	connect(m_directionField, &QVector3Field::ValueChanged, this, &DirectionalLightItem::OnDirectionChanged);
 	connect(m_intensityField, &QFloatField::ValueChanged, this, &DirectionalLightItem::OnIntensityChanged);
+	connect(m_removeButton, &QPushButton::clicked, this, [this]() {
+		emit RemoveRequested(m_light);
+		});
 }
 
 DirectionalLightItem::~DirectionalLightItem()
 {
+}
+
+void DirectionalLightItem::SetLight(LuxonEngine::DirectionalLight* light, int index)
+{
+	m_light = light;
+	m_titleLabel->setText(QString("Directional Light %1").arg(index));
 }
 
 void DirectionalLightItem::OnColorChanged(LuxonEngine::Color newColor)

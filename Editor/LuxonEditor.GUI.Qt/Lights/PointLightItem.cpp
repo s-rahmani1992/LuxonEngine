@@ -1,4 +1,5 @@
 #include "PointLightItem.h"
+#include <QHBoxLayout>
 
 PointLightItem::PointLightItem(LuxonEngine::PointLight* light, int index, QWidget* parent)
 	: QWidget(parent), m_light(light)
@@ -7,9 +8,14 @@ PointLightItem::PointLightItem(LuxonEngine::PointLight* light, int index, QWidge
 	layout->setContentsMargins(4, 4, 4, 4);
 	layout->setSpacing(4);
 
-	// Title
+	// Title row
+	auto* titleRow = new QHBoxLayout();
 	m_titleLabel = new QLabel(QString("Point Light %1").arg(index), this);
-	layout->addWidget(m_titleLabel);
+	m_removeButton = new QPushButton("Remove", this);
+	titleRow->addWidget(m_titleLabel);
+	titleRow->addStretch();
+	titleRow->addWidget(m_removeButton);
+	layout->addLayout(titleRow);
 
 	// Color
 	m_colorField = new QColorField(this, "Color");
@@ -65,10 +71,19 @@ PointLightItem::PointLightItem(LuxonEngine::PointLight* light, int index, QWidge
 	connect(m_attC0Field, &QFloatField::ValueChanged, this, &PointLightItem::OnAttenuationC0Changed);
 	connect(m_attC1Field, &QFloatField::ValueChanged, this, &PointLightItem::OnAttenuationC1Changed);
 	connect(m_attC2Field, &QFloatField::ValueChanged, this, &PointLightItem::OnAttenuationC2Changed);
+	connect(m_removeButton, &QPushButton::clicked, this, [this]() {
+		emit RemoveRequested(m_light);
+		});
 }
 
 PointLightItem::~PointLightItem()
 {
+}
+
+void PointLightItem::SetLight(LuxonEngine::PointLight* light, int index)
+{
+	m_light = light;
+	m_titleLabel->setText(QString("Point Light %1").arg(index));
 }
 
 void PointLightItem::OnColorChanged(LuxonEngine::Color newColor)
