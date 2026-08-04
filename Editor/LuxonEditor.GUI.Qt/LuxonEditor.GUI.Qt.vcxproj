@@ -153,6 +153,7 @@
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
+    <ClCompile Include="Core\PerspectiveCameraWidget.cpp" />
     <ClCompile Include="Core\TransformWidget.cpp" />
     <ClCompile Include="Material\MaterialCreationWindow.cpp" />
     <ClCompile Include="Material\MaterialInspecterWidget.cpp" />
@@ -218,6 +219,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Core\PerspectiveCameraWidget.h" />
     <QtMoc Include="Material\QMaterialField.h" />
     <QtMoc Include="Mesh\QMeshField.h" />
     <QtMoc Include="Renderer\MeshRendererWidget.h" />

@@ -19,8 +19,16 @@ namespace LuxonEditor {
 		if(std::filesystem::exists(m_currentScenePath)) {
 			LuxonEngine::SerializationStream stream;
 			if(stream.LoadFromFile(m_currentScenePath)) {
-				auto entitiesArray = stream.Array("entities");
+				auto cameraStream = stream.Object("main-camera");
+				auto camTransformStream = cameraStream.Object("transform");
+				auto camTransform = DeserializeTransform(camTransformStream);
+				auto nearZ = cameraStream.GetFloat("near-z", 0.1f);
+				auto farZ = cameraStream.GetFloat("far-z", 100.0f);
+				auto fovAngle = cameraStream.GetFloat("fov-angle", 60.0f);
+				m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, nearZ, farZ, 16.0f / 9.0f, fovAngle);
 
+
+				auto entitiesArray = stream.Array("entities");
 				for(auto& entityStream : entitiesArray) {
 					auto entity = DeserializeGameEntity(entityStream);
 					if(entity) {
@@ -39,6 +47,9 @@ namespace LuxonEditor {
 		auto transform2 = std::make_shared<Transform>(Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 45);
 		auto entity2 = std::make_shared<LuxonEngine::GameEntity>(transform2, nullptr, nullptr);
 		entity2->SetName("Second Entity");
+
+		auto camTransform = std::make_shared<Transform>(Vector3(0.0f, 1.0f, -5.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
+		m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, 0.1f, 100.0f, 16.0f / 9.0f, 60.0f);
 
 		AddEntity(entity1);
 		AddEntity(entity2);
@@ -102,6 +113,17 @@ namespace LuxonEditor {
 	void EngineSceneManager::SaveCurrentScene()
 	{
 		LuxonEngine::SerializationStream stream;
+
+		LuxonEngine::SerializationStream cameraStream;
+		LuxonEngine::SerializationStream cameraTransformStream;
+		SerializeTransform(cameraTransformStream, m_currentScene->mainCamera->GetTransform());
+		cameraStream.SetObject("transform", cameraTransformStream);
+		auto perspectiveCamera = std::dynamic_pointer_cast<LuxonEngine::PerspectiveCamera>(m_currentScene->mainCamera);
+		cameraStream.SetFloat("near-z", perspectiveCamera->GetNearZ());
+		cameraStream.SetFloat("far-z", perspectiveCamera->GetFarZ());
+		cameraStream.SetFloat("fov-angle", perspectiveCamera->GetFovAngle());
+		stream.SetObject("main-camera", cameraStream);
+
 		std::vector<LuxonEngine::SerializationStream> entitiesArray;
 		for (const auto& entry : m_entityList)
 		{

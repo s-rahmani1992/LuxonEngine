@@ -5,6 +5,7 @@
 #include "../Texture/TextureInspecterWidget.h"
 #include "../Material/MaterialInspecterWidget.h"
 #include "../Scene/GameEntityInspecterWidget.h"
+#include "../Core/PerspectiveCameraWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -48,9 +49,9 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 		if(selectedObject == "Camera")
 		{
 			ui.fileLabel->setText("Camera");
-			// Create a camera inspecter widget
-			// For now, just show a label
-			m_currentWidget = new QLabel("Camera Inspecter", ui.container);
+			PerspectiveCameraWidget* cameraWidget = new PerspectiveCameraWidget(ui.container);
+			cameraWidget->SetCamera(std::dynamic_pointer_cast<LuxonEngine::PerspectiveCamera>(EngineApplication::GetSceneManager()->GetCurrentScene()->mainCamera));
+			m_currentWidget = cameraWidget;
 			m_currentWidget->show();
 			ui.container->layout()->addWidget(m_currentWidget);
 			return;
