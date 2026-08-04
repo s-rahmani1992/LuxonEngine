@@ -27,6 +27,19 @@ namespace LuxonEditor {
 				auto fovAngle = cameraStream.GetFloat("fov-angle", 60.0f);
 				m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, nearZ, farZ, 16.0f / 9.0f, fovAngle);
 
+				auto lightStram = stream.Object("light-data");
+
+				std::vector<SerializationStream> directionalLightsArray = lightStram.Array("directional-lights");
+				for(auto& dirLightStream : directionalLightsArray) {
+					auto dirLight = DeserializeDirectionalLight(dirLightStream);
+					m_currentScene->lightData.directionalLights.push_back(dirLight);
+				}
+
+				std::vector<SerializationStream> pointLightsArray = lightStram.Array("point-lights");
+				for(auto& pointLightStream : pointLightsArray) {
+					auto pointLight = DeserializePointLight(pointLightStream);
+					m_currentScene->lightData.pointLights.push_back(pointLight);
+				}
 
 				auto entitiesArray = stream.Array("entities");
 				for(auto& entityStream : entitiesArray) {
@@ -148,6 +161,27 @@ namespace LuxonEditor {
 		cameraStream.SetFloat("far-z", perspectiveCamera->GetFarZ());
 		cameraStream.SetFloat("fov-angle", perspectiveCamera->GetFovAngle());
 		stream.SetObject("main-camera", cameraStream);
+
+		LuxonEngine::SerializationStream lightDataStream;
+		std::vector<LuxonEngine::SerializationStream> directionalLightsArray;
+		for (const auto& light : m_currentScene->lightData.directionalLights)
+		{
+			LuxonEngine::SerializationStream lightStream;
+			SerializeDirectionalLight(lightStream, light);
+			directionalLightsArray.push_back(lightStream);
+		}
+		lightDataStream.SetArray("directional-lights", directionalLightsArray);
+
+		std::vector<LuxonEngine::SerializationStream> pointLightsArray;
+		for (const auto& light : m_currentScene->lightData.pointLights)
+		{
+			LuxonEngine::SerializationStream lightStream;
+			SerializePointLight(lightStream, light);
+			pointLightsArray.push_back(lightStream);
+		}
+		lightDataStream.SetArray("point-lights", pointLightsArray);
+
+		stream.SetObject("light-data", lightDataStream);
 
 		std::vector<LuxonEngine::SerializationStream> entitiesArray;
 		for (const auto& entry : m_entityList)

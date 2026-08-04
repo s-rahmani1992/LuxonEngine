@@ -11,4 +11,10 @@ namespace LuxonEditor {
 
 	ref<LuxonEngine::GameEntity> DeserializeGameEntity(LuxonEngine::SerializationStream& stream);
 	void SerializeGameEntity(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::GameEntity>& entity);
+
+	LuxonEngine::DirectionalLight DeserializeDirectionalLight(LuxonEngine::SerializationStream& stream);
+	void SerializeDirectionalLight(LuxonEngine::SerializationStream& stream, const LuxonEngine::DirectionalLight& light);
+
+	LuxonEngine::PointLight DeserializePointLight(LuxonEngine::SerializationStream& stream);
+	void SerializePointLight(LuxonEngine::SerializationStream& stream, const LuxonEngine::PointLight& light);
 }

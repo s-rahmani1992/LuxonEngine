@@ -112,4 +112,44 @@ namespace LuxonEditor {
 		stream.SetObject("renderer", rendererStream);
 		stream.SetString("name", entity->GetName());
 	}
+
+	LuxonEngine::DirectionalLight DeserializeDirectionalLight(LuxonEngine::SerializationStream& stream)
+	{
+		LuxonEngine::DirectionalLight directionalLight;
+		stream.GetColor("color", directionalLight.color);
+		stream.GetVector3("direction", directionalLight.direction);
+		directionalLight.intensity = stream.GetFloat("intensity", 1.0f);
+		return directionalLight;
+	}
+
+	void SerializeDirectionalLight(LuxonEngine::SerializationStream& stream, const LuxonEngine::DirectionalLight& light)
+	{
+		stream.SetColor("color", light.color);
+		stream.SetVector3("direction", light.direction);
+		stream.SetFloat("intensity", light.intensity);
+	}
+
+	LuxonEngine::PointLight DeserializePointLight(LuxonEngine::SerializationStream& stream)
+	{
+		LuxonEngine::PointLight pointLight;
+		stream.GetColor("color", pointLight.color);
+		stream.GetVector3("position", pointLight.position);
+		pointLight.intensity = stream.GetFloat("intensity", 1.0f);
+		pointLight.attenuation.c0 = stream.GetFloat("attenuation-c0", 0.0f);
+		pointLight.attenuation.c1 = stream.GetFloat("attenuation-c1", 0.0f);
+		pointLight.attenuation.c2 = stream.GetFloat("attenuation-c2", 1.0f);
+		pointLight.radius = stream.GetFloat("radius", 1.0f);
+		return pointLight;
+	}
+
+	void SerializePointLight(LuxonEngine::SerializationStream& stream, const LuxonEngine::PointLight& light)
+	{
+		stream.SetColor("color", light.color);
+		stream.SetVector3("position", light.position);
+		stream.SetFloat("intensity", light.intensity);
+		stream.SetFloat("attenuation-c0", light.attenuation.c0);
+		stream.SetFloat("attenuation-c1", light.attenuation.c1);
+		stream.SetFloat("attenuation-c2", light.attenuation.c2);
+		stream.SetFloat("radius", light.radius);
+	}
 }
