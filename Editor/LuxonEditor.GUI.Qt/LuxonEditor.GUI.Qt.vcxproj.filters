@@ -276,6 +276,9 @@
     <ClCompile Include="Lights\SceneLightInspecterWidget.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
+    <ClCompile Include="Windows\GameWindow.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -433,6 +436,9 @@
     </QtMoc>
     <QtMoc Include="Lights\SceneLightInspecterWidget.h">
       <Filter>Lights</Filter>
+    </QtMoc>
+    <QtMoc Include="Windows\GameWindow.h">
+      <Filter>Windows</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

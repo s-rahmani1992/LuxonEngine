@@ -7,6 +7,7 @@
 #include "InspecterWindow.h"
 #include "SceneEditorWindow.h"
 #include "SceneHierarchyWindow.h"
+#include "gameWindow.h"
 
 //TODO Right now, The ADS docking is copied into this project. use the git submodule in the future
 #include "../ADS/src/DockSplitter.h"
@@ -35,6 +36,11 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
         });
     connect(ui.saveMenuItem, &QAction::triggered, [this]() {
         EngineApplication::GetSceneManager()->SaveCurrentScene();
+		});
+
+    connect(ui.runButton, &QPushButton::clicked, [this]() {
+        GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene());
+		gameWindow->show();
 		});
 
     ads::CDockManager::setConfigFlag(ads::CDockManager::DefaultDockAreaButtons, false);
