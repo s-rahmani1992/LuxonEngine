@@ -21,6 +21,9 @@ namespace LuxonEditor::GUI::QT {
 	protected:
 		bool eventFilter(QObject* watched, QEvent* event) override;
 
+	private slots:
+		void OnAddEntityRequested();
+
 	private:
 		void OnDeleteRequested(const QModelIndex& index);
 

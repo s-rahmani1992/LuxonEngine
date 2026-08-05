@@ -2,6 +2,8 @@
 #include "../Scene/GameEntityModel.h"
 #include "../Scene/GameEntityItemDelegate.h"
 #include <Core/EngineSceneManager.h>
+#include <Core/GameEntity.h>
+#include <Core/Transform.h>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <LuxonEditorAPI.h>
@@ -49,6 +51,8 @@ namespace LuxonEditor::GUI::QT {
 				GetSelectionManager()->SetSelectedObject(std::string("Camera"));
 			}
 			});
+
+		connect(ui.addEntityButton, &QPushButton::clicked, this, &SceneHierarchyWindow::OnAddEntityRequested);
 	}
 
 	SceneHierarchyWindow::~SceneHierarchyWindow()
@@ -73,6 +77,14 @@ namespace LuxonEditor::GUI::QT {
 		return QWidget::eventFilter(watched, event);
 	}
 
+	void SceneHierarchyWindow::OnAddEntityRequested()
+	{
+		auto transform = std::make_shared<LuxonEngine::Transform>();
+		auto entity = std::make_shared<LuxonEngine::GameEntity>(transform, nullptr, nullptr);
+		entity->SetName("new entity");
+		EngineApplication::GetSceneManager()->AddEntity(entity);
+	}
+
 	void SceneHierarchyWindow::OnDeleteRequested(const QModelIndex& index)
 	{
 		const QString name = index.data(Qt::DisplayRole).toString();
@@ -80,14 +92,14 @@ namespace LuxonEditor::GUI::QT {
 		QMessageBox::StandardButton result = QMessageBox::question(
 			this,
 			tr("Delete Entity"),
-			tr("Are you sure you want to delete \"%1\"?").arg(name),
+			tr("Are you sure you want to delete entity \"%1\"?").arg(name),
 			QMessageBox::Yes | QMessageBox::No,
 			QMessageBox::No);
 
 		if (result == QMessageBox::Yes)
 		{
-			const QString uuid = index.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString();
-			// TODO: call sceneManager->RemoveEntity(uuid) once UUID parsing is wired up
+			auto uuid = GuidGenerator::GenerateGUIDFromString(index.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString().toStdString());
+			EngineApplication::GetSceneManager()->RemoveEntity(uuid);
 		}
 	}
 }
