@@ -109,18 +109,7 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		auto meshRenderer = std::make_shared<MeshRenderer>(m_mesh, meshMaterial);
 		auto meshEntity = std::make_shared<LuxonEngine::GameEntity>(meshTransform, meshRenderer, nullptr);
 
-		std::vector<Vertex> planeVertices = {
-		Vertex(Vector3(-1.0f, 0, -1.0f), Vector2(0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)),
-		Vertex(Vector3(1.0f, 0, -1.0f), Vector2(10.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f)),
-		Vertex(Vector3(1.0f, 0, 1.0f), Vector2(10.0f, 10.0f), Vector3(0.0f, 1.0f, 0.0f)),
-		Vertex(Vector3(-1.0f, 0, 1.0f), Vector2(0.0f, 10.0f), Vector3(0.0f, 1.0f, 0.0f)),
-		};
-
-		std::vector<UInt32> planeIndices = {
-			0, 1, 2, 0, 2, 3,
-		};
-
-		std::shared_ptr<Mesh> planeMesh = std::make_shared<Mesh>(planeVertices, planeIndices);
+		auto planeMesh = ShapeBuilder::CreatePlane(5.0f, 5.0f, 25, 25);
 
 		auto textureProgram = shaderRegistery->GetProgram(LuxonEditor::GuidGenerator::GenerateGUIDFromString("e0086dc4-3a59-4d7b-ae27-69f04a52b154"));
 		auto textureProgramRef = std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(textureProgram, [](LuxonEngine::Rendering::ShaderProgram*) {
@@ -136,7 +125,6 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		groundMaterial->SetValue("specular", 0.4f);
 		auto groundTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f), Vector3(0.0f, 0.0f, 1.0f), 0);
 		auto groundMeshRenderer = std::make_shared<MeshRenderer>(planeMesh, groundMaterial);
-		//auto rtComponent4 = std::make_shared<Render::RayTracingComponent>(planeMesh, groundRTMaterial);
 		auto groundEntity = std::make_shared<LuxonEngine::GameEntity>(groundTransform, groundMeshRenderer, nullptr);
 
 

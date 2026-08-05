@@ -103,3 +103,31 @@ ref<LuxonEngine::Mesh> LuxonEngine::ShapeBuilder::CreateSphere(Float radius, UIn
 	}
 	return std::make_shared<Mesh>(sphereVertices, sphereIndices);
 }
+
+ref<LuxonEngine::Mesh> LuxonEngine::ShapeBuilder::CreatePlane(float uFactor, float vFactor, UInt32 uSegments, UInt32 vSegments)
+{
+    std::vector<Vertex> planeVertices;
+    for (UInt32 v = 0; v <= vSegments; ++v) {
+        for (UInt32 u = 0; u <= uSegments; ++u) {
+            float x = (float)u / uSegments;
+            float y = (float)v / vSegments;
+
+            float calculatedU = x * uFactor;
+            float calculatedV = y * vFactor;
+            planeVertices.push_back(Vertex(Vector3(2*x - 1, 0.0f, 2*y - 1), Vector2(calculatedU, calculatedV), Vector3(0.0f, 1.0f, 0.0f)));
+        }
+    }
+    std::vector<UInt32> planeIndices;
+    for (UInt32 v = 0; v < vSegments; ++v) {
+        for (UInt32 u = 0; u < uSegments; ++u) {
+            UInt32 startIndex = v * (uSegments + 1) + u;
+            planeIndices.push_back(startIndex);
+            planeIndices.push_back(startIndex + 1);
+            planeIndices.push_back(startIndex + uSegments + 1);
+            planeIndices.push_back(startIndex + 1);
+            planeIndices.push_back(startIndex + uSegments + 2);
+            planeIndices.push_back(startIndex + uSegments + 1);
+        }
+    }
+	return std::make_shared<Mesh>(planeVertices, planeIndices);
+}
