@@ -9,6 +9,7 @@
 #include "WICTextureImporter.h"
 #include "MaterialImporter.h"
 #include "AssetDirectoryWatcher.h"
+#include "GuidUtilities.h"
 
 namespace fs = std::filesystem;
 
@@ -210,6 +211,15 @@ LuxonEditor::AssetEntry<LuxonEngine::Rendering::Material>* LuxonEditor::AssetReg
 
 void LuxonEditor::AssetRegistry::ImportAllAssets()
 {
+	ref<Mesh> sphereMesh = ShapeBuilder::CreateSphere(1.0f, 30, 30);
+	AddMesh(GuidGenerator::GenerateGUIDFromString("585aa516-59c6-4fb4-a893-e4d56f65431a"), "Sphere", sphereMesh);
+
+	ref<Mesh> cubeMesh = ShapeBuilder::CreateCompleteCube(1.0f);
+	AddMesh(GuidGenerator::GenerateGUIDFromString("3a749398-71d0-4277-bb2d-dd01a5e140c4"), "Cube", cubeMesh);
+
+	ref<Mesh> planeMesh = ShapeBuilder::CreatePlane(5.0f, 5.0f, 2, 2);
+	AddMesh(GuidGenerator::GenerateGUIDFromString("837f517a-9689-4c3f-88a9-0042120f3abd"), "Plane", planeMesh);
+
 	std::string assetPath = m_projectPath + "/Assets";
 	std::string internalAssetPath = m_projectPath + "/Data/InternalAssets";
 	// Iterate through all files in the assetPath directory and its subdirectories
