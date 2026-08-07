@@ -7,6 +7,7 @@
 #include "DX12AssetManager.h"
 #include "DX12ShaderRegistery.h"
 #include "DX12MaterialFactory.h"
+#include "DX12EditorGraphicContext.h"
 
 bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 {
@@ -74,6 +75,17 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager);
 
 	if (context->Initialize(m_device.Get(), m_factory))
+		return context;
+
+	return nullptr;
+}
+
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window)
+{
+	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
+	ref<DX12GraphicContext> context = std::make_shared<DX12EditorGraphicContext>(2, cmdExecuter, window, m_assetManager);
+
+	if(context->Initialize(m_device.Get(), m_factory))
 		return context;
 
 	return nullptr;

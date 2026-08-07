@@ -183,6 +183,7 @@
     <ClInclude Include="Core\VulkanAssetManager.h" />
     <ClInclude Include="Core\VulkanBufferFactory.h" />
     <ClInclude Include="Core\VulkanDeviceManager.h" />
+    <ClInclude Include="Core\VulkanEditorGraphicContext.h" />
     <ClInclude Include="Core\VulkanGraphicContext.h" />
     <ClInclude Include="Core\VulkanHybridContext.h" />
     <ClInclude Include="Core\VulkanMaterialFactory.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Core\VulkanAssetManager.cpp" />
     <ClCompile Include="Core\VulkanBufferFactory.cpp" />
     <ClCompile Include="Core\VulkanDeviceManager.cpp" />
+    <ClCompile Include="Core\VulkanEditorGraphicContext.cpp" />
     <ClCompile Include="Core\VulkanGraphicContext.cpp" />
     <ClCompile Include="Core\VulkanHybridContext.cpp" />
     <ClCompile Include="Core\VulkanMaterialFactory.cpp" />

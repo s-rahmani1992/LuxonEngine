@@ -196,6 +196,7 @@
     <ClInclude Include="DX12API.h" />
     <ClInclude Include="DX12AssetManager.h" />
     <ClInclude Include="DX12CommandExecuter.h" />
+    <ClInclude Include="DX12EditorGraphicContext.h" />
     <ClInclude Include="DX12GameEntityPipelineModule.h" />
     <ClInclude Include="DX12GBufferPipelineModule.h" />
     <ClInclude Include="DX12GPUDeviceManager.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="Core\HLSLShaderProgram.cpp" />
     <ClCompile Include="DX12AssetManager.cpp" />
     <ClCompile Include="DX12CommandExecuter.cpp" />
+    <ClCompile Include="DX12EditorGraphicContext.cpp" />
     <ClCompile Include="DX12GameEntityPipelineModule.cpp" />
     <ClCompile Include="DX12GBufferPipelineModule.cpp" />
     <ClCompile Include="DX12GPUDeviceManager.cpp" />

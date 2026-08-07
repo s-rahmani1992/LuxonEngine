@@ -23,6 +23,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		virtual bool Initialize() override;
 		virtual ref<GraphicContext> CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
+		virtual ref<GraphicContext> CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GPUAssetManager> CreateAssetManager() override;
 		virtual ref<ShaderRegistery> CreateShaderRegistery() override;
 		virtual ref<MaterialFactory> CreateMaterialFactory() override;

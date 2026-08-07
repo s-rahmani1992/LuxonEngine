@@ -35,6 +35,8 @@ namespace LuxonEngine::Rendering {
 		/// <returns></returns>
 		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<GraphicWindow>& window) = 0;
 		
+		virtual ref<GraphicContext> CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window) { return nullptr; };
+
 		/// <summary>
 		/// Creates Asset Manager for uploading and managing GPU assets
 		/// </summary>

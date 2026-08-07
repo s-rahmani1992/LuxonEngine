@@ -74,6 +74,9 @@
     </ClInclude>
     <ClInclude Include="VulkanGBufferPipelineModule.h" />
     <ClInclude Include="VulkanAPI.h" />
+    <ClInclude Include="Core\VulkanEditorGraphicContext.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\VulkanDeviceManager.cpp">
@@ -152,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="VulkanGBufferPipelineModule.cpp" />
     <ClCompile Include="VulkanAPI.cpp" />
+    <ClCompile Include="Core\VulkanEditorGraphicContext.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

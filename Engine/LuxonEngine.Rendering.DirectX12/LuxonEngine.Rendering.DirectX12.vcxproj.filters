@@ -103,6 +103,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="DX12API.h" />
+    <ClInclude Include="DX12EditorGraphicContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -184,5 +187,8 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="DX12API.cpp" />
+    <ClCompile Include="DX12EditorGraphicContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

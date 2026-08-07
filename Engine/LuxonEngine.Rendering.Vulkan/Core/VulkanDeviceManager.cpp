@@ -8,6 +8,7 @@
 #include "VulkanAssetManager.h"
 #include "VulkanMaterialFactory.h"
 #include "VulkanBufferFactory.h"
+#include "VulkanEditorGraphicContext.h"
 #include <set>
 
 LuxonEngine::Rendering::Vulkan::VulkanDeviceManager* LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::s_instance;
@@ -260,6 +261,14 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 	if (context->Initialize() == false)
 		return nullptr;
 
+	return context;
+}
+
+ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window)
+{
+	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window);
+	if (context->Initialize() == false)
+		return nullptr;
 	return context;
 }
 
