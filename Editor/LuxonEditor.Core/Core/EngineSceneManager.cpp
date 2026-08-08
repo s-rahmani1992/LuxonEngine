@@ -7,90 +7,134 @@
 
 namespace LuxonEditor {
 
-	void EngineSceneManager::Initialize()
+	// Resolves a project-relative path to an absolute path using the project root.
+	static std::filesystem::path ResolveAbsolutePath(const std::string& relativePath)
 	{
-		using namespace LuxonEngine;
+		return std::filesystem::path(EngineApplication::GetProjectPath()) / relativePath;
+	}
 
-		std::filesystem::path projectPath = EngineApplication::GetProjectPath();
+	void EngineSceneManager::Initialize(const std::string& initialScenePath)
+	{
+		m_currentScene = std::make_shared<LuxonEngine::Scene>();
 
-		m_currentScenePath = (projectPath / "Assets" / "DefaultScene.lscene").string();
-		m_currentScene = std::make_shared<Scene>();
-
-		if(std::filesystem::exists(m_currentScenePath)) {
-			LuxonEngine::SerializationStream stream;
-			if(stream.LoadFromFile(m_currentScenePath)) {
-				auto cameraStream = stream.Object("main-camera");
-				auto camTransformStream = cameraStream.Object("transform");
-				auto camTransform = DeserializeTransform(camTransformStream);
-				auto nearZ = cameraStream.GetFloat("near-z", 0.1f);
-				auto farZ = cameraStream.GetFloat("far-z", 100.0f);
-				auto fovAngle = cameraStream.GetFloat("fov-angle", 60.0f);
-				m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, nearZ, farZ, 16.0f / 9.0f, fovAngle);
-
-				auto lightStram = stream.Object("light-data");
-
-				std::vector<SerializationStream> directionalLightsArray = lightStram.Array("directional-lights");
-				for(auto& dirLightStream : directionalLightsArray) {
-					auto dirLight = DeserializeDirectionalLight(dirLightStream);
-					m_currentScene->lightData.directionalLights.push_back(dirLight);
-				}
-
-				std::vector<SerializationStream> pointLightsArray = lightStram.Array("point-lights");
-				for(auto& pointLightStream : pointLightsArray) {
-					auto pointLight = DeserializePointLight(pointLightStream);
-					m_currentScene->lightData.pointLights.push_back(pointLight);
-				}
-
-				auto entitiesArray = stream.Array("entities");
-				for(auto& entityStream : entitiesArray) {
-					auto entity = DeserializeGameEntity(entityStream);
-					if(entity) {
-						AddEntity(entity);
-					}
-				}
+		// Try caller-supplied relative path first
+		if (!initialScenePath.empty()) {
+			auto absolutePath = ResolveAbsolutePath(initialScenePath);
+			if (TryLoadSceneFromFile(absolutePath.string())) {
+				m_currentScenePath = initialScenePath;
 				InvokeEntityListChangedCallbacks();
 				return;
 			}
 		}
 
+		// Fall back to default relative scene path
+		m_currentScenePath = "Assets/DefaultScene.lscene";
+		if (TryLoadSceneFromFile(ResolveAbsolutePath(m_currentScenePath).string())) {
+			InvokeEntityListChangedCallbacks();
+			return;
+		}
+
+		CreateDefaultScene();
+	}
+
+	bool EngineSceneManager::TryLoadSceneFromFile(const std::string& path)
+	{
+		using namespace LuxonEngine;
+
+		if (!std::filesystem::exists(path))
+			return false;
+
+		SerializationStream stream;
+		if (!stream.LoadFromFile(path))
+			return false;
+
+		m_currentScene = std::make_shared<Scene>();
+		m_entityMap.clear();
+		m_entityList.clear();
+
+		auto cameraStream = stream.Object("main-camera");
+		auto camTransformStream = cameraStream.Object("transform");
+		auto camTransform = DeserializeTransform(camTransformStream);
+		auto nearZ = cameraStream.GetFloat("near-z", 0.1f);
+		auto farZ = cameraStream.GetFloat("far-z", 100.0f);
+		auto fovAngle = cameraStream.GetFloat("fov-angle", 60.0f);
+		m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, nearZ, farZ, 16.0f / 9.0f, fovAngle);
+
+		auto lightStream = stream.Object("light-data");
+
+		for (auto& dirLightStream : lightStream.Array("directional-lights"))
+			m_currentScene->lightData.directionalLights.push_back(DeserializeDirectionalLight(dirLightStream));
+
+		for (auto& pointLightStream : lightStream.Array("point-lights"))
+			m_currentScene->lightData.pointLights.push_back(DeserializePointLight(pointLightStream));
+
+		for (auto& entityStream : stream.Array("entities")) {
+			auto entity = DeserializeGameEntity(entityStream);
+			if (entity) {
+				boost::uuids::uuid uuid = GuidGenerator::GenerateGUID();
+				m_entityMap[uuid] = entity;
+				m_currentScene->entities.push_back(entity);
+				m_entityList.push_back({ uuid, entity });
+			}
+		}
+
+		return true;
+	}
+
+	void EngineSceneManager::CreateDefaultScene()
+	{
+		using namespace LuxonEngine;
+
+		m_currentScene = std::make_shared<Scene>();
+		m_entityMap.clear();
+		m_entityList.clear();
+
 		auto transform1 = std::make_shared<Transform>(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
-		auto entity1 = std::make_shared<LuxonEngine::GameEntity>(transform1, nullptr, nullptr);
+		auto entity1 = std::make_shared<GameEntity>(transform1, nullptr, nullptr);
 		entity1->SetName("Default Entity");
 
 		auto transform2 = std::make_shared<Transform>(Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 45);
-		auto entity2 = std::make_shared<LuxonEngine::GameEntity>(transform2, nullptr, nullptr);
+		auto entity2 = std::make_shared<GameEntity>(transform2, nullptr, nullptr);
 		entity2->SetName("Second Entity");
 
 		auto camTransform = std::make_shared<Transform>(Vector3(0.0f, 1.0f, -5.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
 		m_currentScene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, 0.1f, 100.0f, 16.0f / 9.0f, 60.0f);
 
-		m_currentScene->lightData.directionalLights.push_back(LuxonEngine::DirectionalLight{ 
-			.color = LuxonEngine::Color(1.0f, 1.0f, 1.0f, 1.0f), 
-			.direction = LuxonEngine::Vector3(-1.0f, -1.0f, -1.0f), 
+		m_currentScene->lightData.directionalLights.push_back(DirectionalLight{
+			.color = Color(1.0f, 1.0f, 1.0f, 1.0f),
+			.direction = Vector3(-1.0f, -1.0f, -1.0f),
 			.intensity = 1.0f
-			}
-		);
+			});
 
-		m_currentScene->lightData.pointLights.push_back(LuxonEngine::PointLight{
-			.color = LuxonEngine::Color(1.0f, 0.0f, 0.0f, 1.0f),
-			.position = LuxonEngine::Vector3(-2.0f, 2.0f, 2.0f),
+		m_currentScene->lightData.pointLights.push_back(PointLight{
+			.color = Color(1.0f, 0.0f, 0.0f, 1.0f),
+			.position = Vector3(-2.0f, 2.0f, 2.0f),
 			.intensity = 5.0f,
-			.attenuation = LuxonEngine::Attenuation{ .c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
+			.attenuation = Attenuation{.c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
 			.radius = 10.0f
-			}
-		);
+			});
 
-		m_currentScene->lightData.pointLights.push_back(LuxonEngine::PointLight{
-			.color = LuxonEngine::Color(1.0f, 0.0f, 1.0f, 1.0f),
-			.position = LuxonEngine::Vector3(2.0f, 2.0f, 2.0f),
+		m_currentScene->lightData.pointLights.push_back(PointLight{
+			.color = Color(1.0f, 0.0f, 1.0f, 1.0f),
+			.position = Vector3(2.0f, 2.0f, 2.0f),
 			.intensity = 5.0f,
-			.attenuation = LuxonEngine::Attenuation{ .c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
+			.attenuation = Attenuation{.c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
 			.radius = 10.0f
-			}
-		);
+			});
 
 		AddEntity(entity1);
 		AddEntity(entity2);
+	}
+
+	void EngineSceneManager::LoadScene(const std::string& relativePath)
+	{
+		if (!TryLoadSceneFromFile(ResolveAbsolutePath(relativePath).string()))
+			return;
+
+		m_currentScenePath = relativePath;
+		InvokeEntityListChangedCallbacks();
+		InvokeSceneLoadedCallbacks();
+		RequestRender();
 	}
 
 	void EngineSceneManager::AddEntity(ref<LuxonEngine::GameEntity> entity)
@@ -127,7 +171,6 @@ namespace LuxonEditor {
 		}
 
 		InvokeEntityListChangedCallbacks();
-
 		RequestRender();
 	}
 
@@ -141,7 +184,7 @@ namespace LuxonEditor {
 
 	void EngineSceneManager::RequestRender()
 	{
-		for(auto& kv : m_requestRenderCallbacks)
+		for (auto& kv : m_requestRenderCallbacks)
 			kv.second();
 	}
 
@@ -167,6 +210,18 @@ namespace LuxonEditor {
 	void EngineSceneManager::UnregisterRequestRenderCallback(size_t id)
 	{
 		m_requestRenderCallbacks.erase(id);
+	}
+
+	size_t EngineSceneManager::RegisterSceneLoadedCallback(SceneLoadedCallback cb)
+	{
+		size_t id = ++m_lastSceneLoadedCallbackId;
+		m_sceneLoadedCallbacks[id] = cb;
+		return id;
+	}
+
+	void EngineSceneManager::UnregisterSceneLoadedCallback(size_t id)
+	{
+		m_sceneLoadedCallbacks.erase(id);
 	}
 
 	void EngineSceneManager::SaveCurrentScene()
@@ -212,12 +267,18 @@ namespace LuxonEditor {
 			entitiesArray.push_back(entityStream);
 		}
 		stream.SetArray("entities", entitiesArray);
-		stream.SaveToFile(m_currentScenePath);
+		stream.SaveToFile(ResolveAbsolutePath(m_currentScenePath).string());
 	}
 
 	void EngineSceneManager::InvokeEntityListChangedCallbacks()
 	{
 		for (auto& kv : m_entityListChangedCallbacks)
 			kv.second();
+	}
+
+	void EngineSceneManager::InvokeSceneLoadedCallbacks()
+	{
+		for (auto& kv : m_sceneLoadedCallbacks)
+			kv.second(m_currentScene);
 	}
 }

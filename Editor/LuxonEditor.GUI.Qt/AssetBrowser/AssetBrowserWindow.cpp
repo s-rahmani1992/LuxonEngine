@@ -61,6 +61,12 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
             ui.contentListView->clearSelection();
             RefreshAddressPanel(m_fileModel->filePath(srcIdx));
         }
+        else if(fileInfo.suffix().toLower() == "lscene")
+        {
+			std::filesystem::path scenePath = fileInfo.absoluteFilePath().toStdString();
+			auto relativePath = std::filesystem::relative(scenePath, GetProjectPath());
+			EngineApplication::GetSceneManager()->LoadScene(relativePath.string());
+        }
         else
         {
             QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.filePath()));

@@ -18,7 +18,7 @@ LuxonEditor::EngineApplication* LuxonEditor::EngineApplication::CreateApplicatio
 	if (m_appInstance.Initialize(error) == false)
 		return nullptr;
 
-    return &m_appInstance;
+	return &m_appInstance;
 }
 
 LuxonEditor::SelectionManager* LuxonEditor::EngineApplication::GetSelectionManager()
@@ -30,7 +30,6 @@ LuxonEngine::Rendering::GPUDeviceManager* LuxonEditor::EngineApplication::GetGPU
 {
 	return m_appInstance.m_gpuApplication;
 }
-
 
 LuxonEditor::EngineApplication::EngineApplication(const ApplicationConfig& config)
 	:m_projectPath(config.projectPath),
@@ -87,9 +86,9 @@ void LuxonEditor::EngineApplication::LoadAssets()
 	m_assetManager->ImportAllAssets();
 }
 
-void LuxonEditor::EngineApplication::LoadScene()
+void LuxonEditor::EngineApplication::LoadScene(const std::string& initialScenePath)
 {
-	m_sceneManager->Initialize();
+	m_sceneManager->Initialize(initialScenePath);
 }
 
 void LuxonEditor::EngineApplication::ShutDown()

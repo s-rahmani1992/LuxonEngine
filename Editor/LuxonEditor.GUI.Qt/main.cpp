@@ -1,9 +1,12 @@
 #include "Windows/LuxonEditorWindow.h"
 #include "Windows/SplashStartWidget.h"
 #include <QtWidgets/QApplication>
+#include <QSettings>
 #include <LuxonEditorAPI.h>
 
 namespace QT = LuxonEditor::GUI::QT;
+
+static constexpr const char* k_lastScenePathKey = "scene/lastOpenedPath";
 
 int main(int argc, char* argv[])
 {
@@ -58,8 +61,17 @@ int main(int argc, char* argv[])
         .projectPath = QCoreApplication::applicationDirPath().toStdString(),
         .graphicAPI = Graphic_API::DIRECTX_12,
     };
+
     std::string errorString;
     auto engineApp = CreateEngineApplication(config, errorString);
+
+    // Persist the last opened scene path when the application closes
+    QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
+        const std::string& currentPath =
+            LuxonEditor::EngineApplication::GetSceneManager()->GetCurrentScenePath();
+        QSettings settings;
+        settings.setValue(k_lastScenePathKey, QString::fromStdString(currentPath));
+        });
 
     QT::SplashStartWidget splashWindow;
     splashWindow.show();
@@ -69,7 +81,12 @@ int main(int argc, char* argv[])
     splashWindow.SetProgress(50, "Loading Assets...");
     engineApp->LoadAssets();
     splashWindow.SetProgress(75, "Loading Scene...");
-    engineApp->LoadScene();
+
+    // Read the last opened scene from Qt settings and pass it to the scene manager
+    QSettings settings;
+    std::string lastScenePath = settings.value(k_lastScenePathKey).toString().toStdString();
+    engineApp->LoadScene(lastScenePath);
+
     splashWindow.SetProgress(100, "Starting Editor...");
 
     QT::LuxonEditorWindow mainWindow;

@@ -44,22 +44,23 @@ namespace LuxonEditor {
 		EngineApplication(EngineApplication&& src);
 		EngineApplication& operator=(EngineApplication&& src);
 		EngineApplication(const ApplicationConfig& config);
-		~EngineApplication() { 
-			ShutDown(); 
+		~EngineApplication() {
+			ShutDown();
 		}
 		bool Initialize(std::string& error);
 		void CompileShaders();
 		void LoadAssets();
-		void LoadScene();
+		// initialScenePath: optional path to restore; empty means use the default.
+		void LoadScene(const std::string& initialScenePath = {});
 		void ShutDown();
 	private:
 		Graphic_API m_graphicAPI;
 		std::string m_projectPath;
-		EngineShaderRegistry* m_shaderRegistery;
-		AssetRegistry* m_assetManager;
-		AssetDirectoryWatcher* m_assetWatcher;
-		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication = nullptr;
+		EngineShaderRegistry* m_shaderRegistery = nullptr;
+		AssetRegistry* m_assetManager = nullptr;
+		AssetDirectoryWatcher* m_assetWatcher = nullptr;
 		SelectionManager* m_selectionManager = nullptr;
 		EngineSceneManager* m_sceneManager = nullptr;
+		LuxonEngine::Rendering::GPUDeviceManager* m_gpuApplication = nullptr;
 	};
 }

@@ -1,18 +1,11 @@
 #pragma once
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include "ui_SceneEditorWindow.h"
 #include <LuxonEditorAPI.h>
-#include <EngineAPI.h>
-
-using namespace LuxonEngine;
-using namespace LuxonEngine::Rendering;
-
-namespace LuxonEngine::Rendering {
-	class GraphicContext;
-}
 
 namespace LuxonEditor::GUI::QT {
+
 	class SceneEditorWindow : public QWidget
 	{
 		Q_OBJECT
@@ -30,9 +23,12 @@ namespace LuxonEditor::GUI::QT {
 		void paintEvent(QPaintEvent* event) override;
 
 	private:
+		void OnSceneLoaded(ref<LuxonEngine::Scene> scene);
+		void PrepareContextForScene();
+
 		Ui::SceneEditorWindowClass ui;
 
-		ref<Scene> m_scene;
+		ref<LuxonEngine::Scene> m_scene;
 
 		ref<LuxonEngine::Rendering::GraphicContext> m_context;
 		ref<PerspectiveCamera> m_editorCamera;
@@ -40,5 +36,7 @@ namespace LuxonEditor::GUI::QT {
 
 		bool m_isMoveMode = false;
 		QPointF m_lastMousePos;
+
+		size_t m_sceneLoadedCallbackId = 0;
 	};
 }

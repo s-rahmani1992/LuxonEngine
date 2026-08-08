@@ -16,12 +16,55 @@ LuxonEditor::GUI::QT::SceneEditorWindow::SceneEditorWindow(QWidget* parent)
 	EngineApplication::GetSceneManager()->RegisterRequestRenderCallback([this]() {
 		this->update();
 		});
+
+	m_sceneLoadedCallbackId = EngineApplication::GetSceneManager()->RegisterSceneLoadedCallback(
+		[this](ref<LuxonEngine::Scene> scene) {
+			OnSceneLoaded(scene);
+		});
 }
 
 LuxonEditor::GUI::QT::SceneEditorWindow::~SceneEditorWindow()
 {
+	EngineApplication::GetSceneManager()->UnregisterSceneLoadedCallback(m_sceneLoadedCallbackId);
+
 	if (m_context)
 		m_context->Flush();
+}
+
+void LuxonEditor::GUI::QT::SceneEditorWindow::OnSceneLoaded(ref<LuxonEngine::Scene> scene)
+{
+	if (m_context == nullptr)
+		return;
+
+	m_scene = scene;
+	PrepareContextForScene();
+	update();
+}
+
+void LuxonEditor::GUI::QT::SceneEditorWindow::PrepareContextForScene()
+{
+	auto sceneCamera = m_scene->mainCamera;
+	m_scene->mainCamera = m_editorCamera;
+
+	auto shaderRegistery = LuxonEditor::EngineApplication::GetShaderRegistery();
+	auto guid = LuxonEditor::GuidGenerator::GenerateGUIDFromString("467ac325-1305-45bf-8088-f45f249077db");
+	auto program = shaderRegistery->GetProgram(guid);
+	auto lightRasterProgram = std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program, [](LuxonEngine::Rendering::ShaderProgram*) {
+		// do nothing
+		});
+
+	auto materialFactory = GetGPUApplication()->CreateMaterialFactory();
+	auto meshMaterial = materialFactory->CreateMaterial(lightRasterProgram);
+	meshMaterial->SetValue("color", Color(1.0f, 1.0f, 1.0f, 1.0f));
+	meshMaterial->SetValue("ambient", 0.2f);
+	meshMaterial->SetValue("diffuse", 0.5f);
+	meshMaterial->SetValue("specular", 0.7f);
+
+	auto globalMat = m_scene->rtGlobalMaterial;
+	m_scene->rtGlobalMaterial = meshMaterial;
+	m_context->PrepareScene(m_scene);
+	m_scene->mainCamera = sceneCamera;
+	m_scene->rtGlobalMaterial = globalMat;
 }
 
 void LuxonEditor::GUI::QT::SceneEditorWindow::resizeEvent(QResizeEvent* event)
@@ -36,35 +79,13 @@ void LuxonEditor::GUI::QT::SceneEditorWindow::resizeEvent(QResizeEvent* event)
 		};
 
 		m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
-
 		m_context = GetGPUApplication()->CreateEditorContext(m_window);
+
 		auto camtransform = std::make_shared<Transform>(Vector3(-5.2f, 1.9f, -1.1f), Vector3(1.0f), Vector3(-0.17f, -0.95f, 0.17f), 84);
 		m_editorCamera = std::make_shared<PerspectiveCamera>(camtransform, 0.1f, 1000.0f, (float)props.width / props.height, 45);
 
 		m_scene = EngineApplication::GetSceneManager()->GetCurrentScene();
-		auto sceneCamera = m_scene->mainCamera;
-		m_scene->mainCamera = m_editorCamera;
-
-		auto shaderRegistery = LuxonEditor::EngineApplication::GetShaderRegistery();
-		auto guid = LuxonEditor::GuidGenerator::GenerateGUIDFromString("467ac325-1305-45bf-8088-f45f249077db");
-		auto program = shaderRegistery->GetProgram(guid);
-		auto lightRasterProgram = std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program, [](LuxonEngine::Rendering::ShaderProgram*) {
-			// do nothing
-			});
-
-		auto materialFactory = GetGPUApplication()->CreateMaterialFactory();
-
-		auto meshMaterial = materialFactory->CreateMaterial(lightRasterProgram);
-		meshMaterial->SetValue("color", Color(1.0f, 1.0f, 1.0f, 1.0f));
-		meshMaterial->SetValue("ambient", 0.2f);
-		meshMaterial->SetValue("diffuse", 0.5f);
-		meshMaterial->SetValue("specular", 0.7f);
-
-		auto globalMat = m_scene->rtGlobalMaterial;
-		m_scene->rtGlobalMaterial = meshMaterial;
-		m_context->PrepareScene(m_scene);
-		m_scene->mainCamera = sceneCamera;
-		m_scene->rtGlobalMaterial = globalMat;
+		PrepareContextForScene();
 	}
 
 	m_editorCamera->ChangeAspect((float)size.width() / size.height());
