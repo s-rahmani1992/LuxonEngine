@@ -4,6 +4,7 @@
 #include "../Core/TransformWidget.h"
 #include "../Renderer/MeshRendererWidget.h"
 #include <qline.h>
+#include <LuxonEditorAPI.h>
 
 namespace LuxonEditor::GUI::QT {
 	GameEntityInspecterWidget::GameEntityInspecterWidget(QWidget* parent, ref<LuxonEngine::GameEntity>& entity)
@@ -32,6 +33,9 @@ namespace LuxonEditor::GUI::QT {
 		transformLayout->addWidget(transformWidget);
 		transformLayout->setAlignment(transformWidget, Qt::AlignTop);
 
+		connect(transformWidget, &TransformWidget::ValueChanged, this, [this]() {
+			EngineApplication::GetSceneManager()->RequestRender();
+			});
 
 		m_rendererPanel = new QWidget(this);
 		m_rendererPanel->setObjectName("rendererPanel");

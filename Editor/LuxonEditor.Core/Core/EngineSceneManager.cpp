@@ -100,6 +100,7 @@ namespace LuxonEditor {
 		m_currentScene->entities.push_back(entity);
 		m_entityList.push_back({ uuid, entity });
 		InvokeEntityListChangedCallbacks();
+		RequestRender();
 	}
 
 	void EngineSceneManager::RemoveEntity(const boost::uuids::uuid& uuid)
@@ -126,6 +127,8 @@ namespace LuxonEditor {
 		}
 
 		InvokeEntityListChangedCallbacks();
+
+		RequestRender();
 	}
 
 	ref<LuxonEngine::GameEntity> EngineSceneManager::GetEntityByUUID(const boost::uuids::uuid& uuid) const
@@ -134,6 +137,12 @@ namespace LuxonEditor {
 		if (it != m_entityMap.end())
 			return it->second;
 		return nullptr;
+	}
+
+	void EngineSceneManager::RequestRender()
+	{
+		for(auto& kv : m_requestRenderCallbacks)
+			kv.second();
 	}
 
 	size_t EngineSceneManager::RegisterEntityListChangedCallback(EntityListChangedCallback cb)
@@ -146,6 +155,18 @@ namespace LuxonEditor {
 	void EngineSceneManager::UnregisterEntityListChangedCallback(size_t id)
 	{
 		m_entityListChangedCallbacks.erase(id);
+	}
+
+	size_t EngineSceneManager::RegisterRequestRenderCallback(RequestRenderCallback cb)
+	{
+		auto id = ++m_lastRequestRenderCallbackId;
+		m_requestRenderCallbacks[id] = cb;
+		return id;
+	}
+
+	void EngineSceneManager::UnregisterRequestRenderCallback(size_t id)
+	{
+		m_requestRenderCallbacks.erase(id);
 	}
 
 	void EngineSceneManager::SaveCurrentScene()

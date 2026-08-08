@@ -12,6 +12,10 @@ LuxonEditor::GUI::QT::SceneEditorWindow::SceneEditorWindow(QWidget* parent)
 	ui.setupUi(this);
 	ui.contextWidget->setAttribute(Qt::WA_NativeWindow);
 	setFocusPolicy(Qt::StrongFocus);
+
+	EngineApplication::GetSceneManager()->RegisterRequestRenderCallback([this]() {
+		this->update();
+		});
 }
 
 LuxonEditor::GUI::QT::SceneEditorWindow::~SceneEditorWindow()

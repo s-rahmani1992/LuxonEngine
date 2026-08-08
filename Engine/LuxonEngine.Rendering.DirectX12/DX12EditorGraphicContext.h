@@ -24,7 +24,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	private:
 		bool InitializeDepthBuffer();
 		void InitializePipelines(const ref<Material>& overrideMaterial);
-		void SyncEntities(const ref<Scene>& scene);
+		void SyncEntities();
 
 	private:
 		// Depth Stencil

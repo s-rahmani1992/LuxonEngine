@@ -57,7 +57,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Render()
 {
 	// Sync entity list before updating GPU data
 	if (m_scene)
-		SyncEntities(m_scene);
+		SyncEntities();
 
 	UpdateDataHeaps();
 
@@ -226,6 +226,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 
 	// Per-entity transform CBVs
 	for (auto& entityGpu : m_entityGPUData) {
+		if(entityGpu.gameEntity->GetRenderer() == nullptr)
+			continue;
+
 		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer());
 		if (meshRenderer == nullptr) {
 			cpuHandle.ptr += incrementSize;
@@ -250,6 +253,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 	}
 
 	for (auto& meshRenderData : m_meshRendererData) {
+		if(meshRenderData.meshRenderer->GetMesh() == nullptr)
+			continue;
+
 		auto pipeline = std::make_shared<DX12GameEntityPipelineModule>();
 		if (pipeline->Initialize(m_device, meshRenderData, m_depthFormat) == false)
 			continue;
@@ -258,9 +264,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 	}
 }
 
-void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities(const ref<Scene>& scene)
+void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()
 {
-	const auto& sceneEntities = scene->entities;
+	const auto& sceneEntities = m_scene->entities;
 
 	// Collect current entity set
 	std::set<ref<GameEntity>> currentSet(sceneEntities.begin(), sceneEntities.end());
@@ -269,8 +275,8 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities(const 
 		existingSet.insert(gpuData.gameEntity);
 
 	// Check for any difference
-	if (currentSet == existingSet)
-		return;
+	/*if (currentSet == existingSet)
+		return;*/
 
 	// Find removed entities
 	std::vector<ref<GameEntity>> removed;
@@ -284,8 +290,8 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities(const 
 		if (existingSet.find(e) == existingSet.end())
 			added.push_back(e);
 
-	if (removed.empty() && added.empty())
-		return;
+	/*if (removed.empty() && added.empty())
+		return;*/
 
 	// Remove stale GPU data
 	for (auto& entity : removed) {
@@ -296,11 +302,12 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities(const 
 	}
 
 	// Upload and register newly added entities
-	if (!added.empty()) {
-		UploadTexturesAndMeshes(scene);
+	/*if (!added.empty()) {
+		UploadTexturesAndMeshes(m_scene);
 		InitializeEntityGPUData(added);
-	}
-
+	}*/
+	UploadTexturesAndMeshes(m_scene);
+	InitializeEntityGPUData(added);
 	// Rebuild pipelines for the full updated entity list
 	InitializePipelines(m_overrideMaterial);
 }

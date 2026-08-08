@@ -186,7 +186,12 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes(c
 	std::set<ref<Mesh>> uniqueMeshes;
 
 	for (auto& entity : scene->entities) {
-		auto mesh = entity->GetRenderer()->GetMesh();
+		if(entity->GetRenderer() == nullptr)
+			continue;
+
+		auto renderer = entity->GetRenderer();
+
+		auto mesh = renderer->GetMesh();
 		
 		if(mesh == nullptr)
 			continue;

@@ -1,5 +1,6 @@
 #include "MeshRendererWidget.h"
 #include <QBoxLayout>
+#include <LuxonEditorAPI.h>
 
 MeshRendererWidget::MeshRendererWidget(QWidget *parent)
 	: QWidget(parent)
@@ -17,6 +18,7 @@ MeshRendererWidget::MeshRendererWidget(QWidget *parent)
 	connect(m_meshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {
 		if (m_meshRenderer) {
 			m_meshRenderer->SetMesh(mesh);
+			LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
 		}
 		});
 

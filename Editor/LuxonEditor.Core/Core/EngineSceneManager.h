@@ -11,6 +11,7 @@ namespace LuxonEditor {
 		};
 
 		using EntityListChangedCallback = std::function<void()>;
+		using RequestRenderCallback = std::function<void()>;
 
 		void Initialize();
 
@@ -21,8 +22,14 @@ namespace LuxonEditor {
 		ref<LuxonEngine::GameEntity> GetEntityByUUID(const boost::uuids::uuid& uuid) const;
 		const std::vector<EntityEntry>& GetEntityList() const { return m_entityList; }
 
+		void RequestRender();
+
 		size_t RegisterEntityListChangedCallback(EntityListChangedCallback cb);
 		void UnregisterEntityListChangedCallback(size_t id);
+
+		size_t RegisterRequestRenderCallback(RequestRenderCallback cb);
+		void UnregisterRequestRenderCallback(size_t id);
+
 		void SaveCurrentScene();
 	private:
 		void InvokeEntityListChangedCallbacks();
@@ -33,6 +40,10 @@ namespace LuxonEditor {
 
 		std::map<size_t, EntityListChangedCallback> m_entityListChangedCallbacks;
 		size_t m_lastCallbackId = 0;
+
+		std::map<size_t, RequestRenderCallback> m_requestRenderCallbacks;
+		size_t m_lastRequestRenderCallbackId = 0;
+
 		std::string m_currentScenePath;
 	};
 }
