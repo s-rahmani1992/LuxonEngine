@@ -59,6 +59,8 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
         p->drawImage(iconRect, m_modelIcon);
     else if (ext == "lmat")
 		p->drawImage(iconRect, m_materialIcon);
+	else if (ext == "lscene")
+		p->drawImage(iconRect, m_sceneIcon);
     else
         p->drawImage(iconRect, m_fileIcon);
 

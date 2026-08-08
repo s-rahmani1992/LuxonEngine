@@ -10,5 +10,6 @@
         <file>texture.png</file>
         <file>splash.png</file>
         <file>material.png</file>
+        <file>scene.png</file>
     </qresource>
 </RCC>
