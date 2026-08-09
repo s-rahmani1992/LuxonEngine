@@ -3,6 +3,7 @@
 #include <qpushbutton.h>
 #include "../Core/TransformWidget.h"
 #include "../Renderer/MeshRendererWidget.h"
+#include "../Renderer/RTComponentWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
 
@@ -39,7 +40,7 @@ namespace LuxonEditor::GUI::QT {
 
 		m_rendererPanel = new QWidget(this);
 		m_rendererPanel->setObjectName("rendererPanel");
-		m_rendererPanel->setStyleSheet(m_rendererPanel->styleSheet() + "#rendererPanel {border: 1px solid #ffffff; border-radius: 5px; padding: 5px; }");	
+		m_rendererPanel->setStyleSheet(m_rendererPanel->styleSheet() + "#rendererPanel {border: 1px solid #ffffff; border-radius: 5px; padding: 5px; }");
 		QVBoxLayout* rendererLayout = new QVBoxLayout();
 		rendererLayout->setContentsMargins(2, 2, 2, 2);
 		rendererLayout->setSpacing(2);
@@ -68,7 +69,7 @@ namespace LuxonEditor::GUI::QT {
 
 		GenerateRendererWidget(m_entity->GetRenderer());
 		addRendererButton->setEnabled(m_rendererTypeComboBox->currentIndex() != m_rendererTypeIndex);
-		
+
 		connect(addRendererButton, &QPushButton::clicked, this, [this]() {
 			if (m_rendererTypeComboBox->currentIndex() == 0) {
 				auto meshRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(nullptr, nullptr);
@@ -81,8 +82,37 @@ namespace LuxonEditor::GUI::QT {
 			addRendererButton->setEnabled(index != m_rendererTypeIndex);
 			});
 
-		
-		
+		// Ray Tracing Component section
+		m_rtPanel = new QWidget(this);
+		m_rtPanel->setObjectName("rtPanel");
+		m_rtPanel->setStyleSheet(m_rtPanel->styleSheet() + "#rtPanel { border: 1px solid #ffffff; border-radius: 5px; padding: 5px; }");
+		QVBoxLayout* rtLayout = new QVBoxLayout();
+		rtLayout->setContentsMargins(2, 2, 2, 2);
+		rtLayout->setSpacing(2);
+		m_rtPanel->setLayout(rtLayout);
+		layout->addWidget(m_rtPanel);
+
+		m_rtButton = new QPushButton(m_rtPanel);
+		rtLayout->addWidget(m_rtButton);
+
+		QFrame* rtLine = new QFrame(m_rtPanel);
+		rtLine->setFrameShape(QFrame::HLine);
+		rtLine->setFrameShadow(QFrame::Sunken);
+		rtLayout->addWidget(rtLine);
+
+		UpdateRTComponentSection();
+
+		connect(m_rtButton, &QPushButton::clicked, this, [this]() {
+			if (m_entity->GetRayTracingComponent() == nullptr) {
+				auto rtComponent = std::make_shared<LuxonEngine::Rendering::RayTracingComponent>(nullptr, nullptr);
+				m_entity->SetRayTracingComponent(rtComponent);
+			}
+			else {
+				m_entity->SetRayTracingComponent(nullptr);
+			}
+			UpdateRTComponentSection();
+			});
+
 		layout->addStretch(1);
 	}
 
@@ -137,5 +167,40 @@ namespace LuxonEditor::GUI::QT {
 
 		m_rendererWidget = new QLabel("No GUI is available for this renderer", m_rendererPanel);
 		m_rendererPanel->layout()->addWidget(m_rendererWidget);
+	}
+
+	void GameEntityInspecterWidget::UpdateRTComponentSection()
+	{
+		if (m_rtComponentWidget != nullptr) {
+			m_rtComponentWidget->deleteLater();
+			m_rtComponentWidget = nullptr;
+		}
+
+		auto rtComponent = m_entity->GetRayTracingComponent();
+
+		if (rtComponent == nullptr) {
+			m_rtButton->setText("Add Ray Tracing Component");
+			auto noRTLabel = new QLabel("No Ray Tracing Component is attached", m_rtPanel);
+			noRTLabel->setContentsMargins(2, 2, 2, 2);
+			noRTLabel->setAlignment(Qt::AlignCenter);
+			m_rtComponentWidget = noRTLabel;
+		}
+		else {
+			m_rtButton->setText("Remove Ray Tracing Component");
+
+			auto rtComponentLabel = new QLabel("Ray Tracing", m_rtPanel);
+			rtComponentLabel->setAlignment(Qt::AlignCenter);
+			QFont font = rtComponentLabel->font();
+			font.setPointSize(14);
+			rtComponentLabel->setFont(font);
+			m_rtPanel->layout()->addWidget(rtComponentLabel);
+			m_rtPanel->layout()->setAlignment(rtComponentLabel, Qt::AlignTop);
+
+			auto rtWidget = new RTComponentWidget(m_rtPanel);
+			rtWidget->SetRTComponent(rtComponent);
+			m_rtComponentWidget = rtWidget;
+		}
+
+		m_rtPanel->layout()->addWidget(m_rtComponentWidget);
 	}
 }

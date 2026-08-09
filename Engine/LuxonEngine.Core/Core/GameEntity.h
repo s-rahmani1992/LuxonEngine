@@ -26,6 +26,7 @@ namespace LuxonEngine {
 		inline ref<Rendering::Renderer> GetRenderer() { return m_renderer; }
 		inline ref<Rendering::RayTracingComponent> GetRayTracingComponent() { return m_rtComponent; }
 		inline void SetRenderer(const ref<Rendering::Renderer>& renderer) { m_renderer = renderer; }
+		inline void SetRayTracingComponent(const ref<Rendering::RayTracingComponent>& rtComponent) { m_rtComponent = rtComponent; }
 	private:
 		ref<Transform> m_transform;
 		ref<Rendering::Renderer> m_renderer;

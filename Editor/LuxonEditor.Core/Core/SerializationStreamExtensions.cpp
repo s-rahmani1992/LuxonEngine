@@ -90,7 +90,15 @@ namespace LuxonEditor {
 
 		std::string name;
 		stream.GetString("name", name);
-		auto entity = std::make_shared<LuxonEngine::GameEntity>(transform, renderer, nullptr);
+
+		auto rtComponentStream = stream.Object("ray-tracing-component");
+		ref<LuxonEngine::Rendering::RayTracingComponent> rtComponent = nullptr;
+
+		if (rtComponentStream.IsEmpty() == false) {
+			rtComponent = DeserializeRayTracingComponent(rtComponentStream);
+		}
+
+		auto entity = std::make_shared<LuxonEngine::GameEntity>(transform, renderer, rtComponent);
 		entity->SetName(name);
 		return entity;
 	}
@@ -111,6 +119,13 @@ namespace LuxonEditor {
 		stream.SetObject("transform", transformStream);
 		stream.SetObject("renderer", rendererStream);
 		stream.SetString("name", entity->GetName());
+
+		auto rtComponent = entity->GetRayTracingComponent();
+		if(rtComponent) {
+			auto rtComponentStream = LuxonEngine::SerializationStream();
+			SerializeRayTracingComponent(rtComponentStream, rtComponent);
+			stream.SetObject("ray-tracing-component", rtComponentStream);
+		}
 	}
 
 	LuxonEngine::DirectionalLight DeserializeDirectionalLight(LuxonEngine::SerializationStream& stream)
@@ -151,5 +166,31 @@ namespace LuxonEditor {
 		stream.SetFloat("attenuation-c1", light.attenuation.c1);
 		stream.SetFloat("attenuation-c2", light.attenuation.c2);
 		stream.SetFloat("radius", light.radius);
+	}
+
+	ref<LuxonEngine::Rendering::RayTracingComponent> DeserializeRayTracingComponent(LuxonEngine::SerializationStream& stream)
+	{
+		auto meshGuid = stream.GetGuid("mesh-guid");
+		auto materialGuid = stream.GetGuid("material-guid");
+		auto mesh = EngineApplication::GetAssetManager()->GetMesh(meshGuid);
+		auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+		return std::make_shared<LuxonEngine::Rendering::RayTracingComponent>(mesh, material);
+	}
+
+	void SerializeRayTracingComponent(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::Rendering::RayTracingComponent>& rtComponent)
+	{
+		if (!rtComponent) {
+			return;
+		}
+		auto mesh = rtComponent->GetMesh();
+		auto material = rtComponent->GetRTMaterial();
+		if (mesh) {
+			auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(mesh);
+			stream.SetGuid("mesh-guid", meshEntry->guid);
+		}
+		if (material) {
+			auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+			stream.SetGuid("material-guid", materialEntry->guid);
+		}
 	}
 }

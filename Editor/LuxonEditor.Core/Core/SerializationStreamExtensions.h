@@ -17,4 +17,7 @@ namespace LuxonEditor {
 
 	LuxonEngine::PointLight DeserializePointLight(LuxonEngine::SerializationStream& stream);
 	void SerializePointLight(LuxonEngine::SerializationStream& stream, const LuxonEngine::PointLight& light);
+
+	ref<LuxonEngine::Rendering::RayTracingComponent> DeserializeRayTracingComponent(LuxonEngine::SerializationStream& stream);
+	void SerializeRayTracingComponent(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::Rendering::RayTracingComponent>& rtComponent);
 }

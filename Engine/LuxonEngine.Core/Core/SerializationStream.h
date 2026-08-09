@@ -58,6 +58,7 @@ namespace LuxonEngine {
 		void SetArray(const std::string& fieldName, const std::vector<SerializationStream>& array);
 
         void Clear();
+		bool IsEmpty() const;
     private:
         SerializationStream(boost::json::value& data);
         static void PrettyPrint(std::ostream& os, boost::json::value const& jv, std::string* indent = nullptr);

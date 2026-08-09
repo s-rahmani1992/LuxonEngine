@@ -6,6 +6,7 @@
 #include <Rendering/MaterialFactory.h>
 #include <Rendering/GPUAssetManager.h>
 #include <Rendering/MeshRenderer.h>
+#include <Rendering/RayTracingComponent.h>
 #include <Core/Logger.h>
 #include <BasicTypes.h>
 #include <Platform/GraphicWindow.h>

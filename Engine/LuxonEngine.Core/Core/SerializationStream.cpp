@@ -453,4 +453,8 @@ namespace LuxonEngine {
     void LuxonEngine::SerializationStream::Clear() {
         m_jsonData = boost::json::object();
     }
+
+    bool LuxonEngine::SerializationStream::IsEmpty() const {
+        return m_jsonData.is_object() && m_jsonData.as_object().empty();
+	}
 }
