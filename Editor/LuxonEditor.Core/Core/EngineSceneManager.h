@@ -10,6 +10,12 @@ namespace LuxonEditor {
 			ref<LuxonEngine::GameEntity> entity;
 		};
 
+		struct SceneEditor {
+			ref<LuxonEngine::Scene> scene;
+			std::map<boost::uuids::uuid, EntityEntry> entityMap;
+			std::vector<EntityEntry> entityList;
+		};
+
 		using EntityListChangedCallback = std::function<void()>;
 		using RequestRenderCallback = std::function<void()>;
 		using SceneLoadedCallback = std::function<void(ref<LuxonEngine::Scene>)>;
@@ -20,9 +26,9 @@ namespace LuxonEditor {
 		void AddEntity(ref<LuxonEngine::GameEntity> entity);
 		void RemoveEntity(const boost::uuids::uuid& uuid);
 
-		ref<LuxonEngine::Scene> GetCurrentScene() const { return m_currentScene; }
+		ref<LuxonEngine::Scene> GetCurrentScene() const { return m_currentSceneEditor.scene; }
 		ref<LuxonEngine::GameEntity> GetEntityByUUID(const boost::uuids::uuid& uuid) const;
-		const std::vector<EntityEntry>& GetEntityList() const { return m_entityList; }
+		const std::vector<EntityEntry>& GetEntityList() const { return m_currentSceneEditor.entityList; }
 		const std::string& GetCurrentScenePath() const { return m_currentScenePath; }
 
 		void RequestRender();
@@ -43,11 +49,8 @@ namespace LuxonEditor {
 		void InvokeEntityListChangedCallbacks();
 		void InvokeSceneLoadedCallbacks();
 		bool TryLoadSceneFromFile(const std::string& path);
-		void CreateDefaultScene();
-
-		ref<LuxonEngine::Scene> m_currentScene;
-		std::map<boost::uuids::uuid, ref<LuxonEngine::GameEntity>> m_entityMap;
-		std::vector<EntityEntry> m_entityList;
+		void AddEntity(const boost::uuids::uuid& uuid, ref<LuxonEngine::GameEntity> entity, SceneEditor& sceneEditor);
+		SceneEditor CreateDefaultScene();
 
 		std::map<size_t, EntityListChangedCallback> m_entityListChangedCallbacks;
 		size_t m_lastCallbackId = 0;
@@ -59,5 +62,6 @@ namespace LuxonEditor {
 		size_t m_lastSceneLoadedCallbackId = 0;
 
 		std::string m_currentScenePath;
+		SceneEditor m_currentSceneEditor;
 	};
 }
