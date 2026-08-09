@@ -55,6 +55,30 @@ int main(int argc, char* argv[])
         QMenu::item:selected {
             background-color: #454545;
         }
+
+        QPushButton {
+            background-color: #555555;
+            color: white;
+            border: 1px solid #666666;
+            border-radius: 4px;
+            padding: 4px 4px;
+        }
+
+        QPushButton:hover {
+            background-color: #606060;
+            border-color: #2a82da;
+        }
+
+        QPushButton:pressed {
+            background-color: #2a82da;
+            border-color: #2a82da;
+        }
+
+        QPushButton:disabled {
+            background-color: #404040;
+            color: #808080;
+            border-color: #505050;
+        }
     )");
 
     LuxonEditor::ApplicationConfig config{
