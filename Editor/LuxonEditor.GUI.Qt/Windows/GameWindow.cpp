@@ -4,6 +4,34 @@
 #include <QBoxLayout>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <qmessagebox.h>
+
+// Wrap the dangerous call in a standalone function using SEH
+static bool TryRender(const ref<Rendering::GraphicContext>& context)
+{
+	__try
+	{
+		context->Render();
+		return true;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		return false;
+	}
+}
+
+static bool TryPrepareScene(const ref<Rendering::GraphicContext>& context, const ref<Scene>& scene)
+{
+	__try
+	{
+		context->PrepareScene(scene);
+		return true;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		return false;
+	}
+}
 
 GameWindow::GameWindow(QWidget* parent, ref<Scene> scene)
 	: QDialog(parent), m_scene(scene)
@@ -48,21 +76,32 @@ void GameWindow::initializeContext()
 	m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
 	m_context = GetGPUApplication()->CreateHybridContextForWindows(m_window);
 
-	m_context->PrepareScene(m_scene);
+	if (!TryPrepareScene(m_context, m_scene))
+	{
+		Logger::LogError("GameWindow::initializeContext: Access violation during scene preparation.");
+		QMessageBox::critical(this, "Rendering Error", "Fatal error while preparing the scene.");
+		QTimer::singleShot(0, this, &QWidget::close);
+		return;
+	}
 	m_renderTimer->start();
 }
 
 void GameWindow::onRenderTick()
 {
-	if (m_context && m_scene)
-		m_context->Render();
+	update();
 }
 
 void GameWindow::paintEvent(QPaintEvent* event)
 {
 	if (m_context == nullptr || m_scene == nullptr)
 		return;
-	m_context->Render();
+
+	if (!TryRender(m_context))
+	{
+		Logger::LogError("GameWindow::paintEvent: Access violation during rendering.");
+		m_renderTimer->stop();
+		QTimer::singleShot(0, this, &QWidget::close);
+	}
 }
 
 void GameWindow::mousePressEvent(QMouseEvent* event)
