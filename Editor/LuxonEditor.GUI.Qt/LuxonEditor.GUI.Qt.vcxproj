@@ -166,6 +166,7 @@
     <ClCompile Include="Mesh\Model3DInspecterWidget.cpp" />
     <ClCompile Include="Mesh\QMeshField.cpp" />
     <ClCompile Include="Renderer\MeshRendererWidget.cpp" />
+    <ClCompile Include="Scene\CreateSceneWindow.cpp" />
     <ClCompile Include="Scene\GameEntityInspecterWidget.cpp" />
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp" />
     <ClCompile Include="Scene\GameEntityModel.cpp" />
@@ -223,6 +224,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Scene\CreateSceneWindow.h" />
     <QtMoc Include="Windows\GameWindow.h" />
     <QtMoc Include="Lights\SceneLightInspecterWidget.h" />
     <QtMoc Include="Lights\DirectionalLightItem.h" />

@@ -279,6 +279,9 @@
     <ClCompile Include="Windows\GameWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\CreateSceneWindow.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -439,6 +442,9 @@
     </QtMoc>
     <QtMoc Include="Windows\GameWindow.h">
       <Filter>Windows</Filter>
+    </QtMoc>
+    <QtMoc Include="Scene\CreateSceneWindow.h">
+      <Filter>Scene</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

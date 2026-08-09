@@ -4,6 +4,7 @@
 #include "AssetBrowser/AssetBrowserWindow.h"
 #include "ShaderCreation/ShaderCreationWindow.h"
 #include "Material/MaterialCreationWindow.h"
+#include "Scene/CreateSceneWindow.h"
 #include "InspecterWindow.h"
 #include "SceneEditorWindow.h"
 #include "SceneHierarchyWindow.h"
@@ -37,6 +38,11 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
     connect(ui.saveMenuItem, &QAction::triggered, [this]() {
         EngineApplication::GetSceneManager()->SaveCurrentScene();
 		});
+
+    connect(ui.createSceneMenuItem, &QAction::triggered, [this]() {
+        CreateSceneWindow createSceneWindow(this);
+        createSceneWindow.exec();
+        });
 
     connect(ui.runButton, &QPushButton::clicked, [this]() {
         GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene());

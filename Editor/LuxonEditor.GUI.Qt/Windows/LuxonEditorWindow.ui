@@ -95,6 +95,7 @@
     </property>
     <addaction name="createShaderMenuItem"/>
     <addaction name="createMaterialMenuItem"/>
+    <addaction name="createSceneMenuItem"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -177,6 +178,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="createSceneMenuItem">
+   <property name="text">
+    <string>Create Scene</string>
    </property>
   </action>
  </widget>

@@ -80,6 +80,53 @@ namespace LuxonEditor {
 		return true;
 	}
 
+	void EngineSceneManager::SaveScene(const std::string& path, const SceneEditor& sceneEditor)
+	{
+		LuxonEngine::SerializationStream stream;
+
+		LuxonEngine::SerializationStream cameraStream;
+		LuxonEngine::SerializationStream cameraTransformStream;
+		SerializeTransform(cameraTransformStream, sceneEditor.scene->mainCamera->GetTransform());
+		cameraStream.SetObject("transform", cameraTransformStream);
+		auto perspectiveCamera = std::dynamic_pointer_cast<LuxonEngine::PerspectiveCamera>(sceneEditor.scene->mainCamera);
+		cameraStream.SetFloat("near-z", perspectiveCamera->GetNearZ());
+		cameraStream.SetFloat("far-z", perspectiveCamera->GetFarZ());
+		cameraStream.SetFloat("fov-angle", perspectiveCamera->GetFovAngle());
+		stream.SetObject("main-camera", cameraStream);
+
+		LuxonEngine::SerializationStream lightDataStream;
+		std::vector<LuxonEngine::SerializationStream> directionalLightsArray;
+		for (const auto& light : sceneEditor.scene->lightData.directionalLights)
+		{
+			LuxonEngine::SerializationStream lightStream;
+			SerializeDirectionalLight(lightStream, light);
+			directionalLightsArray.push_back(lightStream);
+		}
+		lightDataStream.SetArray("directional-lights", directionalLightsArray);
+
+		std::vector<LuxonEngine::SerializationStream> pointLightsArray;
+		for (const auto& light : sceneEditor.scene->lightData.pointLights)
+		{
+			LuxonEngine::SerializationStream lightStream;
+			SerializePointLight(lightStream, light);
+			pointLightsArray.push_back(lightStream);
+		}
+		lightDataStream.SetArray("point-lights", pointLightsArray);
+
+		stream.SetObject("light-data", lightDataStream);
+
+		std::vector<LuxonEngine::SerializationStream> entitiesArray;
+		for (const auto& entry : sceneEditor.entityList)
+		{
+			LuxonEngine::SerializationStream entityStream;
+			SerializeGameEntity(entityStream, entry.entity);
+			entityStream.SetGuid("uuid", entry.uuid);
+			entitiesArray.push_back(entityStream);
+		}
+		stream.SetArray("entities", entitiesArray);
+		stream.SaveToFile(ResolveAbsolutePath(path).string());
+	}
+
 	void EngineSceneManager::AddEntity(const boost::uuids::uuid& uuid, ref<LuxonEngine::GameEntity> entity, SceneEditor& sceneEditor)
 	{
 		sceneEditor.entityMap[uuid] = { uuid, entity };
@@ -230,49 +277,29 @@ namespace LuxonEditor {
 
 	void EngineSceneManager::SaveCurrentScene()
 	{
-		LuxonEngine::SerializationStream stream;
+		SaveScene(m_currentScenePath, m_currentSceneEditor);
+	}
 
-		LuxonEngine::SerializationStream cameraStream;
-		LuxonEngine::SerializationStream cameraTransformStream;
-		SerializeTransform(cameraTransformStream, m_currentSceneEditor.scene->mainCamera->GetTransform());
-		cameraStream.SetObject("transform", cameraTransformStream);
-		auto perspectiveCamera = std::dynamic_pointer_cast<LuxonEngine::PerspectiveCamera>(m_currentSceneEditor.scene->mainCamera);
-		cameraStream.SetFloat("near-z", perspectiveCamera->GetNearZ());
-		cameraStream.SetFloat("far-z", perspectiveCamera->GetFarZ());
-		cameraStream.SetFloat("fov-angle", perspectiveCamera->GetFovAngle());
-		stream.SetObject("main-camera", cameraStream);
+	void EngineSceneManager::CreateScene(const std::string& name, const std::string& path, bool openAfterCreate)
+	{
+		//auto tempSceneEditor = m_currentSceneEditor;
+		std::filesystem::path absolutePath = ResolveAbsolutePath(path);
+		std::filesystem::create_directories(absolutePath.parent_path());
+		auto newScene = CreateDefaultScene();
 
-		LuxonEngine::SerializationStream lightDataStream;
-		std::vector<LuxonEngine::SerializationStream> directionalLightsArray;
-		for (const auto& light : m_currentSceneEditor.scene->lightData.directionalLights)
-		{
-			LuxonEngine::SerializationStream lightStream;
-			SerializeDirectionalLight(lightStream, light);
-			directionalLightsArray.push_back(lightStream);
+		if (openAfterCreate) {
+			SaveCurrentScene();
+
+			m_currentScenePath = path;
+			m_currentSceneEditor = newScene;
+			InvokeEntityListChangedCallbacks();
+			InvokeSceneLoadedCallbacks();
+			RequestRender();
+			SaveCurrentScene();
 		}
-		lightDataStream.SetArray("directional-lights", directionalLightsArray);
-
-		std::vector<LuxonEngine::SerializationStream> pointLightsArray;
-		for (const auto& light : m_currentSceneEditor.scene->lightData.pointLights)
-		{
-			LuxonEngine::SerializationStream lightStream;
-			SerializePointLight(lightStream, light);
-			pointLightsArray.push_back(lightStream);
+		else {
+			SaveScene(path, newScene);
 		}
-		lightDataStream.SetArray("point-lights", pointLightsArray);
-
-		stream.SetObject("light-data", lightDataStream);
-
-		std::vector<LuxonEngine::SerializationStream> entitiesArray;
-		for (const auto& entry : m_currentSceneEditor.entityList)
-		{
-			LuxonEngine::SerializationStream entityStream;
-			SerializeGameEntity(entityStream, entry.entity);
-			entityStream.SetGuid("uuid", entry.uuid);
-			entitiesArray.push_back(entityStream);
-		}
-		stream.SetArray("entities", entitiesArray);
-		stream.SaveToFile(ResolveAbsolutePath(m_currentScenePath).string());
 	}
 
 	void EngineSceneManager::InvokeEntityListChangedCallbacks()

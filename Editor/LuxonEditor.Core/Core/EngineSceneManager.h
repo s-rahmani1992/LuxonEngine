@@ -45,10 +45,12 @@ namespace LuxonEditor {
 		void UnregisterSceneLoadedCallback(size_t id);
 
 		void SaveCurrentScene();
+		void CreateScene(const std::string& name, const std::string& path, bool openAfterCreate);
 	private:
 		void InvokeEntityListChangedCallbacks();
 		void InvokeSceneLoadedCallbacks();
 		bool TryLoadSceneFromFile(const std::string& path);
+		void SaveScene(const std::string& path, const SceneEditor& sceneEditor);
 		void AddEntity(const boost::uuids::uuid& uuid, ref<LuxonEngine::GameEntity> entity, SceneEditor& sceneEditor);
 		SceneEditor CreateDefaultScene();
 
