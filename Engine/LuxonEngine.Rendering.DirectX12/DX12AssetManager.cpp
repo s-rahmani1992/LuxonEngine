@@ -59,6 +59,9 @@ void LuxonEngine::Rendering::DX12::DX12AssetManager::UploadMeshesToGPU(const std
 		totalSize += mesh->GetTotalSize();
 	}
 
+	if(totalSize == 0) // no meshes to upload
+		return;
+
 	auto uploadDesc = ResourceUtilities::GetCommonBufferResourceDesc(totalSize, D3D12_RESOURCE_FLAG_NONE);
 	ComPtr<ID3D12Resource2> uploadBuffer;
 
