@@ -24,6 +24,10 @@ namespace LuxonEditor::GUI::QT {
 
 		m_cameraItem = new QListWidgetItem("Camera", ui.otherComponents);
 		m_cameraItem->setFlags(m_cameraItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+		m_rtItem = new QListWidgetItem("Ray Tracing", ui.otherComponents);
+		m_rtItem->setFlags(m_rtItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 		m_entityModel = new LuxonEditor::GUI::QT::GameEntityModel(EngineApplication::GetSceneManager(), this);
 		m_entityDelegate = new LuxonEditor::GUI::QT::GameEntityItemDelegate(this);
 
@@ -49,6 +53,10 @@ namespace LuxonEditor::GUI::QT {
 			else if (item == m_cameraItem)
 			{
 				GetSelectionManager()->SetSelectedObject(std::string("Camera"));
+			}
+			else if (item == m_rtItem)
+			{
+				GetSelectionManager()->SetSelectedObject(std::string("RayTracing"));
 			}
 			});
 

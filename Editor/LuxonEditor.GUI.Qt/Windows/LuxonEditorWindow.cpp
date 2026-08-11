@@ -45,9 +45,14 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
         });
 
     connect(ui.runButton, &QPushButton::clicked, [this]() {
-        GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene());
+        GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene(), ui.renderModeBox->currentIndex());
 		gameWindow->show();
 		});
+
+	static_cast<QHBoxLayout*>(ui.runPanel->layout())->insertStretch(0, 1);
+	ui.runPanel->layout()->setAlignment(ui.runButton, Qt::AlignHCenter);
+	ui.runPanel->layout()->setAlignment(ui.renderModeBox, Qt::AlignHCenter);
+	static_cast<QHBoxLayout*>(ui.runPanel->layout())->addStretch(1);
 
     ads::CDockManager::setConfigFlag(ads::CDockManager::DefaultDockAreaButtons, false);
     m_dockManager = new ads::CDockManager(ui.windowDocker);

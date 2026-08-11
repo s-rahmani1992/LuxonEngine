@@ -15,7 +15,7 @@ class GameWindow : public QDialog
 	Q_OBJECT
 
 public:
-	GameWindow(QWidget* parent, ref<Scene> scene);
+	GameWindow(QWidget* parent, ref<Scene> scene, int renderMode = 0);
 	~GameWindow();
 
 protected:
@@ -41,4 +41,5 @@ private:
 
 	bool m_isMoveMode = false;
 	QPointF m_lastMousePos;
+	int m_renderMode = 0;
 };

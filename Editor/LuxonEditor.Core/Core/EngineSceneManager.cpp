@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <Core/SerializationStream.h>
 #include "SerializationStreamExtensions.h"
+#include "AssetRegistry.h"
 
 namespace LuxonEditor {
 
@@ -77,6 +78,12 @@ namespace LuxonEditor {
 			}
 		}
 
+		auto rtGlobalGuid = stream.GetGuid("rt-global-material_uuid");
+		if(rtGlobalGuid.is_nil() == false)
+		{
+			m_currentSceneEditor.scene->rtGlobalMaterial = EngineApplication::GetAssetManager()->GetMaterial(rtGlobalGuid);
+		}
+
 		return true;
 	}
 
@@ -124,6 +131,12 @@ namespace LuxonEditor {
 			entitiesArray.push_back(entityStream);
 		}
 		stream.SetArray("entities", entitiesArray);
+
+		if(sceneEditor.scene->rtGlobalMaterial)
+		{
+			stream.SetGuid("rt-global-material_uuid", EngineApplication::GetAssetManager()->GetMaterialEntry(sceneEditor.scene->rtGlobalMaterial)->guid);
+		}
+
 		stream.SaveToFile(ResolveAbsolutePath(path).string());
 	}
 
