@@ -278,6 +278,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 				.transformHandle = gpuHandle
 				}, m_depthFormat, std::dynamic_pointer_cast<Compute::HLSLComputeProgram>(m_shaderRegistery->GetShaderProgram("Bezier_Curve_Compute_Program")));
 			splinePipeline->Initialize(m_device);
+			splineRenderer->SetDirty();
 			m_splinePipelines.push_back(splinePipeline);
 		}
 

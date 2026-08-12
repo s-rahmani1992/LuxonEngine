@@ -4,6 +4,7 @@
 #include "../Core/TransformWidget.h"
 #include "../Renderer/MeshRendererWidget.h"
 #include "../Renderer/RTComponentWidget.h"
+#include "../Renderer/SplineRendererWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
 
@@ -57,6 +58,7 @@ namespace LuxonEditor::GUI::QT {
 		rendererSelectorLayout->addWidget(m_rendererTypeComboBox);
 		m_rendererTypeComboBox->setPlaceholderText("Select Renderer Type");
 		m_rendererTypeComboBox->addItem("MeshRenderer");
+		m_rendererTypeComboBox->addItem("SplineRenderer");
 		rendererSelectorLayout->setAlignment(m_rendererTypeComboBox, Qt::AlignLeft | Qt::AlignVCenter);
 		QPushButton* addRendererButton = new QPushButton("Add", rendererSelectorPanel);
 		rendererSelectorLayout->addWidget(addRendererButton);
@@ -75,6 +77,11 @@ namespace LuxonEditor::GUI::QT {
 				auto meshRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(nullptr, nullptr);
 				m_entity->SetRenderer(meshRenderer);
 				GenerateRendererWidget(meshRenderer);
+			}
+			else if (m_rendererTypeComboBox->currentIndex() == 1) {
+				auto splineRenderer = std::make_shared<LuxonEngine::Rendering::SplineRenderer>(nullptr, std::vector<LuxonEngine::Vector3>{LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f)}, 1.0f, 1);
+				m_entity->SetRenderer(splineRenderer);
+				GenerateRendererWidget(splineRenderer);
 			}
 			});
 
@@ -161,6 +168,30 @@ namespace LuxonEditor::GUI::QT {
 			meshRendererPanel->layout()->addWidget(meshRendererWidget);
 			meshRendererPanel->layout()->setAlignment(meshRendererWidget, Qt::AlignTop);
 			m_rendererWidget = meshRendererPanel;
+			m_rendererPanel->layout()->addWidget(m_rendererWidget);
+			return;
+		}
+
+		auto splineRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SplineRenderer>(renderer);
+
+		if(splineRenderer != nullptr) {
+			m_rendererTypeIndex = 1;
+			m_rendererTypeComboBox->setCurrentIndex(1);
+			auto splineRendererPanel = new QWidget(m_rendererPanel);
+			auto splineRendererLayout = new QVBoxLayout();
+			splineRendererPanel->setLayout(splineRendererLayout);
+			splineRendererLayout->setContentsMargins(2, 2, 2, 2);
+			auto splineRendererLabel = new QLabel("Spline Renderer", splineRendererPanel);
+			splineRendererLabel->setAlignment(Qt::AlignCenter);
+			QFont font = splineRendererLabel->font();
+			font.setPointSize(14);
+			splineRendererLabel->setFont(font);
+			splineRendererPanel->layout()->addWidget(splineRendererLabel);
+			splineRendererPanel->layout()->setAlignment(splineRendererLabel, Qt::AlignTop);
+			auto* splineRendererWidget = new SplineRendererWidget(splineRendererPanel, splineRenderer);
+			splineRendererPanel->layout()->addWidget(splineRendererWidget);
+			splineRendererPanel->layout()->setAlignment(splineRendererWidget, Qt::AlignTop);
+			m_rendererWidget = splineRendererPanel;
 			m_rendererPanel->layout()->addWidget(m_rendererWidget);
 			return;
 		}

@@ -14,35 +14,43 @@ namespace LuxonEngine::Rendering {
 
 		SplineRenderer(const ref<Material>& material, const std::vector<Vector3>& points, const float width, const int segments)
 			: Renderer(material), m_curve(points[0], points[1], points[2]),
-			m_width(width), m_segments(segments) { }
-	
+			m_width(width), m_segments(segments) {
+		}
+
 	public: // Methods
 
 		/// <summary>
 		/// returns the width of the spline mesh
 		/// </summary>
-		/// <returns></returns>
 		inline Float GetWidth() const { return m_width; }
 
 		/// <summary>
-		/// returns the number of segments used to create render the spline mesh
+		/// sets the width of the spline mesh
 		/// </summary>
-		/// <returns></returns>
+		inline void SetWidth(float width) { m_width = width; }
+
+		/// <summary>
+		/// returns the number of segments used to render the spline mesh
+		/// </summary>
 		inline int GetSegments() const { return m_segments; }
+
+		/// <summary>
+		/// sets the number of segments used to render the spline mesh
+		/// </summary>
+		inline void SetSegments(int segments) { m_segments = segments; }
 
 		/// <summary>
 		/// Gets the bezier curve used by this spline renderer
 		/// </summary>
-		/// <returns></returns>
 		inline Core::BezierCurve& GetCurve() { return m_curve; }
 
 		inline void SetDirty() { m_isDirty = true; }
 
 		inline bool IsDirty()
-		{ 
+		{
 			bool dirty = m_isDirty;
 			m_isDirty = false;
-			return dirty; 
+			return dirty;
 		}
 
 	private: // Fields

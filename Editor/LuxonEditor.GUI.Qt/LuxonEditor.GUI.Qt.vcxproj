@@ -167,6 +167,7 @@
     <ClCompile Include="Mesh\QMeshField.cpp" />
     <ClCompile Include="Renderer\MeshRendererWidget.cpp" />
     <ClCompile Include="Renderer\RTComponentWidget.cpp" />
+    <ClCompile Include="Renderer\SplineRendererWidget.cpp" />
     <ClCompile Include="Scene\CreateSceneWindow.cpp" />
     <ClCompile Include="Scene\GameEntityInspecterWidget.cpp" />
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp" />
@@ -225,6 +226,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Renderer\SplineRendererWidget.h" />
     <QtMoc Include="Renderer\RTComponentWidget.h" />
     <QtMoc Include="Scene\CreateSceneWindow.h" />
     <QtMoc Include="Windows\GameWindow.h" />

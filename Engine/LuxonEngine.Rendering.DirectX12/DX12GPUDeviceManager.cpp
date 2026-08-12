@@ -62,7 +62,8 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window, m_assetManager);
-	
+	context->RegisterShaderRegistery(m_shaderRegistry);
+
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
 
@@ -73,6 +74,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager);
+	context->RegisterShaderRegistery(m_shaderRegistry);
 
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;

@@ -51,7 +51,7 @@ LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::DX12SplineRasterPi
 			return binding.name == SPLINE_WIDTH_BUFFER_NAME;
 		});*/
 
-	m_curveRootIndex = rootConstantBuffer.rootParameterIndex;
+	m_curveRootIndex = computeRootConstantList.rootParameterIndex;
 
 	auto& resourceVariableList = computeReflection->GetResourceVariables();
 
@@ -260,7 +260,7 @@ void LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Render(ComPtr
 
 	//Set Material Variables
 	m_material->BindParameters(commandList); 
-	commandList->SetGraphicsRoot32BitConstants(m_widthRootIndex, 1, &m_splineWidth, 0);
+	commandList->SetGraphicsRoot32BitConstants(m_widthRootIndex, 1, &m_splineWidth, 7);
 	m_material->BindCameraDescriptor(commandList, camHandle);
 	m_material->BindLightDescriptor(commandList, lightHandle);
 	m_material->BindTransformDescriptor(commandList, m_transformHeapHandle);

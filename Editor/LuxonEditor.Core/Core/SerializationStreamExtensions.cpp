@@ -52,6 +52,18 @@ namespace LuxonEditor {
 				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
 				return std::make_shared<LuxonEngine::Rendering::MeshRenderer>(mesh, material);
 			}
+			case 1:
+			{
+				LuxonEngine::Vector3 point0, point1, point2;
+				stream.GetVector3("point0", point0);
+				stream.GetVector3("point1", point1);
+				stream.GetVector3("point2", point2);
+				float width = stream.GetFloat("width", 1.0f);
+				int segments = stream.GetInt("segments", 1);
+				auto materialGuid = stream.GetGuid("material-guid");
+				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+				return std::make_shared<LuxonEngine::Rendering::SplineRenderer>(material, std::vector<LuxonEngine::Vector3>{point0, point1, point2}, width, segments);
+			}
 			default:
 				return nullptr;
 		}
@@ -74,6 +86,20 @@ namespace LuxonEditor {
 				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
 				stream.SetGuid("material-guid", materialEntry->guid);
 			}
+		}
+		else if( auto splineRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SplineRenderer>(renderer)) {
+			stream.SetInt("renderer-type", 1);
+			auto material = splineRenderer->GetMaterial();
+			if (material) {
+				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+				stream.SetGuid("material-guid", materialEntry->guid);
+			}
+			auto& curve = splineRenderer->GetCurve();
+			stream.SetVector3("point0", curve.m_point1);
+			stream.SetVector3("point1", curve.m_point2);
+			stream.SetVector3("point2", curve.m_point3);
+			stream.SetFloat("width", splineRenderer->GetWidth());
+			stream.SetInt("segments", splineRenderer->GetSegments());
 		}
 		else {
 			stream.SetInt("renderer-type", -1);
