@@ -34,12 +34,14 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	private:
 
-		ref<LuxonEngine::Platform::GraphicWindow> m_window;		
+		ref<LuxonEngine::Platform::GraphicWindow> m_window;
 		VkInstance m_instance;
 		VkPhysicalDevice m_physicalDevice;
-		
+
 	protected:
+		bool InitializeSurface();
 		bool InitializeSwapChain(VkImageUsageFlags useFlag);
+		void DestroySwapChainResources();
 		bool InitializeCommandObjects();
 		bool InitializeFencesAndSemaphores();
 		bool InitializeCameraBuffer(const ref<Camera>& camera);
@@ -49,8 +51,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkDevice m_logicDevice;
 
 		VkQueue m_graphicsQueue;
-		VkQueue m_presentQueue; 
-		
+		VkQueue m_presentQueue;
+
 		VkCommandPool m_commandPool;
 		VkCommandBuffer m_commandBuffer;
 
@@ -64,7 +66,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkSurfaceCapabilitiesKHR m_swapChainCapability;
 		std::vector<VkImage> m_swapChainImages;
 		std::vector<VkImageView> m_swapChainImageViews;
-		
+		VkImageUsageFlags m_swapChainUsageFlags;
+
 		UInt32 m_graphicsQueueFamilyIndex;
 
 		ref<VulkanAssetManager> m_assetManager;

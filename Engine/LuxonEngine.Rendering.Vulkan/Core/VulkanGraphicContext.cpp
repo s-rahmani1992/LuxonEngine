@@ -34,12 +34,7 @@ LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::~VulkanGraphicContext()
 	vkDestroyFence(m_logicDevice, m_fence, nullptr);
 	vkDestroyCommandPool(m_logicDevice, m_commandPool, nullptr);
 
-	for(auto& imageView : m_swapChainImageViews) {
-		vkDestroyImageView(m_logicDevice, imageView, nullptr);
-	}
-
-	vkDestroySwapchainKHR(m_logicDevice, m_swapChain, nullptr);
-	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+	DestroySwapChainResources();
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::Flush()
@@ -89,15 +84,17 @@ void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::UpdateCameraBuffer()
 	m_cameraGPU.inverseProjectionMatrix = m_camera->GetTransform()->Matrix() * m_camera->InverseProjectionMatrix();
 	m_cameraGPU.viewMatrix = m_camera->ViewMatrix();
 	m_cameraGPU.position = m_camera->GetTransform()->Position();
+	m_cameraGPU.projectionMatrix = m_camera->ProjectionMatrix();
+	m_cameraGPU.projectionMatrix.SetValue(1, 1, -m_cameraGPU.projectionMatrix(1, 1));
+
 
 	vkMapMemory(m_logicDevice, m_cameraBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
 	std::memcpy(data, &m_cameraGPU, sizeof(CameraGPU));
 	vkUnmapMemory(m_logicDevice, m_cameraBufferMemory);
 }
 
-bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag)
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSurface()
 {
-	// Create Surface
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
@@ -110,7 +107,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(V
 	if (result != VK_SUCCESS)
 		return false;
 
-	// Create Swap Chain
 	uint32_t formatCount;
 	std::vector<VkSurfaceFormatKHR> formats;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &formatCount, nullptr);
@@ -124,6 +120,13 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(V
 		}
 	}
 
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_swapChainCapability);
+	return true;
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag)
+{
+	// Create Swap Chain
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_swapChainCapability);
 
 	VkSwapchainCreateInfoKHR swapChainCreateInfo{
@@ -147,7 +150,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(V
 		.oldSwapchain = VK_NULL_HANDLE,
 	};
 
-	result = vkCreateSwapchainKHR(m_logicDevice, &swapChainCreateInfo, nullptr, &m_swapChain);
+	auto result = vkCreateSwapchainKHR(m_logicDevice, &swapChainCreateInfo, nullptr, &m_swapChain);
 
 	if (result != VK_SUCCESS)
 		return false;
@@ -185,6 +188,15 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(V
 		vkCreateImageView(m_logicDevice, &imageViewCreateInfo, nullptr, &m_swapChainImageViews[i]);
 	}
 	return true;
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::DestroySwapChainResources()
+{
+	for (auto& imageView : m_swapChainImageViews) {
+		vkDestroyImageView(m_logicDevice, imageView, nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_logicDevice, m_swapChain, nullptr);
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCommandObjects()

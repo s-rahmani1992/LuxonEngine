@@ -87,8 +87,10 @@ void LuxonEditor::GUI::QT::SceneEditorWindow::resizeEvent(QResizeEvent* event)
 		m_scene = EngineApplication::GetSceneManager()->GetCurrentScene();
 		PrepareContextForScene();
 	}
-
-	m_editorCamera->ChangeAspect((float)size.width() / size.height());
+	else {
+		m_context->Resize(size.width(), size.height());
+		m_editorCamera->ChangeAspect((float)size.width() / size.height());
+	}
 	m_context->Render();
 }
 

@@ -28,6 +28,7 @@ LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::VulkanEditorGraphicC
 	, m_depthMemory(VK_NULL_HANDLE)
 	, m_depthImageView(VK_NULL_HANDLE)
 {
+	m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
 
 LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::~VulkanEditorGraphicContext()
@@ -54,7 +55,10 @@ LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::~VulkanEditorGraphic
 
 bool LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Initialize()
 {
-	if (InitializeSwapChain(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == false)
+	if(InitializeSurface() == false)
+		return false;
+
+	if (InitializeSwapChain(m_swapChainUsageFlags) == false)
 		return false;
 
 	if (InitializeDepthBuffer() == false)
@@ -204,6 +208,41 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Render()
 	vkQueueWaitIdle(m_presentQueue);
 
 	vkWaitForFences(m_logicDevice, 1, &m_fence, VK_TRUE, 20000);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Resize(UInt32 width, UInt32 height)
+{
+	if (m_depthImage != VK_NULL_HANDLE) {
+		vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
+		vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
+	}
+
+	for (auto framebuffer : m_swapChainFramebuffers)
+		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
+
+	DestroySwapChainResources();
+
+	InitializeSwapChain(m_swapChainUsageFlags);
+
+	InitializeDepthBuffer();
+
+	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthImageView };
+
+		VkFramebufferCreateInfo fbInfo{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.renderPass = m_renderPass,
+			.attachmentCount = 2,
+			.pAttachments = fbAttachments,
+			.width = m_swapChainCapability.currentExtent.width,
+			.height = m_swapChainCapability.currentExtent.height,
+			.layers = 1,
+		};
+
+		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, &m_swapChainFramebuffers[i]);
+	}
+
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)

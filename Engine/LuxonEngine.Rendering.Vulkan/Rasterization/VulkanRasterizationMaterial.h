@@ -16,6 +16,7 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 		void BindDynamicValues(VkCommandBuffer commandBuffer, UInt32* offsets, UInt32 offsetCount);
 		void WriteBuffer(const std::string name, const VkBuffer buffer, UInt32 stride);
 		void SetImageView(const std::string& name, const VkImageView imageView);
+		const ref<SPIRVRasterizationProgram>& GetProgram() const { return m_program; }
 	private:
 		struct pushConstantData {
 			UInt32 offset;

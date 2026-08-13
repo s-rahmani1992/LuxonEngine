@@ -56,12 +56,12 @@ void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineM
 
 bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<GameEntity>& entity, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
 {
-	m_program = std::dynamic_pointer_cast<SPIRVRasterizationProgram>(entity->GetRenderer()->GetMaterial()->GetProgram());
+	m_program = material->GetProgram();
 	m_offset = std::vector<UInt32>(m_program->GetReflection().GetDynamicDescriptorCount(), 0);
 	m_mesh = entity->GetRenderer()->GetMesh();
 	m_meshController = std::dynamic_pointer_cast<VulkanMeshController>(m_mesh->GetGPUHandle());
 	m_material = material;
-	
+
 	VkPipelineInputAssemblyStateCreateInfo pInputAssemblyInfo{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 		.pNext = nullptr,
@@ -154,7 +154,7 @@ bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineM
 	};
 
 	auto& stages = m_program->GetStageInfos();
-	
+
 	VkGraphicsPipelineCreateInfo pipelineCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 		.pNext = nullptr,
@@ -184,7 +184,6 @@ bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineM
 
 	return true;
 }
-
 void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::SetDescriptorOffset(const std::string& name, UInt32 offset)
 {
 	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);

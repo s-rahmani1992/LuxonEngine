@@ -1,6 +1,5 @@
 #include "vulkan-pch.h"
 #include "VulkanDeviceManager.h"
-#include "Platform/Application.h"
 #include "Platform/GraphicWindow.h"
 #include "VulkanHybridContext.h"
 #include "RayTracing/VulkanRayTracingContext.h"
@@ -28,13 +27,13 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
 
 	// Creating Vulkan Instance
-	VkApplicationInfo appInfo{ 
-		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, 
-		.pNext = nullptr, 
-		.pApplicationName = "Vulkan Engine", 
-		.applicationVersion = VK_MAKE_VERSION(1, 0, 0), 
-		.pEngineName = "No Engine", 
-		.engineVersion = VK_MAKE_VERSION(1, 0, 0), 
+	VkApplicationInfo appInfo{
+		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pNext = nullptr,
+		.pApplicationName = "Vulkan Engine",
+		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+		.pEngineName = "No Engine",
+		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
 		.apiVersion = VK_API_VERSION_1_3, };
 
 	std::vector<const char*> enabledLayers;
@@ -53,10 +52,10 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 #endif
 
 	VkInstanceCreateInfo vkCreateInfo
-	{ 
-		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, 
-		.pNext = nullptr, 
-		.flags = 0, 
+	{
+		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
 		.pApplicationInfo = &appInfo,
 		.enabledLayerCount = (UInt32)enabledLayers.size(),
 		.ppEnabledLayerNames = enabledLayers.size() == 0 ? nullptr : enabledLayers.data(),
@@ -86,13 +85,32 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 
 #endif
 
+	// Create a temporary hidden Win32 window to query surface support — no Application dependency needed
+	HINSTANCE hInstance = GetModuleHandle(nullptr);
+	const wchar_t* tempClassName = L"VkTempWindowClass";
+
+	WNDCLASSEXW wc{};
+	wc.cbSize = sizeof(WNDCLASSEXW);
+	wc.lpfnWndProc = DefWindowProcW;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = tempClassName;
+	RegisterClassExW(&wc);
+
+	HWND tempHwnd = CreateWindowExW(
+		0, tempClassName, L"Temp", WS_OVERLAPPEDWINDOW,
+		0, 0, 100, 100,
+		nullptr, nullptr, hInstance, nullptr);
+
 	// Getting suitable physical device (preferably discrete GPU)
 	UInt32 deviceCount = 0;
-	auto tempWindow = Platform::Application::CreateGraphicWindow(Platform::WindowProperties{ 100, 100, L"Temp Window" });
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
 
 	if (deviceCount == 0) // No Vulkan compatible devices found
+	{
+		DestroyWindow(tempHwnd);
+		UnregisterClassW(tempClassName, hInstance);
 		return false;
+	}
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
@@ -102,14 +120,18 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	VkWin32SurfaceCreateInfoKHR createInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-		.hinstance = GetModuleHandle(nullptr),
-		.hwnd = tempWindow->GetHandle(),
+		.hinstance = hInstance,
+		.hwnd = tempHwnd,
 	};
 
 	result = vkCreateWin32SurfaceKHR(m_instance, &createInfo, nullptr, &tempSurface);
 
 	if (result != VK_SUCCESS)
+	{
+		DestroyWindow(tempHwnd);
+		UnregisterClassW(tempClassName, hInstance);
 		return false;
+	}
 
 	bool deviceFound = false;
 	Int32 surfaceFamilyIndex = -1;
@@ -140,6 +162,10 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 			break;
 		}
 	}
+
+	vkDestroySurfaceKHR(m_instance, tempSurface, nullptr);
+	DestroyWindow(tempHwnd);
+	UnregisterClassW(tempClassName, hInstance);
 
 	if (deviceFound == false) // No Suitable discrete GPU found
 		return false;
@@ -220,9 +246,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	m_graphicsQueueFamilyIndex = (UInt32)graphicsQueueFamilyIndex;
 	m_surfaceQueueFamilyIndex = (UInt32)surfaceFamilyIndex;
 
-	vkDestroySurfaceKHR(m_instance, tempSurface, nullptr);
-	DestroyWindow(tempWindow->GetHandle());
-
 	m_accelProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR;
 
 	m_rtPipelineProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
@@ -237,13 +260,17 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 
 	s_instance = this;
 	m_bufferFactory = std::make_shared<VulkanBufferFactory>(m_graphicDevice, m_physicalDevice);
-	
-	m_shaderRegistry = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);	
+
+	m_shaderRegistry = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);
 	m_shaderRegistry->Initialize();
+
+	m_assetManager = std::make_shared<VulkanAssetManager>(m_graphicDevice, m_physicalDevice);
+
+	if (m_assetManager->Initializes(m_graphicsQueueFamilyIndex) == false)
+		return false;
 
 	return true;
 }
-
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window);
@@ -269,17 +296,16 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window);
 	if (context->Initialize() == false)
 		return nullptr;
+
+	context->RegisterAssetManager(m_assetManager);
+	context->RegisterShaderRegistery(m_shaderRegistry);
+
 	return context;
 }
 
 ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateAssetManager()
 {
-	ref<VulkanAssetManager> assetManager = std::make_shared<VulkanAssetManager>(m_graphicDevice, m_physicalDevice);
-	
-	if(assetManager->Initializes(m_graphicsQueueFamilyIndex) == false)
-		return nullptr;
-
-	return assetManager;
+	return m_assetManager;
 }
 
 ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateShaderRegistery()

@@ -27,6 +27,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
 		virtual void Render() override;
+		virtual void Resize(UInt32 width, UInt32 height) override;
 
 	private:
 		void UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities);
