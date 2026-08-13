@@ -5,6 +5,7 @@
 #include "../Renderer/MeshRendererWidget.h"
 #include "../Renderer/RTComponentWidget.h"
 #include "../Renderer/SplineRendererWidget.h"
+#include "../Renderer/GBufferRendererWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
 
@@ -59,6 +60,7 @@ namespace LuxonEditor::GUI::QT {
 		m_rendererTypeComboBox->setPlaceholderText("Select Renderer Type");
 		m_rendererTypeComboBox->addItem("MeshRenderer");
 		m_rendererTypeComboBox->addItem("SplineRenderer");
+		m_rendererTypeComboBox->addItem("G Buffer Renderer");
 		rendererSelectorLayout->setAlignment(m_rendererTypeComboBox, Qt::AlignLeft | Qt::AlignVCenter);
 		QPushButton* addRendererButton = new QPushButton("Add", rendererSelectorPanel);
 		rendererSelectorLayout->addWidget(addRendererButton);
@@ -83,7 +85,12 @@ namespace LuxonEditor::GUI::QT {
 				m_entity->SetRenderer(splineRenderer);
 				GenerateRendererWidget(splineRenderer);
 			}
-			});
+			else if(m_rendererTypeComboBox->currentIndex() == 2) {
+				auto gbufferRenderer = std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(nullptr, nullptr);
+				m_entity->SetRenderer(gbufferRenderer);
+				GenerateRendererWidget(gbufferRenderer);
+			}
+		});
 
 		connect(m_rendererTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, addRendererButton](int index) {
 			addRendererButton->setEnabled(index != m_rendererTypeIndex);
@@ -196,6 +203,30 @@ namespace LuxonEditor::GUI::QT {
 			return;
 		}
 
+		auto gBufferRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(renderer);
+
+		if (gBufferRenderer != nullptr) {
+			m_rendererTypeIndex = 2;
+			m_rendererTypeComboBox->setCurrentIndex(2);
+			auto gBufferRendererPanel = new QWidget(m_rendererPanel);
+			auto gBufferRendererLayout = new QVBoxLayout();
+			gBufferRendererPanel->setLayout(gBufferRendererLayout);
+			gBufferRendererLayout->setContentsMargins(2, 2, 2, 2);
+			auto gBufferRendererLabel = new QLabel("G Buffer Renderer", gBufferRendererPanel);
+			gBufferRendererLabel->setAlignment(Qt::AlignCenter);
+			QFont font = gBufferRendererLabel->font();
+			font.setPointSize(14);
+			gBufferRendererLabel->setFont(font);
+			gBufferRendererPanel->layout()->addWidget(gBufferRendererLabel);
+			gBufferRendererPanel->layout()->setAlignment(gBufferRendererLabel, Qt::AlignTop);
+			auto* gBufferRendererWidget = new GBufferRendererWidget(gBufferRendererPanel);
+			gBufferRendererWidget->SetGBufferRenderer(gBufferRenderer);
+			gBufferRendererPanel->layout()->addWidget(gBufferRendererWidget);
+			gBufferRendererPanel->layout()->setAlignment(gBufferRendererWidget, Qt::AlignTop);
+			m_rendererWidget = gBufferRendererPanel;
+			m_rendererPanel->layout()->addWidget(m_rendererWidget);
+			return;
+		}
 		m_rendererWidget = new QLabel("No GUI is available for this renderer", m_rendererPanel);
 		m_rendererPanel->layout()->addWidget(m_rendererWidget);
 	}

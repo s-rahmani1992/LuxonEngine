@@ -288,6 +288,9 @@
     <ClCompile Include="Renderer\SplineRendererWidget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\GBufferRendererWidget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -456,6 +459,9 @@
       <Filter>Renderer</Filter>
     </QtMoc>
     <QtMoc Include="Renderer\SplineRendererWidget.h">
+      <Filter>Renderer</Filter>
+    </QtMoc>
+    <QtMoc Include="Renderer\GBufferRendererWidget.h">
       <Filter>Renderer</Filter>
     </QtMoc>
   </ItemGroup>

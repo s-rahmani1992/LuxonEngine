@@ -165,6 +165,7 @@
     <ClCompile Include="Mesh\MeshViewWindow.cpp" />
     <ClCompile Include="Mesh\Model3DInspecterWidget.cpp" />
     <ClCompile Include="Mesh\QMeshField.cpp" />
+    <ClCompile Include="Renderer\GBufferRendererWidget.cpp" />
     <ClCompile Include="Renderer\MeshRendererWidget.cpp" />
     <ClCompile Include="Renderer\RTComponentWidget.cpp" />
     <ClCompile Include="Renderer\SplineRendererWidget.cpp" />
@@ -226,6 +227,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Renderer\GBufferRendererWidget.h" />
     <QtMoc Include="Renderer\SplineRendererWidget.h" />
     <QtMoc Include="Renderer\RTComponentWidget.h" />
     <QtMoc Include="Scene\CreateSceneWindow.h" />

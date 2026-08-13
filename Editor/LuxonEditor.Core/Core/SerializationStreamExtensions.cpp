@@ -64,6 +64,14 @@ namespace LuxonEditor {
 				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
 				return std::make_shared<LuxonEngine::Rendering::SplineRenderer>(material, std::vector<LuxonEngine::Vector3>{point0, point1, point2}, width, segments);
 			}
+			case 2:
+				{
+				auto materialGuid = stream.GetGuid("material-guid");
+				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+				auto meshGuid = stream.GetGuid("mesh-guid");
+				auto mesh = EngineApplication::GetAssetManager()->GetMesh(meshGuid);
+				return std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(mesh, material);
+			}
 			default:
 				return nullptr;
 		}
@@ -100,6 +108,19 @@ namespace LuxonEditor {
 			stream.SetVector3("point2", curve.m_point3);
 			stream.SetFloat("width", splineRenderer->GetWidth());
 			stream.SetInt("segments", splineRenderer->GetSegments());
+		}
+		else if(auto gBufferRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(renderer)) {
+			stream.SetInt("renderer-type", 2);
+			auto material = gBufferRenderer->GetMaterial();
+			auto mesh = gBufferRenderer->GetMesh();
+			if (material) {
+				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+				stream.SetGuid("material-guid", materialEntry->guid);
+			}
+			if (mesh) {
+				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(mesh);
+				stream.SetGuid("mesh-guid", meshEntry->guid);
+			}
 		}
 		else {
 			stream.SetInt("renderer-type", -1);
