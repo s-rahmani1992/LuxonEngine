@@ -31,6 +31,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		void RenderCommand(VkCommandBuffer commandBuffer);
 		void UpdateTLAS(VkCommandBuffer commandBuffer);
 		void SetImage(const std::string& name, const VkImageView imageView);
+		void SetExtent(const VkExtent2D& extent);
 	private:
 		void WriteBuffers(const std::string name, const VkBuffer buffer);
 		void WriteArrayBuffer(const std::string name, const std::vector<VkBuffer>& buffers);

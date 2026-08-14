@@ -12,54 +12,34 @@
 #include "Core/VulkanUtilities.h"
 
 LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTracingContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
-	: VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window),
-	m_rayTracingModule(std::make_shared<RayTracing::VulkanRayTracingPipelineModule>())
+    : VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window),
+    m_rayTracingModule(std::make_shared<RayTracing::VulkanRayTracingPipelineModule>())
 {
+    m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 }
 
 LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::~VulkanRayTracingContext()
 {
-    vkDestroyImageView(m_logicDevice, m_outputImageView, nullptr);
-    vkDestroyImage(m_logicDevice, m_outputImage, nullptr);
-    vkFreeMemory(m_logicDevice, m_outputImageMemory, nullptr);
+    DestroyOutputImage();
 }
 
 bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Initialize()
 {
-	if (InitializeSwapChain(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == false)
-		return false;
+    if (InitializeSurface() == false)
+        return false;
 
-	if (InitializeCommandObjects() == false)
-		return false;
+    if (InitializeSwapChain(m_swapChainUsageFlags) == false)
+        return false;
 
-	if (InitializeFencesAndSemaphores() == false)
-		return false;
+    if (InitializeCommandObjects() == false)
+        return false;
 
-    VkImageCreateInfo imgInfo{};
-    imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imgInfo.imageType = VK_IMAGE_TYPE_2D;
-    imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
-    imgInfo.mipLevels = 1;
-    imgInfo.arrayLayers = 1;
-    imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (InitializeFencesAndSemaphores() == false)
+        return false;
 
-    m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_outputImage, &m_outputImageMemory);
+    CreateOutputImage();
 
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = m_outputImage;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = imgInfo.format;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_outputImageView);
-
-	return true;
+    return true;
 }
 
 bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::PrepareScene(const ref<Scene>& scene)
@@ -101,7 +81,16 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
     vkResetFences(m_logicDevice, 1, &m_fence);
 
     UInt32 imageIndex;
-    vkAcquireNextImageKHR(m_logicDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    auto acquireResult = vkAcquireNextImageKHR(m_logicDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        Resize(m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height);
+        return; // skip this frame
+    }
+    if (acquireResult != VK_SUCCESS && acquireResult != VK_SUBOPTIMAL_KHR) {
+        // log error and bail out
+        return;
+    }
 
     vkResetCommandBuffer(m_commandBuffer, 0);
 
@@ -246,6 +235,21 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
     vkWaitForFences(m_logicDevice, 1, &m_fence, VK_TRUE, 20000);
 }
 
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Resize(UInt32 width, UInt32 height)
+{
+    vkDeviceWaitIdle(m_logicDevice);
+
+    DestroyOutputImage();
+    DestroySwapChainResources();
+
+    InitializeSwapChain(m_swapChainUsageFlags);
+
+    CreateOutputImage();
+
+    m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
+    m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
+}
+
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UploadMeshes(const std::vector<ref<GameEntity>>& entities)
 {
 	std::set<ref<Mesh>> uniqueMeshes;
@@ -274,4 +278,38 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Update
     }
 
     vkUnmapMemory(m_logicDevice, m_transformBufferMemory);
+}
+
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::CreateOutputImage()
+{
+    VkImageCreateInfo imgInfo{};
+    imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imgInfo.imageType = VK_IMAGE_TYPE_2D;
+    imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
+    imgInfo.mipLevels = 1;
+    imgInfo.arrayLayers = 1;
+    imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+    m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_outputImage, &m_outputImageMemory);
+
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = m_outputImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = imgInfo.format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_outputImageView);
+}
+
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::DestroyOutputImage()
+{
+    vkDestroyImageView(m_logicDevice, m_outputImageView, nullptr);
+    vkDestroyImage(m_logicDevice, m_outputImage, nullptr);
+    vkFreeMemory(m_logicDevice, m_outputImageMemory, nullptr);
 }

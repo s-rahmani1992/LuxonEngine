@@ -414,6 +414,44 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 		}
 	}
 
+	for (auto& [variantProgram, matResourceData] : m_resourceMaps) {
+		for (auto& [material, index] : matResourceData.materialIndexMap) {
+			// Initial write of all current texture fields, regardless of "modified" state
+			auto& textureFields = *(material->GetTextureFields());
+			for (auto& [name, matTextureData] : textureFields) {
+				if (matTextureData.texture == nullptr)
+					continue;
+
+				auto& n = matResourceData.images[matTextureData.fieldIndex];
+				auto textureController = std::dynamic_pointer_cast<VulkanTexture2DController>(matTextureData.texture->GetGPUHandle());
+
+				VkDescriptorImageInfo info{};
+				info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				info.imageView = textureController->GetImageView();
+				info.sampler = VK_NULL_HANDLE;
+
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.dstSet = m_descriptorSets[n.set];
+				write.dstBinding = n.binding;
+				write.dstArrayElement = index.textureArrayIndex;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+				write.descriptorCount = 1;
+				write.pImageInfo = &info;
+
+				vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+			}
+
+			// Initial write of all current value fields into this context's data locations
+			auto& valueFields = *(material->GetValueFields()); // adjust to actual accessor name
+			for (auto& [name, matValueData] : valueFields) {
+				auto& locations = index.datalocations[matValueData.fieldIndex];
+				for (auto& location : locations)
+					std::memcpy(location, matValueData.data, matValueData.size);
+			}
+		}
+	}
+
 	vkDestroyCommandPool(m_device, commandPool, nullptr);
 
 	return true;
@@ -599,4 +637,9 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	write.pBufferInfo = bufferInfos.data();
 
 	vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+}
+
+void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetExtent(const VkExtent2D& extent)
+{
+	m_extent = extent;
 }

@@ -12,7 +12,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
 		virtual void Render() override;
-
+		virtual void Resize(UInt32 width, UInt32 height) override;
 	private:
 		struct VKEntityGPUData {
 		public:
@@ -22,6 +22,8 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 
 		void UploadMeshes(const std::vector<ref<GameEntity>>& entities);
 		void UpdateTransforms();
+		void CreateOutputImage();
+		void DestroyOutputImage();
 
 		VkBuffer m_transformBuffer;
 		VkDeviceMemory m_transformBufferMemory;

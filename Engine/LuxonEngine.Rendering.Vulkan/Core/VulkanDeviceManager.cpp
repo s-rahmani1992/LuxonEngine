@@ -291,6 +291,9 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 	if (context->Initialize() == false)
 		return nullptr;
 
+	context->RegisterAssetManager(m_assetManager);
+	context->RegisterShaderRegistery(m_shaderRegistry);
+
 	return context;
 }
 
