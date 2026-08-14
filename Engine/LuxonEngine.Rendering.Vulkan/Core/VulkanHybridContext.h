@@ -34,7 +34,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		~VulkanHybridContext();
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
-		virtual void Render() override;
+		virtual void Render() override;		
+		virtual void Resize(UInt32 width, UInt32 height) override;
 	private:
 
 		

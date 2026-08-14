@@ -123,6 +123,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanAssetManager::UploadMeshesToGPU(const
 		}
 	}
 
+	if(totalVBSize == 0)
+		return;
+
 	VkBufferCreateInfo stageBufferCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.pNext = nullptr,

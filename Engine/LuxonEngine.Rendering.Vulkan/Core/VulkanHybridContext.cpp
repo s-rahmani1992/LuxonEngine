@@ -26,6 +26,7 @@
 LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
 	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window)
 {
+	m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
 
 LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
@@ -45,7 +46,10 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
 {
-	if (InitializeSwapChain(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == false)
+	if (InitializeSurface() == false)
+		return false;
+
+	if (InitializeSwapChain(m_swapChainUsageFlags) == false)
 		return false;
 
 	if (InitializeDepthBuffer() == false)
@@ -273,9 +277,18 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	vkResetFences(m_logicDevice, 1, &m_fence);
 
-	UInt32 imageIndex;
-	vkAcquireNextImageKHR(m_logicDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	UInt32 imageIndex = 0;
+	VkResult acquireResult = vkAcquireNextImageKHR(m_logicDevice, m_swapChain, UINT64_MAX,
+		m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
+	if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
+		Resize(m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height);
+		return; // skip this frame
+	}
+	if (acquireResult != VK_SUCCESS && acquireResult != VK_SUBOPTIMAL_KHR) {
+		// log error and bail out
+		return;
+	}
 	vkResetCommandBuffer(m_commandBuffer, 0);
 
 	VkCommandBufferBeginInfo beginInfo{
@@ -463,6 +476,40 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	vkQueueWaitIdle(m_presentQueue);
 
 	vkWaitForFences(m_logicDevice, 1, &m_fence, VK_TRUE, 20000);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, UInt32 height)
+{
+	if (m_depthImage != VK_NULL_HANDLE) {
+		vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
+		vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
+	}
+
+	for (auto framebuffer : m_swapChainFramebuffers)
+		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
+
+	DestroySwapChainResources();
+
+	InitializeSwapChain(m_swapChainUsageFlags);
+
+	InitializeDepthBuffer();
+
+	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthImageView };
+
+		VkFramebufferCreateInfo fbInfo{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.renderPass = m_renderPass,
+			.attachmentCount = 2,
+			.pAttachments = fbAttachments,
+			.width = m_swapChainCapability.currentExtent.width,
+			.height = m_swapChainCapability.currentExtent.height,
+			.layers = 1,
+		};
+
+		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, &m_swapChainFramebuffers[i]);
+	}
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)

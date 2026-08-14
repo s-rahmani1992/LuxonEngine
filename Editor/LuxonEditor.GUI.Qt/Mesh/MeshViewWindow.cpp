@@ -24,8 +24,7 @@ MeshViewWindow::MeshViewWindow(QWidget *parent, LuxonEngine::SerializationStream
 	m_transformWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 
 	connect(m_transformWidget, &TransformWidget::ValueChanged, this, [this]() {
-		if(m_context && m_scene)
-			m_context->Render();
+		update(); 
 		});
 
 	static_cast<QVBoxLayout*>(ui.panel->layout())->addStretch(1);
@@ -145,9 +144,12 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		m_context->PrepareScene(m_scene);
 		m_transformWidget->SetTransform(meshTransform);
 	}
+	else {
+		m_context->Resize(size.width(), size.height());
+		std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
+	}
 
-	std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
-	m_context->Render();
+	update();
 }
 
 void MeshViewWindow::mousePressEvent(QMouseEvent* event)

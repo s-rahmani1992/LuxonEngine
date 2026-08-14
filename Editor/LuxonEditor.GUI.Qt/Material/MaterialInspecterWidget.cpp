@@ -73,7 +73,8 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 				ui.dataFields->layout()->setAlignment(floatfield, Qt::AlignTop);
 				connect(floatfield, &QFloatField::ValueChanged, this, [this, fieldName](float newValue) {
 					m_material->SetValue(fieldName, newValue);
-					m_context->Render();
+					if(m_context)
+						m_context->Render();
 					});
 				break; 
 			}
@@ -175,8 +176,11 @@ bool MaterialInspecterWidget::eventFilter(QObject* widget, QEvent* event)
 				m_scene->rtGlobalMaterial = nullptr;
 				m_context->PrepareScene(m_scene);
 			}
+			else {
+				m_context->Resize(size.width(), size.height());
+				std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
+			}
 
-			std::dynamic_pointer_cast<PerspectiveCamera>(m_scene->mainCamera)->ChangeAspect((float)size.width() / size.height());
 			m_context->Render();
 		}
 	}
