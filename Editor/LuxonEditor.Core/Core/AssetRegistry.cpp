@@ -96,7 +96,7 @@ void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const std::str
 	auto it = m_meshEntries.find(guid);
 
 	if(it != m_meshEntries.end()) {
-
+		InvokeMeshChangedCallbacks((*it).second.asset, mesh);
 		(*it).second.asset->Release();
 		EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh((*it).second.asset);
 		(*it).second.name = name;
@@ -367,6 +367,7 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 			LuxonEngine::GUID meshGuid = meshStream.GetGuid("uuid");
 			auto mesh = GetMesh(meshGuid);
 			if(mesh) {
+				InvokeMeshDeletedCallbacks(mesh);
 				mesh->Release();
 				EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadMesh(mesh);
 				m_meshEntries.erase(meshGuid);
@@ -417,6 +418,44 @@ void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFil
 	}
 	else {
 		Logger::LogError("Unsupported file type for import: " + extention);
+	}
+}
+
+size_t LuxonEditor::AssetRegistry::RegisterMeshDeletedCallback(MeshDeletedCallback callback)
+{
+	size_t callbackId = ++m_lastmeshDeleteCallbackId;
+	m_meshDeletedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::AssetRegistry::UnregisterMeshDeletedCallback(size_t callbackId)
+{
+	m_meshDeletedCallbacks.erase(callbackId);
+}
+
+size_t LuxonEditor::AssetRegistry::RegisterMeshChangedCallback(MeshChangedCallback callback)
+{
+	auto callbackId = ++m_lastMeshChangedCallbackId;
+	m_meshChangedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::AssetRegistry::UnregisterMeshChangedCallback(size_t callbackId)
+{
+	m_meshChangedCallbacks.erase(callbackId);
+}
+
+void LuxonEditor::AssetRegistry::InvokeMeshDeletedCallbacks(ref<LuxonEngine::Mesh>& mesh)
+{
+	for (auto& [id, callback] : m_meshDeletedCallbacks) {
+		callback(mesh);
+	}
+}
+
+void LuxonEditor::AssetRegistry::InvokeMeshChangedCallbacks(ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh)
+{
+	for(auto& [id, callback] : m_meshChangedCallbacks) {
+		callback(oldMesh, newMesh);
 	}
 }
 

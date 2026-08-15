@@ -1,6 +1,7 @@
 #pragma once
 #include <EngineAPI.h>
 #include <functional>
+#include "AssetRegistry.h"
 
 namespace LuxonEditor {
 	class __declspec(dllexport) EngineSceneManager {
@@ -52,6 +53,8 @@ namespace LuxonEditor {
 		bool TryLoadSceneFromFile(const std::string& path);
 		void SaveScene(const std::string& path, const SceneEditor& sceneEditor);
 		void AddEntity(const boost::uuids::uuid& uuid, ref<LuxonEngine::GameEntity> entity, SceneEditor& sceneEditor);
+		
+		void ReplaceMesh(const ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh);
 		SceneEditor CreateDefaultScene();
 
 		std::map<size_t, EntityListChangedCallback> m_entityListChangedCallbacks;

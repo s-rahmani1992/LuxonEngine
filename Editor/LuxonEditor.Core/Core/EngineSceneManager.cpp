@@ -16,6 +16,16 @@ namespace LuxonEditor {
 
 	void EngineSceneManager::Initialize(const std::string& initialScenePath)
 	{
+		EngineApplication::GetAssetManager()->RegisterMeshDeletedCallback([this](ref<LuxonEngine::Mesh>& deletedMesh) {
+			// Remove any entities that reference the deleted mesh
+			ReplaceMesh(deletedMesh, nullptr);
+			});
+
+		EngineApplication::GetAssetManager()->RegisterMeshChangedCallback([this](ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh) {
+			// Update any entities that reference the old mesh to use the new mesh
+			ReplaceMesh(oldMesh, newMesh);
+			});
+
 		// Try caller-supplied relative path first
 		if (!initialScenePath.empty()) {
 			auto absolutePath = ResolveAbsolutePath(initialScenePath);
@@ -145,6 +155,39 @@ namespace LuxonEditor {
 		sceneEditor.entityMap[uuid] = { uuid, entity };
 		sceneEditor.scene->entities.push_back(entity);
 		sceneEditor.entityList.push_back({ uuid, entity });
+	}
+
+	void EngineSceneManager::ReplaceMesh(const ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh)
+	{
+		bool sceneNeedsUpdate = false;
+		for (const auto& entry : m_currentSceneEditor.entityList) {
+			auto renderer = entry.entity->GetRenderer();
+
+			if (renderer != nullptr) {
+				auto mesh = renderer->GetMesh();
+
+				if (mesh == oldMesh) {
+					sceneNeedsUpdate = true;
+					renderer->SetMesh(newMesh);
+				}
+			}
+
+			auto rtComponent = entry.entity->GetRayTracingComponent();
+
+			if (rtComponent != nullptr)
+			{
+				auto rtMesh = rtComponent->GetMesh();
+				if (rtMesh == oldMesh)
+				{
+					sceneNeedsUpdate = true;
+					rtComponent->SetMesh(newMesh);
+				}
+			}
+
+			if (sceneNeedsUpdate) {
+				RequestRender();
+			}
+		}
 	}
 
 	LuxonEditor::EngineSceneManager::SceneEditor EngineSceneManager::CreateDefaultScene()

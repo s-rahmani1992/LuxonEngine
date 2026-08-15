@@ -19,6 +19,9 @@ namespace LuxonEditor {
 
 	class __declspec(dllexport) AssetRegistry {
 	public:
+		using MeshDeletedCallback = std::function<void(ref<LuxonEngine::Mesh>&)>;
+		using MeshChangedCallback = std::function<void(ref<LuxonEngine::Mesh>&, const ref<LuxonEngine::Mesh>&)>;
+
 		AssetRegistry() = default;
 		AssetRegistry(const AssetRegistry&) = delete;
 		AssetRegistry(const std::string& projectPath, AssetDirectoryWatcher* assetWatcher);
@@ -44,14 +47,25 @@ namespace LuxonEditor {
 		void ImportEngineAsset(const fs::path& filePath);
 		void DeleteAsset(const fs::path& filePath);
 		void ImportExternalFile(const std::string& sourcePath, const std::string& targetRelativePath);
+		size_t RegisterMeshDeletedCallback(MeshDeletedCallback callback);
+		void UnregisterMeshDeletedCallback(size_t callbackId);
+		size_t RegisterMeshChangedCallback(MeshChangedCallback callback);
+		void UnregisterMeshChangedCallback(size_t callbackId);
 	private:
 		void UpdateDependentAssets(const ref<LuxonEngine::Texture2D>& texture);
-
+		void InvokeMeshDeletedCallbacks(ref<LuxonEngine::Mesh>& mesh);
+		void InvokeMeshChangedCallbacks(ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh);
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;
 
 		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Rendering::Material>> m_materialEntries;
 		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Texture2D>> m_textureEntries;
 		std::map<boost::uuids::uuid, AssetEntry<LuxonEngine::Mesh>> m_meshEntries;
+
+		std::map<size_t, MeshDeletedCallback> m_meshDeletedCallbacks;
+		size_t m_lastmeshDeleteCallbackId = 0;
+
+		std::map<size_t, MeshChangedCallback> m_meshChangedCallbacks;
+		size_t m_lastMeshChangedCallbackId = 0;
 	};
 }
