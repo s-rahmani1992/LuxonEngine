@@ -1,4 +1,3 @@
-#pragma once
 #include "vulkan-pch.h"
 
 namespace LuxonEngine {
@@ -27,6 +26,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool InitializePipeline(const std::vector<VKEntityGPUData>& entities, const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram, UInt32 width, UInt32 height, VkImageView depthView);
 		void WriteBuffer(const std::string& name, VkBuffer buffer, UInt32 stride);
 		void RenderCommand(VkCommandBuffer commandBuffer);
+		void Resize(UInt32 width, UInt32 height, VkImageView depthView);
 		inline VkImageView GetPositionImageView() const { return m_positionImageView; }
 		inline VkImageView GetNormalImageView() const { return m_normalImageView; }
 		inline VkImageView GetMaskImageView() const { return m_maskImageView; }
@@ -39,6 +39,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool CreateFrameBuffers(UInt32 width, UInt32 height);
 		bool CreateRasterPipeline();
 		bool CreateDescriptorSets(const ref<Rasterization::SPIRVRasterizationProgram>& gBufferProgram);
+		void DestroyImages();
 
 		VkDevice m_device;
 		VkPipeline m_gBufferPipeline;

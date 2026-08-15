@@ -510,8 +510,60 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 
 		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, &m_swapChainFramebuffers[i]);
 	}
-}
 
+	if (m_gbufferModule != nullptr) {
+		m_gbufferModule->Resize(m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, m_depthImageView);
+	}
+
+	if (m_rayTracingModule != nullptr) {
+		vkDestroyImageView(m_logicDevice, m_rtOutputImageView, nullptr);
+		vkDestroyImage(m_logicDevice, m_rtOutputImage, nullptr);
+		vkFreeMemory(m_logicDevice, m_rtOutputImageMemory, nullptr);
+
+		VkImageCreateInfo imgInfo{};
+		imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imgInfo.imageType = VK_IMAGE_TYPE_2D;
+		imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
+		imgInfo.mipLevels = 1;
+		imgInfo.arrayLayers = 1;
+		imgInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+		m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_rtOutputImage, &m_rtOutputImageMemory);
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = m_rtOutputImage;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = imgInfo.format;
+		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.layerCount = 1;
+
+		vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_rtOutputImageView);
+
+		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
+		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+	
+		if (m_gbufferModule != nullptr) {
+			m_rayTracingModule->SetImage("_PositionTexture", m_gbufferModule->GetPositionImageView());
+			m_rayTracingModule->SetImage("_NormalTexture", m_gbufferModule->GetNormalImageView());
+			m_rayTracingModule->SetImage("_MaskTexture", m_gbufferModule->GetMaskImageView());
+		
+		
+			for (auto& rasterModule : m_gBufferRasterizationModules) {
+				auto rasterMaterial = rasterModule->GetMaterial();
+				rasterMaterial->SetImageView("_PositionTexture", m_gbufferModule->GetPositionImageView());
+				rasterMaterial->SetImageView("_NormalTexture", m_gbufferModule->GetNormalImageView());
+				rasterMaterial->SetImageView("_MaskTexture", m_gbufferModule->GetMaskImageView());
+				rasterMaterial->SetImageView(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+			}
+		}
+	}
+}
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)
 {
 	std::set<ref<Mesh>> uniqueMeshes;

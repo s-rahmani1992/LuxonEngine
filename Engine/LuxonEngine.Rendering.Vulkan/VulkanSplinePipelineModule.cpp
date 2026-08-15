@@ -72,7 +72,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::ComputeCommand(
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
 		vkCmdPushConstants(commandBuffer, m_computeProgram->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(SplineParameters), &m_splineParameters);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computeProgram->GetPipelineLayout(), 0, 1, &m_computeDescriptorSet, 0, 0);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computeProgram->GetPipelineLayout(), 0, 1, &m_computeDescriptorSet, 1, m_computeOffset.data());
 
 		vkCmdDispatch(commandBuffer, m_splineRenderer->GetSegments() + 1, 1, 1);
 	}

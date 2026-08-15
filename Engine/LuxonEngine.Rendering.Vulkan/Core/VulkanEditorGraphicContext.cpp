@@ -249,6 +249,10 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::UploadMeshesToG
 {
 	std::set<ref<Mesh>> uniqueMeshes;
 	for (auto& entity : entities) {
+		auto renderer = entity->GetRenderer();
+		if (renderer == nullptr)
+			continue;
+
 		auto mesh = entity->GetRenderer()->GetMesh();
 		if (mesh != nullptr)
 			uniqueMeshes.insert(mesh);
@@ -463,8 +467,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 	for (auto& gpuData : m_entityGPUList)
 		existingSet.insert(gpuData.gameEntity);
 
-	if (currentSet == existingSet)
-		return;
+	/*if (currentSet == existingSet)
+		return;*/
 
 	std::vector<ref<GameEntity>> removed;
 	for (auto& e : existingSet)
@@ -476,8 +480,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 		if (existingSet.find(e) == existingSet.end())
 			added.push_back(e);
 
-	if (removed.empty() && added.empty())
-		return;
+	/*if (removed.empty() && added.empty())
+		return;*/
 
 	// Remove stale entries
 	for (auto& entity : removed) {
@@ -510,5 +514,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		&m_transformBuffer, &m_transformBufferMemory, &m_transformStride);
 
+	UploadMeshesToGPU(sceneEntities);
 	InitializePipelines(m_overrideMaterial);
 }

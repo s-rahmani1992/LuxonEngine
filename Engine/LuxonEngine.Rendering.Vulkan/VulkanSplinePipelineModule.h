@@ -81,5 +81,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<Rasterization::VulkanRasterizationMaterial> m_material;
 		ref<Rasterization::SPIRVRasterizationProgram> m_program;
 		std::vector<UInt32> m_offset;
+		std::vector<UInt32> m_computeOffset = { 0 };
 	};
 }

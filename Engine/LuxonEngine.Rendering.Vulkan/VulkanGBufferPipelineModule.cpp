@@ -20,17 +20,7 @@ LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::VulkanGBufferPipeli
 
 LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::~VulkanGBufferPipelineModule()
 {
-	vkDestroyImageView(m_device, m_positionImageView, nullptr);
-	vkDestroyImage(m_device, m_positionImage, nullptr);
-	vkFreeMemory(m_device, m_positionImageMemory, nullptr);
-
-	vkDestroyImageView(m_device, m_normalImageView, nullptr);
-	vkDestroyImage(m_device, m_normalImage, nullptr);
-	vkFreeMemory(m_device, m_normalImageMemory, nullptr);
-
-	vkDestroyImageView(m_device, m_maskImageView, nullptr);
-	vkDestroyImage(m_device, m_maskImage, nullptr);
-	vkFreeMemory(m_device, m_maskImageMemory, nullptr);
+	DestroyImages();
 
 	vkDestroyFramebuffer(m_device, m_frameBuffer, nullptr);
 
@@ -132,6 +122,31 @@ void LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::RenderCommand(
 	}
 
 	vkCmdEndRenderPass(commandBuffer);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::Resize(UInt32 width, UInt32 height, VkImageView depthView)
+{
+	m_depthView = depthView;
+
+	DestroyImages();
+	vkDestroyFramebuffer(m_device, m_frameBuffer, nullptr);
+
+	CreateFrameBuffers(width, height);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::DestroyImages()
+{
+	vkDestroyImageView(m_device, m_positionImageView, nullptr);
+	vkDestroyImage(m_device, m_positionImage, nullptr);
+	vkFreeMemory(m_device, m_positionImageMemory, nullptr);
+
+	vkDestroyImageView(m_device, m_normalImageView, nullptr);
+	vkDestroyImage(m_device, m_normalImage, nullptr);
+	vkFreeMemory(m_device, m_normalImageMemory, nullptr);
+
+	vkDestroyImageView(m_device, m_maskImageView, nullptr);
+	vkDestroyImage(m_device, m_maskImage, nullptr);
+	vkFreeMemory(m_device, m_maskImageMemory, nullptr);
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateRenderPass()

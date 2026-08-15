@@ -22,6 +22,7 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 		void RenderCommand(VkCommandBuffer commandBuffer);
 		bool Initialize(const ref<GameEntity>& entity, ref<VulkanRasterizationMaterial> material, const VkRenderPass m_renderPass);
 		void SetDescriptorOffset(const std::string& name, UInt32 offset);
+		inline ref<VulkanRasterizationMaterial> GetMaterial() const { return m_material; }
 	private:
 		static VkVertexInputBindingDescription s_bindingDescriptions;
 		static VkVertexInputAttributeDescription s_attributeDescriptions[3];
