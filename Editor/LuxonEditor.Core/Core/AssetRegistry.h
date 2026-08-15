@@ -45,6 +45,8 @@ namespace LuxonEditor {
 		void DeleteAsset(const fs::path& filePath);
 		void ImportExternalFile(const std::string& sourcePath, const std::string& targetRelativePath);
 	private:
+		void UpdateDependentAssets(const ref<LuxonEngine::Texture2D>& texture);
+
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;
 

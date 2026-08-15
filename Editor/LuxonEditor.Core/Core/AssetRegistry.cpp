@@ -287,7 +287,7 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 			Logger::LogError("Failed to import model: " + error);
 			return;
 		}
-	}
+		}
 	else if (IsTextureExtension(extension)) {
 		std::ifstream file(filePath, std::ios::binary);
 		if (!file) {
@@ -310,6 +310,8 @@ void LuxonEditor::AssetRegistry::ImportAsset(const fs::path& path)
 			Logger::LogError("Failed to import texture: " + error);
 			return;
 		}
+
+		EngineApplication::GetGPUApplication()->CreateAssetManager()->UploadTextureToGPU(texture);
 	}
 }
 
@@ -381,6 +383,7 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 		auto it = m_textureEntries.find(texGuid);
 		if (it != m_textureEntries.end()) {
 			it->second.asset->Release();
+			UpdateDependentAssets(it->second.asset);
 			EngineApplication::GetGPUApplication()->CreateAssetManager()->UnloadTexture(it->second.asset);
 			m_textureEntries.erase(it);
 		}
@@ -414,5 +417,18 @@ void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFil
 	}
 	else {
 		Logger::LogError("Unsupported file type for import: " + extention);
+	}
+}
+
+void LuxonEditor::AssetRegistry::UpdateDependentAssets(const ref<LuxonEngine::Texture2D>& deletedTexture)
+{
+	for(auto & [guid, materialEntry] : m_materialEntries) {
+		auto& material = materialEntry.asset;
+		auto textureFields = material->GetTextureFields();
+		for(auto& [fieldName, textureData] : *textureFields) {
+			if(textureData.texture == deletedTexture) {
+				material->SetTexture2D(fieldName, nullptr);
+			}
+		}
 	}
 }

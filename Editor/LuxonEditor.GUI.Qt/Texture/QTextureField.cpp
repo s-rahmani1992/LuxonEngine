@@ -52,6 +52,11 @@ void QTextureField::SetTexture(ref<LuxonEngine::Texture2D> texture)
 	if(texture == m_texture)
 		return;
 
+	auto entry = GetAssetManager()->GetTextureEntry(texture);
+
+	if(entry == nullptr)
+		return;
+
 	m_textureImage = QImage(
 		texture->GetData(),
 		texture->GetWidth(),
@@ -59,7 +64,6 @@ void QTextureField::SetTexture(ref<LuxonEngine::Texture2D> texture)
 		texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? QImage::Format_RGBA8888 : QImage::Format_ARGB32
 	).copy();
 
-	auto entry = GetAssetManager()->GetTextureEntry(texture);
 
 	int index = ui.selectBox->findData(QString::fromStdString(LuxonEditor::GuidGenerator::GUIDToString(entry->guid)));
 		if (index >= 0) {

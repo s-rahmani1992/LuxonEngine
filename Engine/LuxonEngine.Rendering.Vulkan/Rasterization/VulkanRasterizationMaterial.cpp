@@ -111,6 +111,9 @@ void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial:
 {
 	// Update Modified Textures
 	for (auto& modified : m_material->GetModifiedTextures()) {
+		if(modified->texture == nullptr || modified->texture->GetGPUHandle() == nullptr)
+			continue;
+
 		VkDescriptorImageInfo imageInfo{
 			.sampler = nullptr,
 			.imageView = std::dynamic_pointer_cast<VulkanTexture2DController>(modified->texture->GetGPUHandle())->GetImageView(),
