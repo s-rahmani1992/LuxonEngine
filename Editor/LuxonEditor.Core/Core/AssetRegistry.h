@@ -21,6 +21,7 @@ namespace LuxonEditor {
 	public:
 		using MeshDeletedCallback = std::function<void(ref<LuxonEngine::Mesh>&)>;
 		using MeshChangedCallback = std::function<void(ref<LuxonEngine::Mesh>&, const ref<LuxonEngine::Mesh>&)>;
+		using MaterialDeletedCallback = std::function<void(ref<LuxonEngine::Rendering::Material>&)>;
 
 		AssetRegistry() = default;
 		AssetRegistry(const AssetRegistry&) = delete;
@@ -51,10 +52,13 @@ namespace LuxonEditor {
 		void UnregisterMeshDeletedCallback(size_t callbackId);
 		size_t RegisterMeshChangedCallback(MeshChangedCallback callback);
 		void UnregisterMeshChangedCallback(size_t callbackId);
+		size_t RegisterMaterialDeletedCallback(MaterialDeletedCallback callback);
+		void UnregisterMaterialDeletedCallback(size_t callbackId);
 	private:
 		void UpdateDependentAssets(const ref<LuxonEngine::Texture2D>& texture);
 		void InvokeMeshDeletedCallbacks(ref<LuxonEngine::Mesh>& mesh);
 		void InvokeMeshChangedCallbacks(ref<LuxonEngine::Mesh>& oldMesh, const ref<LuxonEngine::Mesh>& newMesh);
+		void InvokeMaterialDeletedCallbacks(ref<LuxonEngine::Rendering::Material>& material);
 		std::string m_projectPath;
 		AssetDirectoryWatcher* m_assetWatcher;
 
@@ -67,5 +71,8 @@ namespace LuxonEditor {
 
 		std::map<size_t, MeshChangedCallback> m_meshChangedCallbacks;
 		size_t m_lastMeshChangedCallbackId = 0;
+
+		std::map<size_t, MaterialDeletedCallback> m_materialDeletedCallbacks;
+		size_t m_lastMaterialDeletedCallbackId = 0;
 	};
 }

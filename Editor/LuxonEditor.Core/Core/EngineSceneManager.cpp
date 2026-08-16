@@ -26,6 +26,28 @@ namespace LuxonEditor {
 			ReplaceMesh(oldMesh, newMesh);
 			});
 
+		EngineApplication::GetAssetManager()->RegisterMaterialDeletedCallback([this](ref<LuxonEngine::Rendering::Material>& deletedMaterial) {
+			// Remove any entities that reference the deleted material
+			for (auto& entry : m_currentSceneEditor.entityList) {
+
+				auto renderer = entry.entity->GetRenderer();
+
+				if (renderer) {
+					if(renderer->GetMaterial() == deletedMaterial) {
+						renderer->SetMaterial(nullptr);
+					}
+				}
+
+				auto rtComponent = entry.entity->GetRayTracingComponent();
+
+				if(rtComponent) {
+					if(rtComponent->GetRTMaterial() == deletedMaterial) {
+						rtComponent->SetRTMaterial(nullptr);
+					}
+				}
+			}
+			});
+
 		// Try caller-supplied relative path first
 		if (!initialScenePath.empty()) {
 			auto absolutePath = ResolveAbsolutePath(initialScenePath);

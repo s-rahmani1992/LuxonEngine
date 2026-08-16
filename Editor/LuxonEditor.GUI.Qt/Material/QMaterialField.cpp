@@ -54,6 +54,9 @@ void QMaterialField::SetMaterial(ref<LuxonEngine::Rendering::Material> material)
 
 	auto entry = GetAssetManager()->GetMaterialEntry(material);
 
+	if(entry == nullptr)
+		return;
+
 	int index = ui.selectBox->findData(
 		QString::fromStdString(LuxonEditor::GuidGenerator::GUIDToString(entry->guid)));
 	if (index >= 0)

@@ -32,7 +32,7 @@ ref<LuxonEngine::Rendering::Material> LuxonEditor::MaterialImporter::Import(Byte
 		return nullptr;
 	}
 
-	auto material = materialFactory->CreateMaterial(std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program));
+	auto material = materialFactory->CreateMaterial(std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program, [](LuxonEngine::Rendering::ShaderProgram*) {}));
 
 	auto materialFieldStream = materialStream.Object("fields");
 

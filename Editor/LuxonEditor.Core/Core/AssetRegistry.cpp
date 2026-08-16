@@ -389,6 +389,18 @@ void LuxonEditor::AssetRegistry::DeleteAsset(const fs::path& filePath)
 			m_textureEntries.erase(it);
 		}
 	}
+	else if(extension == ".lmat") {
+		SerializationStream stream;
+		if (!stream.LoadFromFile(filePathStr + ".json")) {
+			return;
+		}
+		LuxonEngine::GUID matGuid = stream.GetGuid("uuid");
+		auto it = m_materialEntries.find(matGuid);
+		if (it != m_materialEntries.end()) {
+			InvokeMaterialDeletedCallbacks(it->second.asset);
+			m_materialEntries.erase(it);
+		}
+	}
 }
 
 void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFilePath, const std::string& targetFolderPath)
@@ -445,6 +457,18 @@ void LuxonEditor::AssetRegistry::UnregisterMeshChangedCallback(size_t callbackId
 	m_meshChangedCallbacks.erase(callbackId);
 }
 
+size_t LuxonEditor::AssetRegistry::RegisterMaterialDeletedCallback(MaterialDeletedCallback callback)
+{
+	auto callbackId = ++m_lastMaterialDeletedCallbackId;
+	m_materialDeletedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::AssetRegistry::UnregisterMaterialDeletedCallback(size_t callbackId)
+{
+	m_materialDeletedCallbacks.erase(callbackId);
+}
+
 void LuxonEditor::AssetRegistry::InvokeMeshDeletedCallbacks(ref<LuxonEngine::Mesh>& mesh)
 {
 	for (auto& [id, callback] : m_meshDeletedCallbacks) {
@@ -456,6 +480,13 @@ void LuxonEditor::AssetRegistry::InvokeMeshChangedCallbacks(ref<LuxonEngine::Mes
 {
 	for(auto& [id, callback] : m_meshChangedCallbacks) {
 		callback(oldMesh, newMesh);
+	}
+}
+
+void LuxonEditor::AssetRegistry::InvokeMaterialDeletedCallbacks(ref<LuxonEngine::Rendering::Material>& material)
+{
+	for(auto& [id, callback] : m_materialDeletedCallbacks) {
+		callback(material);
 	}
 }
 
