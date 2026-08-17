@@ -181,7 +181,7 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 	}
 
 	if(compiledProgram == nullptr) {
-		LuxonEngine::Logger::LogError(error);
+		LuxonEngine::Logger::LogError("Error compiling " + filePath.filename().string() + ":\n " + error);
 	}
 }
 

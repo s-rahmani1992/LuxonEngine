@@ -7,6 +7,7 @@
 #include <QSize>
 #include <Core/MaterialImporter.h>
 #include <qsplitter.h>
+#include <LuxonEditorAPI.h>
 
 MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::SerializationStream* stream, std::string path)
 	: QWidget(parent)
@@ -22,6 +23,7 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 	splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QBoxLayout* mainLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
 	mainLayout->setContentsMargins(0, 0, 0, 0);
+	mainLayout->addWidget(ui.programLabel);
 	mainLayout->addWidget(splitter, 1);
 	setLayout(mainLayout);
 	splitter->setHandleWidth(2);
@@ -56,6 +58,10 @@ MaterialInspecterWidget::MaterialInspecterWidget(QWidget* parent, LuxonEngine::S
 		break;
 	}
 
+	auto shaderRegistry = LuxonEditor::EngineApplication::GetShaderRegistery();
+	auto shaderEntry = shaderRegistry->GetShaderEntry(m_material->GetProgram().get());
+	ui.programLabel->setText(QString::fromStdString("Program: " + shaderEntry->name));
+	
 	auto valueFields = m_material->GetValueFields();
 
 	for(auto& [fieldName, valueData] : *valueFields) {
