@@ -48,6 +48,10 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
     ui.contentListView->setDropIndicatorShown(false);
     ui.contentListView->setDragDropMode(QAbstractItemView::DragDrop);
 
+	ui.buttonPanel->layout()->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    static_cast<QHBoxLayout*>(ui.buttonPanel->layout())->addStretch(1);
+	ui.addressPanel->setStyleSheet(ui.addressPanel->styleSheet() + "#addressPanel{background-color: #2b2b2b; border: 1px solid #444; border-radius: 4px; padding: 2px;}");
+
 	RefreshAddressPanel(targetPath);
 
 	connect(ui.contentListView, &QListView::doubleClicked, this, [this](const QModelIndex& idx) {
@@ -79,6 +83,16 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
 
         auto fileInfo = m_fileModel->fileInfo(srcIdx);
 		GetSelectionManager()->SetSelectedObject(fileInfo.filePath().toStdString());
+		});
+
+    connect(ui.newFolderButton, &QToolButton::clicked, this, [this]() {
+        QModelIndex currentRootIdx = ui.contentListView->rootIndex();
+        QModelIndex srcIdx = m_pathFilter->mapToSource(currentRootIdx);
+        if (!srcIdx.isValid()) return;
+        QString currentPath = m_fileModel->filePath(srcIdx);
+        int h = 0;
+		auto relativePath = fs::relative(currentPath.toStdString(), GetProjectPath() + "/Assets/");
+        m_assetManager->CreateFolder(relativePath.string());
 		});
 }
 
@@ -135,11 +149,16 @@ void LuxonEditor::GUI::QT::AssetBrowserWindow::RefreshAddressPanel(const QString
             });
 
         layout->addWidget(btn);
+		layout->setAlignment(btn, Qt::AlignVCenter | Qt::AlignLeft);
 
         if (i < parts.size() - 1) {
-            layout->addWidget(new QLabel("→"));
+			auto arrowLabel = new QLabel("→", this);
+            layout->addWidget(arrowLabel);
+			layout->setAlignment(arrowLabel, Qt::AlignVCenter | Qt::AlignLeft);
         }
     }
+
+    static_cast<QHBoxLayout*>(layout)->addStretch(1); // optional: adjust spacing
 }
 
 bool LuxonEditor::GUI::QT::AssetBrowserWindow::eventFilter(QObject* obj, QEvent* event)

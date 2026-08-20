@@ -30,6 +30,7 @@ namespace LuxonEditor {
 		void DeletePath(const std::string& relativePath);
 		void RenamePath(const std::string& oldRelativePath, const std::string& newName);
 		void MovePath(const std::string& oldRelativePath, const std::string& folderRelativePath);
+		void CreateFolder(const std::string& folderRelativePath);
 
 		void AddMesh(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Mesh>& mesh);
 		void AddTexture(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Texture2D>& texture);

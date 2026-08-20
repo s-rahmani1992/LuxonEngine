@@ -114,6 +114,19 @@ void LuxonEditor::AssetRegistry::MovePath(const std::string& oldRelativePath, co
 	}
 }
 
+void LuxonEditor::AssetRegistry::CreateFolder(const std::string& parentPath)
+{
+	int folderIndex = 0;
+
+	fs::path folderAbsolutePath = (fs::path(m_projectPath) / "Assets" / parentPath).lexically_normal();
+	std::error_code ec; // to avoid exceptions
+	fs::path currentPath = folderAbsolutePath / ("new_folder" + std::to_string(folderIndex));
+	while (fs::create_directory(currentPath, ec) == false) {
+		folderIndex++;
+		currentPath = folderAbsolutePath / ("new_folder" + std::to_string(folderIndex));
+	}
+}
+
 void LuxonEditor::AssetRegistry::AddMesh(boost::uuids::uuid guid, const std::string& name, const ref<LuxonEngine::Mesh>& mesh)
 {
 	auto it = m_meshEntries.find(guid);
