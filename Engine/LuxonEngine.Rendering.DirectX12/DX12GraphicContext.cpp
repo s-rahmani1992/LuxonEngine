@@ -37,6 +37,19 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterShaderRegistery(c
 	m_shaderRegistery = std::dynamic_pointer_cast<DX12ShaderRegistery>(shaderRegistery);
 }
 
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::Detach()
+{
+	if (m_commandExecuter)
+		m_commandExecuter->WaitForIdle();
+
+	for (auto& buffer : m_renderBuffers)
+		buffer.Reset();
+
+	m_rtvHandles.clear();
+	m_rtvDescriptorHeap.Reset();
+	m_swapChain.Reset();
+}
+
 bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeCommandObjects(const ComPtr<ID3D12Device10>& device)
 {
 	m_device = device;

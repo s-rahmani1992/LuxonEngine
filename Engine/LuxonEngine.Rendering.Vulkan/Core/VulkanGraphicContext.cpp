@@ -273,3 +273,20 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCameraBuffe
 
 	return true;
 }
+
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::Detach()
+{
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkQueueWaitIdle(m_presentQueue);
+
+	DestroySwapChainResources();
+	m_swapChain = VK_NULL_HANDLE;
+	m_swapChainImages.clear();
+	m_swapChainImageViews.clear();
+
+	if (m_surface != VK_NULL_HANDLE)
+	{
+		vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+		m_surface = VK_NULL_HANDLE;
+	}
+}

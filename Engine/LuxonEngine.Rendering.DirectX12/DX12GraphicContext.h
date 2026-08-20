@@ -66,6 +66,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		virtual void Flush() override;
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& mesh) override;
 		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
+		virtual void Detach() override;
 	protected:
 		bool InitializeCommandObjects(const ComPtr<ID3D12Device10>& device);
 		bool InitializeSwapChain(const ComPtr<IDXGIFactory7>& factory);

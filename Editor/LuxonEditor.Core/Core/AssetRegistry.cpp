@@ -10,6 +10,7 @@
 #include "MaterialImporter.h"
 #include "AssetDirectoryWatcher.h"
 #include "GuidUtilities.h"
+#include "EngineShaderRegistry.h"
 
 namespace fs = std::filesystem;
 
@@ -35,6 +36,18 @@ LuxonEditor::AssetRegistry::AssetRegistry(const std::string& projectPath, AssetD
 			fs::path deletedPath = fs::path(m_projectPath) / "Assets" / deleted;
 			DeleteAsset(deletedPath);
 		}
+		});
+
+	EngineApplication::GetShaderRegistery()->RegisterShaderChangedCallback([this](ShaderEntry* programEntry) {
+		
+		for (auto& [id, matEntry] : m_materialEntries) {
+			if (matEntry.asset->GetProgramGuid() != programEntry->guid)
+				continue;
+
+			MaterialImporter::ChangeMaterialProgram(matEntry.asset, programEntry->program);
+			InvokeMaterialChangedCallbacks(matEntry.asset);
+		}
+		
 		});
 }
 
@@ -219,6 +232,10 @@ void LuxonEditor::AssetRegistry::ImportAllAssets()
 
 	ref<Mesh> planeMesh = ShapeBuilder::CreatePlane(5.0f, 5.0f, 2, 2);
 	AddMesh(GuidGenerator::GenerateGUIDFromString("837f517a-9689-4c3f-88a9-0042120f3abd"), "Plane", planeMesh);
+
+	auto materialFactory = EngineApplication::GetGPUApplication()->CreateMaterialFactory();
+	auto fallBackShaderEntry = EngineApplication::GetShaderRegistery()->GetFalllbackShaderProgram();
+	m_fallBackMaterial = materialFactory->CreateMaterial(std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(fallBackShaderEntry->program, [](LuxonEngine::Rendering::ShaderProgram*) {}));
 
 	std::string assetPath = m_projectPath + "/Assets";
 	std::string internalAssetPath = m_projectPath + "/Data/InternalAssets";
@@ -469,6 +486,18 @@ void LuxonEditor::AssetRegistry::UnregisterMaterialDeletedCallback(size_t callba
 	m_materialDeletedCallbacks.erase(callbackId);
 }
 
+size_t LuxonEditor::AssetRegistry::RegisterMaterialChangedCallback(MaterialChangedCallback callback)
+{
+	auto callbackId = ++m_lastMaterialChangedCallbackId;
+	m_materialChangedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::AssetRegistry::UnregisterMaterialChangedCallback(size_t callbackId)
+{
+	m_materialChangedCallbacks.erase(callbackId);
+}
+
 void LuxonEditor::AssetRegistry::InvokeMeshDeletedCallbacks(ref<LuxonEngine::Mesh>& mesh)
 {
 	for (auto& [id, callback] : m_meshDeletedCallbacks) {
@@ -487,6 +516,13 @@ void LuxonEditor::AssetRegistry::InvokeMaterialDeletedCallbacks(ref<LuxonEngine:
 {
 	for(auto& [id, callback] : m_materialDeletedCallbacks) {
 		callback(material);
+	}
+}
+
+void LuxonEditor::AssetRegistry::InvokeMaterialChangedCallbacks(ref<LuxonEngine::Rendering::Material>& newMaterial)
+{
+	for(auto& [id, callback] : m_materialChangedCallbacks) {
+		callback(newMaterial);
 	}
 }
 

@@ -29,11 +29,13 @@ ref<LuxonEngine::Rendering::Material> LuxonEditor::MaterialImporter::Import(Byte
 
 	if (program == nullptr) {
 		error = "Cannot find the program";
-		return nullptr;
+		auto material = std::make_shared<LuxonEngine::Rendering::Material>(nullptr);
+		material->SetProgramGuid(programId);
+		return material;
 	}
 
 	auto material = materialFactory->CreateMaterial(std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(program, [](LuxonEngine::Rendering::ShaderProgram*) {}));
-
+	material->SetProgramGuid(programId);
 	auto materialFieldStream = materialStream.Object("fields");
 
 	auto valueFields = materialFieldStream.GetObjectFields();
@@ -75,7 +77,7 @@ void LuxonEditor::MaterialImporter::SerializeMaterial(const ref<LuxonEngine::Ren
 {
 	auto program = material->GetProgram();
 	auto entry = EngineApplication::GetShaderRegistery()->GetShaderEntry(program.get());
-	stream.SetGuid("program_id", entry->guid);
+	stream.SetGuid("program_id", material->GetProgramGuid());
 	LuxonEngine::SerializationStream fieldListStream;
 	auto valueFields = material->GetValueFields();
 
@@ -119,4 +121,28 @@ LuxonEngine::SerializationStream LuxonEditor::MaterialImporter::CreateDefaultMet
 	LuxonEngine::SerializationStream stream;
 	stream.SetGuid("uuid", LuxonEditor::GuidGenerator::GenerateGUID());
 	return stream;
+}
+
+void LuxonEditor::MaterialImporter::ChangeMaterialProgram(ref<LuxonEngine::Rendering::Material> material, LuxonEngine::Rendering::ShaderProgram* newProgram)
+{
+	if (newProgram == nullptr) {
+		material->SetProgram(nullptr);
+		return;
+	}
+
+	auto newMaterial = EngineApplication::GetGPUApplication()->CreateMaterialFactory()->CreateMaterial(std::shared_ptr<LuxonEngine::Rendering::ShaderProgram>(newProgram, [](LuxonEngine::Rendering::ShaderProgram*) {}));
+	newMaterial->SetProgramGuid(EngineApplication::GetShaderRegistery()->GetShaderEntry(newProgram)->guid);
+	auto oldValueEntry = material->GetValueFields();
+	
+	for (auto& [name, valueData] : *oldValueEntry) {
+		newMaterial->SetValue(name, valueData.data, valueData.size);
+	}
+
+	auto oldTextureValues = material->GetTextureFields();
+
+	for (auto& [name, textureData] : *oldTextureValues) {
+		newMaterial->SetTexture2D(name, textureData.texture);
+	}
+
+	*material = *newMaterial;
 }

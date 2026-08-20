@@ -6,6 +6,7 @@
 
 namespace LuxonEngine::Rendering {
 	class Material;
+	class ShaderProgram;
 }
 
 namespace LuxonEditor {
@@ -15,5 +16,6 @@ namespace LuxonEditor {
 		static ref<LuxonEngine::Rendering::Material> Import(Byte* data, UInt64 size, std::string& error);
 		static void SerializeMaterial(const ref<LuxonEngine::Rendering::Material>& material, LuxonEngine::SerializationStream& stream);
 		static LuxonEngine::SerializationStream CreateDefaultMetaData();
+		static void ChangeMaterialProgram(ref<LuxonEngine::Rendering::Material> material, LuxonEngine::Rendering::ShaderProgram* newProgram);
 	};
 }

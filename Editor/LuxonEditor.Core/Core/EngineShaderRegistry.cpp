@@ -113,7 +113,7 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 	}
 
 	for (auto& modified : event.modifiedFiles) {
-		CompileAtPath(fs::path(m_assetWatcher->GetRootDirectory()) / (modified));
+		CompileAtPath(fs::path(m_assetWatcher->GetRootDirectory()) / (modified), true);
 	}
 
 	for(auto& created : event.createdFiles) {
@@ -121,7 +121,7 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 	}
 }
 
-void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
+void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath, bool fireEvent)
 {
 	std::string extension = filePath.extension().string();
 
@@ -175,6 +175,9 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 		(*shaderIT).second.name = filePath.filename().string();
 		(*shaderIT).second.program = compiledProgram;
 		(*shaderIT).second.compileError = error;
+
+		if(fireEvent)
+			InvokeShaderChangedCallback(&(*shaderIT).second);
 	}
 	else {
 		m_registeredPrograms[programGuid] = { programGuid, filePath.filename().string(), error, compiledProgram };
@@ -182,6 +185,13 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath)
 
 	if(compiledProgram == nullptr) {
 		LuxonEngine::Logger::LogError("Error compiling " + filePath.filename().string() + ":\n " + error);
+	}
+}
+
+void LuxonEditor::EngineShaderRegistry::InvokeShaderChangedCallback(ShaderEntry* entry)
+{
+	for (auto& [id, callback] : m_programChangedCallbacks) {
+		callback(entry);
 	}
 }
 
@@ -242,4 +252,16 @@ void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::R
 			stream.SetString("csMain", properties.computeProperties.computeMain);
 			break;
 	}
+}
+
+size_t LuxonEditor::EngineShaderRegistry::RegisterShaderChangedCallback(ShaderProgramChangedCallback callback)
+{
+	size_t callbackId = ++m_lastProgramChangedCallbackId;
+	m_programChangedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::EngineShaderRegistry::UnregisterShaderChangedCallback(size_t callbackId)
+{
+	m_programChangedCallbacks.erase(callbackId);
 }

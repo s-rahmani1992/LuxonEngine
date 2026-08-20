@@ -31,6 +31,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		virtual void Flush() override;
 		virtual bool PrepareScene(const ref<Scene>& scene) = 0;
 		virtual void Render() = 0;
+		virtual void Detach() override;
 
 	private:
 

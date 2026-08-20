@@ -5,6 +5,7 @@
 #include <vector>
 #include "../Core/Color.h"
 #include "../BasicTypes.h"
+#include <boost/uuid/uuid.hpp>
 
 namespace LuxonEngine {
 	class Texture2D;
@@ -82,8 +83,23 @@ namespace LuxonEngine::Rendering {
 			}
 		}
 		
-		virtual ~Material() {
+		Material& operator=(Material& srcMaterial) {
 			delete[] m_valueData;
+
+			m_valueData = srcMaterial.m_valueData;
+			m_programGuid = srcMaterial.m_programGuid;
+			m_program = srcMaterial.m_program;
+			m_valueFields = srcMaterial.m_valueFields;
+			m_textureFields = srcMaterial.m_textureFields;
+			srcMaterial.m_valueData = nullptr;
+			m_modifiedTextures.clear();
+			m_modifiedValues.clear();
+			return *this;
+		}
+
+		virtual ~Material() {
+			if(m_valueData != nullptr)
+				delete[] m_valueData;
 		}
 
 		/// <summary>
@@ -91,6 +107,8 @@ namespace LuxonEngine::Rendering {
 		/// </summary>
 		/// <returns></returns>
 		ref<ShaderProgram> GetProgram() { return m_program; }
+
+		void SetProgram(const ref<ShaderProgram>& program) { m_program = program; }
 
 		/// <summary>
 		/// Sets the value of a field in the material. the value type must be a simple type such as int, color, etc.
@@ -108,6 +126,20 @@ namespace LuxonEngine::Rendering {
 					m_modifiedValues.emplace(&valueData);
 				}
 			}
+		}
+
+		void SetValue(const std::string& fieldName, void* src, UInt32 size) {
+			auto it = m_valueFields.find(fieldName);
+
+			if (it == m_valueFields.end())
+				return;
+
+			if (it->second.size != size)
+				return;
+
+			MaterialValueData& valueData = it->second;
+			memcpy(valueData.data, src, size);
+			m_modifiedValues.emplace(&valueData);
 		}
 
 		/// <summary>
@@ -186,6 +218,9 @@ namespace LuxonEngine::Rendering {
 		inline void ClearTextures() { m_modifiedTextures.clear(); }
 		inline void ClearModifiedValues() { m_modifiedValues.clear(); }
 
+		const boost::uuids::uuid& GetProgramGuid() const { return m_programGuid; }
+		void SetProgramGuid(const boost::uuids::uuid& guid) { m_programGuid = guid; }
+
 	protected:
 		ref<ShaderProgram> m_program;
 	private:
@@ -194,5 +229,7 @@ namespace LuxonEngine::Rendering {
 		std::map<std::string, MaterialTextureData> m_textureFields;
 		std::set<MaterialTextureData*> m_modifiedTextures;
 		std::set<MaterialValueData*> m_modifiedValues;
+
+		boost::uuids::uuid m_programGuid;
 	};
 }

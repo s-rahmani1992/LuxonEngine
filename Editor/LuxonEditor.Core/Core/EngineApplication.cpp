@@ -36,7 +36,7 @@ LuxonEditor::EngineApplication::EngineApplication(const ApplicationConfig& confi
 	m_assetWatcher(new AssetDirectoryWatcher(config.projectPath + "/Assets")),
 	m_graphicAPI(config.graphicAPI)
 {
-	m_assetManager = new AssetRegistry(config.projectPath, m_assetWatcher);
+
 }
 
 LuxonEditor::EngineApplication::EngineApplication(EngineApplication&& src)
@@ -70,14 +70,15 @@ bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 	m_assetWatcher->Start();
 	m_selectionManager = new SelectionManager();
 	m_gpuApplication = CreateGPUApplication(m_graphicAPI);
+	auto compiler = m_gpuApplication->CreateShaderRegistery();
+	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
+	m_assetManager = new AssetRegistry(m_projectPath, m_assetWatcher);
 	m_sceneManager = new EngineSceneManager();
 	return true;
 }
 
 void LuxonEditor::EngineApplication::CompileShaders()
 {
-	auto compiler = m_gpuApplication->CreateShaderRegistery();
-	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
 	m_shaderRegistery->CompileAllShaders();
 }
 

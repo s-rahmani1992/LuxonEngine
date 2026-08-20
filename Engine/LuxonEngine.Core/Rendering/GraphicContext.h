@@ -25,6 +25,7 @@ namespace LuxonEngine::Rendering {
 		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) = 0;
 		virtual bool PrepareScene(const ref<Scene>& scene) = 0;
 		virtual void Resize(UInt32 width, UInt32 height) {}
+		virtual void Detach() {}
 	protected:
 		struct CameraGPU {
 		public:

@@ -2,6 +2,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <map>
 #include <filesystem>
+#include <functional>
+#include "GuidUtilities.h"
 
 namespace LuxonEngine {
 	namespace Rendering {
@@ -30,6 +32,8 @@ namespace LuxonEditor {
 	
 	class __declspec(dllexport) EngineShaderRegistry {
 	public:
+		using ShaderProgramChangedCallback = std::function<void(ShaderEntry*)>;
+
 		EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
 		~EngineShaderRegistry();
 		void CompileAllShaders();
@@ -39,13 +43,23 @@ namespace LuxonEditor {
 		std::vector<ShaderEntry*> GetAllShaderEntries() const;
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		static void SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
+		ShaderEntry* GetFalllbackShaderProgram(){
+			auto entry = m_registeredPrograms.find(GuidGenerator::GenerateGUIDFromString("2e1bfe23-51b1-42e6-ad60-bf6c351e25f8"));
+			return &entry->second; }
 	
+		size_t RegisterShaderChangedCallback(ShaderProgramChangedCallback callback);
+		void UnregisterShaderChangedCallback(size_t callbackId);
+		
 	private:
 		void OnAssetChanged(const FileChangeEvent& paths);
-		void CompileAtPath(const fs::path& filePath);
+		void CompileAtPath(const fs::path& filePath, bool fireEvent = false);
+		void InvokeShaderChangedCallback(ShaderEntry*);
 		std::map<GUID, ShaderEntry> m_registeredPrograms;
 		size_t m_callbackID;
 		Render::ShaderRegistery* m_shaderCompiler;
 		AssetDirectoryWatcher* m_assetWatcher;
+
+		std::map<size_t, ShaderProgramChangedCallback> m_programChangedCallbacks;
+		size_t m_lastProgramChangedCallbackId = 0;
 	};
 }
