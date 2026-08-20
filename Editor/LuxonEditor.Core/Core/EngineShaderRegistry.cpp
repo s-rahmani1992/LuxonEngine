@@ -107,6 +107,7 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 		GUID programGuid = metadataStream.GetGuid("uuid");
 		auto shaderIT = m_registeredPrograms.find(programGuid);
 		if (shaderIT != m_registeredPrograms.end()) {
+			InvokeShaderDeletedCallback(&(*shaderIT).second);
 			delete (*shaderIT).second.program;
 			m_registeredPrograms.erase(shaderIT);
 		}
@@ -264,4 +265,23 @@ size_t LuxonEditor::EngineShaderRegistry::RegisterShaderChangedCallback(ShaderPr
 void LuxonEditor::EngineShaderRegistry::UnregisterShaderChangedCallback(size_t callbackId)
 {
 	m_programChangedCallbacks.erase(callbackId);
+}
+
+size_t LuxonEditor::EngineShaderRegistry::RegisterShaderDeletedCallback(ShaderProgramDeletedCallback callback)
+{
+	auto callbackId = ++m_lastProgramDeletedCallbackId;
+	m_programDeletedCallbacks[callbackId] = callback;
+	return callbackId;
+}
+
+void LuxonEditor::EngineShaderRegistry::UnregisterShaderDeletedCallback(size_t callbackId)
+{
+	m_programDeletedCallbacks.erase(callbackId);
+}
+
+void LuxonEditor::EngineShaderRegistry::InvokeShaderDeletedCallback(ShaderEntry* entry)
+{
+	for (auto& [id, callback] : m_programDeletedCallbacks) {
+		callback(entry);
+	}
 }

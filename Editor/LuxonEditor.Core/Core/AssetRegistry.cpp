@@ -49,6 +49,16 @@ LuxonEditor::AssetRegistry::AssetRegistry(const std::string& projectPath, AssetD
 		}
 		
 		});
+
+	EngineApplication::GetShaderRegistery()->RegisterShaderDeletedCallback([this](ShaderEntry* programEntry) {
+		for (auto& [id, matEntry] : m_materialEntries) {
+			if (matEntry.asset->GetProgramGuid() != programEntry->guid)
+				continue;
+
+			matEntry.asset->SetProgram(nullptr);
+			InvokeMaterialChangedCallbacks(matEntry.asset);
+		}
+		});
 }
 
 void LuxonEditor::AssetRegistry::DeletePath(const std::string& relativePath)

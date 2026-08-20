@@ -33,6 +33,7 @@ namespace LuxonEditor {
 	class __declspec(dllexport) EngineShaderRegistry {
 	public:
 		using ShaderProgramChangedCallback = std::function<void(ShaderEntry*)>;
+		using ShaderProgramDeletedCallback = std::function<void(ShaderEntry*)>;
 
 		EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
 		~EngineShaderRegistry();
@@ -49,11 +50,15 @@ namespace LuxonEditor {
 	
 		size_t RegisterShaderChangedCallback(ShaderProgramChangedCallback callback);
 		void UnregisterShaderChangedCallback(size_t callbackId);
+
+		size_t RegisterShaderDeletedCallback(ShaderProgramDeletedCallback callback);
+		void UnregisterShaderDeletedCallback(size_t callbackId);
 		
 	private:
 		void OnAssetChanged(const FileChangeEvent& paths);
 		void CompileAtPath(const fs::path& filePath, bool fireEvent = false);
 		void InvokeShaderChangedCallback(ShaderEntry*);
+		void InvokeShaderDeletedCallback(ShaderEntry*);
 		std::map<GUID, ShaderEntry> m_registeredPrograms;
 		size_t m_callbackID;
 		Render::ShaderRegistery* m_shaderCompiler;
@@ -61,5 +66,8 @@ namespace LuxonEditor {
 
 		std::map<size_t, ShaderProgramChangedCallback> m_programChangedCallbacks;
 		size_t m_lastProgramChangedCallbackId = 0;
+
+		std::map<size_t, ShaderProgramDeletedCallback> m_programDeletedCallbacks;
+		size_t m_lastProgramDeletedCallbackId = 0;
 	};
 }
