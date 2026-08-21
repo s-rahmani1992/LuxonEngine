@@ -14,6 +14,34 @@
 
 namespace fs = std::filesystem;
 
+bool is_within(const fs::path& file, const fs::path& folder)
+{
+	std::error_code ec;
+
+	fs::path fileCanon = fs::canonical(file, ec);
+	if (ec) return false;
+
+	fs::path folderCanon = fs::canonical(folder, ec);
+	if (ec) return false;
+
+	fs::path p = fileCanon;
+
+	while (true) {
+		if (p == folderCanon)
+			return true;
+
+		fs::path parent = p.parent_path();
+
+		// If we can't go higher, or parent doesn't change, we're done
+		if (parent.empty() || parent == p)
+			break;
+
+		p = parent;
+	}
+
+	return false;
+}
+
 LuxonEditor::AssetRegistry::AssetRegistry(const std::string& projectPath, AssetDirectoryWatcher* assetWatcher)
 	:m_projectPath(projectPath), m_assetWatcher(assetWatcher)
 {
@@ -448,6 +476,11 @@ void LuxonEditor::AssetRegistry::ImportExternalFile(const std::string& sourceFil
 	fs::path sourcePath(sourceFilePath);
 	auto extention = sourcePath.extension().string();
 	fs::path targetPath = (fs::path(m_projectPath) / "Assets" / targetFolderPath / sourcePath.filename()).lexically_normal();
+
+	if (is_within(sourcePath, fs::path(m_projectPath) / "Assets")) {
+		Logger::LogError("Cannot import a file that is already within the Assets folder.");
+		return;
+	};
 
 	if(extention == ".obj" || extention == ".fbx") {
 		fs::copy_file(sourcePath, targetPath, fs::copy_options::overwrite_existing);

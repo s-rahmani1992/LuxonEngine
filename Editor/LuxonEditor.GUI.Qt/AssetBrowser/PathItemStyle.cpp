@@ -27,6 +27,17 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
     else if (opt.state & QStyle::State_MouseOver) {
         p->fillRect(opt.rect, QColor("#3366bb")); // hover color
     }
+
+    auto textRect = QRect(
+        opt.rect.left(),
+        iconRect.bottom(),
+        opt.rect.width(),
+        opt.rect.height() - iconRect.height()
+    );
+
+    p->drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWrapAnywhere, fileInfo.completeBaseName());
+
+
     auto ext = fileInfo.suffix().toLower();
     if(fileInfo.isDir())
         p->drawImage(iconRect, m_folderIcon);
@@ -63,15 +74,6 @@ void LuxonEditor::GUI::QT::PathItemStyle::paint(QPainter* p, const QStyleOptionV
 		p->drawImage(iconRect, m_sceneIcon);
     else
         p->drawImage(iconRect, m_fileIcon);
-
-    auto textRect = QRect(
-        opt.rect.left(),
-        iconRect.bottom(),
-        opt.rect.width(),
-        opt.rect.height() - iconRect.height()
-	);
-
-    p->drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWrapAnywhere, fileInfo.completeBaseName());
 
     p->restore();
 	

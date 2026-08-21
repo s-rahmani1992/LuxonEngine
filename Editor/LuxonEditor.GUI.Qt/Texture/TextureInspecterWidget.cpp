@@ -13,8 +13,20 @@ namespace LuxonEditor::GUI::QT {
 		ui.setupUi(this);
 		ui.image->installEventFilter(this);
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		ui.dimensionLabel->setStyleSheet(ui.dimensionLabel->styleSheet() + "border: 1px solid white; border-radius: 4px; padding: 6px;"); // Optional: Set the text color to white
+		ui.dimensionLabel->setWordWrap(true);
+		ui.image->setStyleSheet(ui.image->styleSheet() + "background: #222222;"); // Optional: Add a border to the image label
+		layout()->setAlignment(ui.dimensionLabel, Qt::AlignTop);
+
 		auto guid = stream->GetGuid("uuid");
 		m_texture = GetAssetManager()->GetTexture(guid);
+
+		if(m_texture == nullptr)
+		{
+			ui.dimensionLabel->setText("Failed to load texture: " + QString::fromStdString(path));
+			return;
+		}
+
 		QImage::Format format = m_texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? QImage::Format_RGBA8888 : QImage::Format_ARGB32;
 		
 		m_originalPixmap = QPixmap::fromImage(QImage(
@@ -24,14 +36,11 @@ namespace LuxonEditor::GUI::QT {
 			format
 		).copy());
 
-		layout()->setAlignment(ui.dimensionLabel, Qt::AlignTop);
 		ui.dimensionLabel->setText(
 			"Dimension: " + QString::number(m_texture->GetWidth()) +
 			" x " + QString::number(m_texture->GetHeight()) + "\n" +
 			"Format: " + (m_texture->GetFormat() == LuxonEngine::TextureFormat::RGBA32 ? "RGBA32" : "RBGA32")
 		);
-		ui.dimensionLabel->setStyleSheet(ui.dimensionLabel->styleSheet() + "border: 1px solid white; border-radius: 4px; padding: 6px;"); // Optional: Set the text color to white
-		ui.image->setStyleSheet(ui.image->styleSheet() + "background: #222222;"); // Optional: Add a border to the image label
 		update();
 	}
 
@@ -70,6 +79,9 @@ namespace LuxonEditor::GUI::QT {
 	{
 		if (watched == ui.image && event->type() == QEvent::Paint)
 		{
+			if(m_texture == nullptr)
+				return true;
+
 			QPainter painter(ui.image);
 
 			int availableWidth = ui.image->width();

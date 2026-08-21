@@ -13,6 +13,7 @@
 #include "AddressBarButton.h"
 #include <QDesktopServices>
 #include <QUrl>
+#include <qfiledialog.h>
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, const QString& targetPath, QWidget *parent)
 	: m_rootPath(rootPath), m_assetManager(GetAssetManager()), QWidget(parent)
@@ -90,10 +91,26 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
         QModelIndex srcIdx = m_pathFilter->mapToSource(currentRootIdx);
         if (!srcIdx.isValid()) return;
         QString currentPath = m_fileModel->filePath(srcIdx);
-        int h = 0;
 		auto relativePath = fs::relative(currentPath.toStdString(), GetProjectPath() + "/Assets/");
         m_assetManager->CreateFolder(relativePath.string());
 		});
+
+    connect(ui.importButton, &QToolButton::clicked, this, [this]() {
+        QString filePath = QFileDialog::getOpenFileName(this, "Import Asset", m_rootPath);
+        if (!filePath.isEmpty())
+        {
+            QModelIndex currentRootIdx = ui.contentListView->rootIndex();
+            QModelIndex srcIdx = m_pathFilter->mapToSource(currentRootIdx);
+            if (!srcIdx.isValid()) return;
+            QString currentPath = m_fileModel->filePath(srcIdx);
+
+            std::filesystem::path fsFilePath = std::filesystem::weakly_canonical(filePath.toStdString());
+            std::filesystem::path fsCurrentPath = std::filesystem::weakly_canonical(currentPath.toStdString());
+
+            auto relativePath = fs::relative(currentPath.toStdString(), GetProjectPath() + "/Assets/");
+            m_assetManager->ImportExternalFile(fsFilePath.string(), relativePath.string());
+        }
+        });
 }
 
 LuxonEditor::GUI::QT::AssetBrowserWindow::~AssetBrowserWindow()
