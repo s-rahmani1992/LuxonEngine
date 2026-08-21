@@ -28,6 +28,9 @@ namespace LuxonEditor::GUI::QT {
 		m_rtItem = new QListWidgetItem("Ray Tracing", ui.otherComponents);
 		m_rtItem->setFlags(m_rtItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
+		auto scenePath = EngineApplication::GetSceneManager()->GetCurrentScenePath();
+		ui.scaneLabel->setText(QString::fromStdString(scenePath.empty() ? "Default Scene" : fs::path(scenePath).stem().string()));
+
 		m_entityModel = new LuxonEditor::GUI::QT::GameEntityModel(EngineApplication::GetSceneManager(), this);
 		m_entityDelegate = new LuxonEditor::GUI::QT::GameEntityItemDelegate(this);
 
@@ -40,27 +43,38 @@ namespace LuxonEditor::GUI::QT {
 		// Install event filter to intercept Delete key
 		ui.gameEntityList->installEventFilter(this);
 
-		connect(ui.gameEntityList, &QListView::clicked, this, [this](const QModelIndex& idx) {
-			auto data = idx.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString();
+		connect(ui.gameEntityList->selectionModel(), &QItemSelectionModel::currentChanged, this, [this](const QModelIndex& current, const QModelIndex& previous) {
+			Q_UNUSED(previous);
+			if (!current.isValid()) return;
+
+			auto data = current.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString();
 			GetSelectionManager()->SetSelectedObject("GameEntity:" + data.toStdString());
 			});
 
-		connect(ui.otherComponents, &QListWidget::itemClicked, this, [this](QListWidgetItem* item) {
-			if (item == m_lightItem)
+		connect(ui.otherComponents, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous) {
+			Q_UNUSED(previous);
+			if (current == nullptr) return;
+
+			if (current == m_lightItem)
 			{
 				GetSelectionManager()->SetSelectedObject(std::string("Light"));
 			}
-			else if (item == m_cameraItem)
+			else if (current == m_cameraItem)
 			{
 				GetSelectionManager()->SetSelectedObject(std::string("Camera"));
 			}
-			else if (item == m_rtItem)
+			else if (current == m_rtItem)
 			{
 				GetSelectionManager()->SetSelectedObject(std::string("RayTracing"));
 			}
 			});
 
 		connect(ui.addEntityButton, &QPushButton::clicked, this, &SceneHierarchyWindow::OnAddEntityRequested);
+	
+		EngineApplication::GetSceneManager()->RegisterSceneLoadedCallback([this](ref<LuxonEngine::Scene> scene) {
+			auto scenePath = EngineApplication::GetSceneManager()->GetCurrentScenePath();
+			ui.scaneLabel->setText(QString::fromStdString(scenePath.empty() ? "Default Scene" : fs::path(scenePath).stem().string()));
+			});
 	}
 
 	SceneHierarchyWindow::~SceneHierarchyWindow()
@@ -108,6 +122,8 @@ namespace LuxonEditor::GUI::QT {
 		{
 			auto uuid = GuidGenerator::GenerateGUIDFromString(index.data(LuxonEditor::GUI::QT::GameEntityModel::UUIDRole).toString().toStdString());
 			EngineApplication::GetSceneManager()->RemoveEntity(uuid);
+			ui.gameEntityList->clearSelection();
+			EngineApplication::GetSelectionManager()->SetSelectedObject(std::string("")); // Clear selection after deletion
 		}
 	}
 }

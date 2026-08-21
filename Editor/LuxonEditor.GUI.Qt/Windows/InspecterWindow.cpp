@@ -14,6 +14,8 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+	ui.container->layout()->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
 	GetSelectionManager()->RegisterSelectionChangedCallback([this](const std::string& selectedObject) {
 		// Clean up previous shader widget
 		if (m_currentWidget != nullptr)
@@ -72,7 +74,6 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			m_currentWidget = materialField;
 			m_currentWidget->show();
 			ui.container->layout()->addWidget(m_currentWidget);
-			ui.container->layout()->setAlignment(m_currentWidget, Qt::AlignTop | Qt::AlignLeft);
 			return;
 		}
 

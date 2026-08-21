@@ -78,13 +78,16 @@ LuxonEditor::GUI::QT::AssetBrowserWindow::AssetBrowserWindow(QString rootPath, c
         }
 	});
 
-    connect(ui.contentListView, &QListView::clicked, this, [this](const QModelIndex& idx) {
-        QModelIndex srcIdx = m_pathFilter->mapToSource(idx);
+    connect(ui.contentListView->selectionModel(), &QItemSelectionModel::currentChanged, this, [this](const QModelIndex& current, const QModelIndex& previous) {
+        Q_UNUSED(previous);
+        if (!current.isValid()) return;
+
+        QModelIndex srcIdx = m_pathFilter->mapToSource(current);
         if (!srcIdx.isValid()) return;
 
         auto fileInfo = m_fileModel->fileInfo(srcIdx);
-		GetSelectionManager()->SetSelectedObject(fileInfo.filePath().toStdString());
-		});
+        GetSelectionManager()->SetSelectedObject(fileInfo.filePath().toStdString());
+        });
 
     connect(ui.newFolderButton, &QToolButton::clicked, this, [this]() {
         QModelIndex currentRootIdx = ui.contentListView->rootIndex();
@@ -214,6 +217,8 @@ bool LuxonEditor::GUI::QT::AssetBrowserWindow::eventFilter(QObject* obj, QEvent*
                     QString relativePath = QDir(m_rootPath).relativeFilePath(fileInfo.filePath());
 
                     AssetRegistry_DeletePath(m_assetManager, relativePath.toStdString());
+					ui.contentListView->selectionModel()->clearSelection();
+					GetSelectionManager()->SetSelectedObject(std::string("")); // Clear selection after deletion
                 }
 
                 return true; // handled
