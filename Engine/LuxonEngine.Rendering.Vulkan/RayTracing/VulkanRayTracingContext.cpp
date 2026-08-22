@@ -237,12 +237,9 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Resize(UInt32 width, UInt32 height)
 {
-    vkDeviceWaitIdle(m_logicDevice);
-
     DestroyOutputImage();
-    DestroySwapChainResources();
 
-    InitializeSwapChain(m_swapChainUsageFlags);
+    RecreateSwapChain(m_swapChainUsageFlags);
 
     CreateOutputImage();
 

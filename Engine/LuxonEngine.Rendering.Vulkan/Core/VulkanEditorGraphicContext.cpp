@@ -220,9 +220,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Resize(UInt32 w
 	for (auto framebuffer : m_swapChainFramebuffers)
 		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
 
-	DestroySwapChainResources();
-
-	InitializeSwapChain(m_swapChainUsageFlags);
+	RecreateSwapChain(m_swapChainUsageFlags);
 
 	InitializeDepthBuffer();
 
@@ -467,9 +465,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 	for (auto& gpuData : m_entityGPUList)
 		existingSet.insert(gpuData.gameEntity);
 
-	/*if (currentSet == existingSet)
-		return;*/
-
 	std::vector<ref<GameEntity>> removed;
 	for (auto& e : existingSet)
 		if (currentSet.find(e) == currentSet.end())
@@ -479,9 +474,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 	for (auto& e : currentSet)
 		if (existingSet.find(e) == existingSet.end())
 			added.push_back(e);
-
-	/*if (removed.empty() && added.empty())
-		return;*/
 
 	// Remove stale entries
 	for (auto& entity : removed) {

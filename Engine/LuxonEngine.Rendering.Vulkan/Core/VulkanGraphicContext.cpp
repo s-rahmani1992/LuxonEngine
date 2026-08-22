@@ -124,7 +124,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSurface()
 	return true;
 }
 
-bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag)
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(VkImageUsageFlags useFlag, VkSwapchainKHR oldSwapchain)
 {
 	// Create Swap Chain
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice, m_surface, &m_swapChainCapability);
@@ -147,7 +147,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeSwapChain(V
 		.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
 		.presentMode = VK_PRESENT_MODE_FIFO_KHR,
 		.clipped = VK_TRUE,
-		.oldSwapchain = VK_NULL_HANDLE,
+		.oldSwapchain = oldSwapchain,
 	};
 
 	auto result = vkCreateSwapchainKHR(m_logicDevice, &swapChainCreateInfo, nullptr, &m_swapChain);
@@ -197,6 +197,34 @@ void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::DestroySwapChainResou
 	}
 
 	vkDestroySwapchainKHR(m_logicDevice, m_swapChain, nullptr);
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RecreateSwapChain(VkImageUsageFlags useFlag)
+{
+	// Wait only for the queues actually used by this context instead of a full
+	// vkDeviceWaitIdle, which would needlessly stall every queue on the device.
+	Flush();
+
+	VkSwapchainKHR oldSwapChain = m_swapChain;
+
+	// Only tear down the image views here; the old swap chain handle is kept alive
+	// and passed as `oldSwapchain` below so the driver can recycle its internal
+	// resources (memory, presentation state, etc.) instead of performing a full,
+	// expensive re-allocation from scratch.
+	for (auto& imageView : m_swapChainImageViews) {
+		vkDestroyImageView(m_logicDevice, imageView, nullptr);
+	}
+	m_swapChainImageViews.clear();
+	m_swapChainImages.clear();
+
+	bool result = InitializeSwapChain(useFlag, oldSwapChain);
+
+	// The old swap chain can only be safely destroyed once the new one has been created.
+	if (oldSwapChain != VK_NULL_HANDLE) {
+		vkDestroySwapchainKHR(m_logicDevice, oldSwapChain, nullptr);
+	}
+
+	return result;
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeCommandObjects()

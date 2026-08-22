@@ -488,9 +488,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 	for (auto framebuffer : m_swapChainFramebuffers)
 		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
 
-	DestroySwapChainResources();
-
-	InitializeSwapChain(m_swapChainUsageFlags);
+	RecreateSwapChain(m_swapChainUsageFlags);
 
 	InitializeDepthBuffer();
 

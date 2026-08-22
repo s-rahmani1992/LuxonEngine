@@ -41,8 +41,9 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	protected:
 		bool InitializeSurface();
-		bool InitializeSwapChain(VkImageUsageFlags useFlag);
+		bool InitializeSwapChain(VkImageUsageFlags useFlag, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
 		void DestroySwapChainResources();
+		bool RecreateSwapChain(VkImageUsageFlags useFlag);
 		bool InitializeCommandObjects();
 		bool InitializeFencesAndSemaphores();
 		bool InitializeCameraBuffer(const ref<Camera>& camera);
