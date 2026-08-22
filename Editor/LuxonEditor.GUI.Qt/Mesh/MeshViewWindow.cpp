@@ -21,7 +21,7 @@ MeshViewWindow::MeshViewWindow(QWidget *parent, LuxonEngine::SerializationStream
 	m_transformWidget = new TransformWidget(ui.transformPanel);
 	ui.transformPanel->layout()->addWidget(m_transformWidget);
 	ui.transformPanel->layout()->setAlignment(m_transformWidget, Qt::AlignTop);
-	m_transformWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+	m_transformWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
 	connect(m_transformWidget, &TransformWidget::ValueChanged, this, [this]() {
 		update(); 

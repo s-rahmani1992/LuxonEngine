@@ -13,7 +13,7 @@ LuxonEditor::GUI::QT::Model3DInspecterWidget::Model3DInspecterWidget(QWidget *pa
 	LuxonEditor::ModelImportProperties properties;
 	auto transformStream = stream->Object("transform");
 	AssimpModel3DImporter::FillPropertiesFromStream(&transformStream, properties);
-
+	layout()->setAlignment(Qt::AlignTop);
 	m_positionField = new QVector3Field(ui.transformPanel);
 	ui.transformPanel->layout()->addWidget(m_positionField);
 	ui.transformPanel->layout()->setAlignment(m_positionField, Qt::AlignTop);

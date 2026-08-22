@@ -4,14 +4,14 @@ QVector3Field::QVector3Field(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-	ui.fields->layout()->setAlignment(ui.xField, Qt::AlignTop);
-	ui.fields->layout()->setAlignment(ui.yField, Qt::AlignTop);
-	ui.fields->layout()->setAlignment(ui.zField, Qt::AlignTop);
+	ui.fields->layout()->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	//ui.fields->layout()->setAlignment(ui.yField, Qt::AlignTop);
+	//ui.fields->layout()->setAlignment(ui.zField, Qt::AlignTop);
 
 	ui.label->setStyleSheet(ui.label->styleSheet() + "#label { padding-top: 5px; }");
 
-	ui.horizontalLayout->setAlignment(ui.label, Qt::AlignTop);
-
+	ui.horizontalLayout->setAlignment(ui.label, Qt::AlignTop | Qt::AlignVCenter);
+	//dd
 	connect(ui.xField, &QFloatField::ValueChanged, this, &QVector3Field::OnXChanged);
 	connect(ui.yField, &QFloatField::ValueChanged, this, &QVector3Field::OnYChanged);
 	connect(ui.zField, &QFloatField::ValueChanged, this, &QVector3Field::OnZChanged);

@@ -17,7 +17,7 @@ CreateSceneWindow::CreateSceneWindow(QWidget* parent)
 	: QDialog(parent), m_folderPath(LuxonEditor::EngineApplication::GetProjectPath() + "/Assets/")
 {
 	setWindowTitle("Create Scene");
-
+	setMinimumSize(400, 200);
 	// --- name row ---
 	auto* nameLayout = new QHBoxLayout();
 	m_nameField = new QTextField(this);
@@ -69,7 +69,7 @@ CreateSceneWindow::CreateSceneWindow(QWidget* parent)
 		name = "NewScene_" + std::to_string(index++);
 	}
 	m_nameField->InputText()->setText(QString::fromStdString(name));
-	m_pathLabel->setText(QString::fromStdString((m_folderPath / (name + ".lscene")).string()));
+	m_pathLabel->setText(QString::fromStdString((m_folderPath / (name + ".lscene")).lexically_normal().string()));
 
 	// --- connections ---
 	connect(m_nameField, &QTextField::ValueChanged,
@@ -90,7 +90,7 @@ void CreateSceneWindow::OnNameValidationChanged(bool isValid)
 {
 	m_nameIsValid = isValid;
 	m_pathLabel->setText(QString::fromStdString(
-		(m_folderPath / (m_nameField->InputText()->text().toStdString() + ".lscene")).string()
+		(m_folderPath / (m_nameField->InputText()->text().toStdString() + ".lscene")).lexically_normal().string()
 	));
 	RefreshCreateButton();
 }
@@ -119,7 +119,7 @@ void CreateSceneWindow::OnBrowseButtonClicked()
 		// re-run validation against the new folder
 		m_nameField->Validate();
 		m_pathLabel->setText(QString::fromStdString(
-			(m_folderPath / (m_nameField->InputText()->text().toStdString() + ".lscene")).string()
+			(m_folderPath / (m_nameField->InputText()->text().toStdString() + ".lscene")).lexically_normal().string()
 		));
 	}
 }

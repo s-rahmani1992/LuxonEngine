@@ -74,7 +74,7 @@ namespace LuxonEditor::GUI::QT {
 			if (dlg.exec() == QDialog::Accepted) {
 				m_folderPath = dlg.selectedFiles().first().toStdString();
 				ui.nameField->Validate();
-				ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).string()));
+				ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).lexically_normal().string()));
 			}
 			});
 
@@ -90,7 +90,7 @@ namespace LuxonEditor::GUI::QT {
 		}
 
 		ui.nameField->InputText()->setText(QString::fromStdString(name));
-		ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).string()));
+		ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).lexically_normal().string()));
 		ui.createButton->setEnabled(false);
 	}
 
@@ -101,7 +101,7 @@ namespace LuxonEditor::GUI::QT {
 	void MaterialCreationWindow::OnNameValidationChanged(bool isValid)
 	{
 		m_nameIsValid = isValid;
-		ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).string()));
+		ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.nameField->InputText()->text().toStdString() + ".lmat")).lexically_normal().string()));
 		RefreshCreateButton();
 	}
 
