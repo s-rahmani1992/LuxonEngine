@@ -116,5 +116,8 @@ int main(int argc, char* argv[])
     QT::LuxonEditorWindow mainWindow;
     splashWindow.close();
     mainWindow.showMaximized();
-    return app.exec();
+    int result = app.exec();
+
+    LuxonEditor::EngineApplication::ShutDownApplication(); // explicit, deterministic cleanup
+    return result;
 }

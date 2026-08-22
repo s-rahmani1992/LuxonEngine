@@ -34,6 +34,7 @@ namespace LuxonEditor {
 		static LuxonEngine::Rendering::GPUDeviceManager* GetGPUApplication();
 		static EngineShaderRegistry* GetShaderRegistery() { return m_appInstance.m_shaderRegistery; }
 		static EngineSceneManager* GetSceneManager() { return m_appInstance.m_sceneManager; }
+		static void ShutDownApplication() { m_appInstance.ShutDown(); }
 	private:
 		static EngineApplication m_appInstance;
 
@@ -44,9 +45,7 @@ namespace LuxonEditor {
 		EngineApplication(EngineApplication&& src);
 		EngineApplication& operator=(EngineApplication&& src);
 		EngineApplication(const ApplicationConfig& config);
-		~EngineApplication() {
-			ShutDown();
-		}
+		~EngineApplication() { }
 		bool Initialize(std::string& error);
 		void CompileShaders();
 		void LoadAssets();

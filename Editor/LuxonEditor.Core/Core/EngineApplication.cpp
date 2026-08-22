@@ -94,12 +94,12 @@ void LuxonEditor::EngineApplication::LoadScene(const std::string& initialScenePa
 
 void LuxonEditor::EngineApplication::ShutDown()
 {
-	if (m_shaderRegistery != nullptr)
-		delete m_shaderRegistery;
-	if(m_assetWatcher != nullptr)
-		delete m_assetWatcher;
+	if (m_assetWatcher != nullptr)
+		delete m_assetWatcher; 
 	if (m_assetManager != nullptr)
 		delete m_assetManager;
+	if (m_shaderRegistery != nullptr)
+		delete m_shaderRegistery;
 	if (m_gpuApplication != nullptr)
 		delete m_gpuApplication;
 }

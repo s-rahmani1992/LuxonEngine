@@ -76,16 +76,13 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	RayTracePipelineBuildResult pipelineResult;
 	std::vector<ref<SPIRVRayTracingProgram>> localPrograms;
 
-	std::transform(entities.begin(), entities.end(), std::back_inserter(localPrograms),
-		[](const ref<GameEntity> entity)
-		{
-			auto rtComponent = entity->GetRayTracingComponent();
+	for(auto& entity : entities) {
+		auto rtComponent = entity->GetRayTracingComponent();
+		if(rtComponent == nullptr)
+			continue;
 
-			if (rtComponent == nullptr)
-				return ref<SPIRVRayTracingProgram>{nullptr};
-
-			return std::dynamic_pointer_cast<SPIRVRayTracingProgram>(rtComponent->GetRTMaterial()->GetProgram()); 
-		});
+		localPrograms.push_back(std::dynamic_pointer_cast<SPIRVRayTracingProgram>(rtComponent->GetRTMaterial()->GetProgram()));
+	}
 
 	VulkanRayTracingPipelineBuilder::BuildRayTracingPipeline(m_globalRtProgram, localPrograms, pipelineResult);
 
@@ -102,16 +99,13 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	RayTraceSBTBuildResult sbtBuildResult;
 	std::vector<ref<Material>> localRTMaterials;
 
-	std::transform(entities.begin(), entities.end(), std::back_inserter(localRTMaterials),
-		[](const ref<GameEntity> entity)
-		{
-			auto rtComponent = entity->GetRayTracingComponent();
+	for(auto& entity : entities) {
+		auto rtComponent = entity->GetRayTracingComponent();
+		if(rtComponent == nullptr)
+			continue;
+		localRTMaterials.push_back(rtComponent->GetRTMaterial());
+	}
 
-			if (rtComponent == nullptr)
-				return ref<Material>{nullptr};
-
-			return rtComponent->GetRTMaterial();
-		});
 	VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(m_globalMaterial, localRTMaterials, pipelineResult, sbtBuildResult);
 
 	m_SBT = sbtBuildResult.sbtBuffer;
