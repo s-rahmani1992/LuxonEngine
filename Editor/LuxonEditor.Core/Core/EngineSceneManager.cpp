@@ -5,6 +5,7 @@
 #include <Core/SerializationStream.h>
 #include "SerializationStreamExtensions.h"
 #include "AssetRegistry.h"
+#include "GuidUtilities.h"
 
 namespace LuxonEditor {
 
@@ -215,17 +216,24 @@ namespace LuxonEditor {
 	LuxonEditor::EngineSceneManager::SceneEditor EngineSceneManager::CreateDefaultScene()
 	{
 		using namespace LuxonEngine;
+		auto assetManager = EngineApplication::GetAssetManager();
 
 		SceneEditor editorScene;
 		editorScene.scene = std::make_shared<Scene>();
 
-		auto transform1 = std::make_shared<Transform>(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
-		auto entity1 = std::make_shared<GameEntity>(transform1, nullptr, nullptr);
-		entity1->SetName("Sphere");
+		auto defaultMaterial = assetManager->GetMaterial(LuxonEditor::GuidGenerator::GenerateGUIDFromString("222d330a-5081-4e42-8b2e-0b09ecbbaaf5"));
+		
+		auto sphereTransform = std::make_shared<Transform>(Vector3(0.0f, 1.5f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
+		auto sphereMesh = assetManager->GetMesh(LuxonEditor::GuidGenerator::GenerateGUIDFromString("585aa516-59c6-4fb4-a893-e4d56f65431a"));
+		auto sphereRenderer = std::make_shared<Rendering::MeshRenderer>(sphereMesh, defaultMaterial);
+		auto sphereEntity = std::make_shared<GameEntity>(sphereTransform, sphereRenderer, nullptr);
+		sphereEntity->SetName("Sphere");
 
-		auto transform2 = std::make_shared<Transform>(Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 45);
-		auto entity2 = std::make_shared<GameEntity>(transform2, nullptr, nullptr);
-		entity2->SetName("Second Entity");
+		auto planeTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(10.0f), Vector3(0.0f, 1.0f, 0.0f), 45);
+		auto planeMesh = assetManager->GetMesh(LuxonEditor::GuidGenerator::GenerateGUIDFromString("837f517a-9689-4c3f-88a9-0042120f3abd"));
+		auto planeRenderer = std::make_shared<Rendering::MeshRenderer>(planeMesh, defaultMaterial);
+		auto planeEntity = std::make_shared<GameEntity>(planeTransform, planeRenderer, nullptr);
+		planeEntity->SetName("Plane");
 
 		auto camTransform = std::make_shared<Transform>(Vector3(0.0f, 1.0f, -5.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
 		editorScene.scene->mainCamera = std::make_shared<PerspectiveCamera>(camTransform, 0.1f, 100.0f, 16.0f / 9.0f, 60.0f);
@@ -236,24 +244,8 @@ namespace LuxonEditor {
 			.intensity = 1.0f
 			});
 
-		editorScene.scene->lightData.pointLights.push_back(PointLight{
-			.color = Color(1.0f, 0.0f, 0.0f, 1.0f),
-			.position = Vector3(-2.0f, 2.0f, 2.0f),
-			.intensity = 5.0f,
-			.attenuation = Attenuation{.c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
-			.radius = 10.0f
-			});
-
-		editorScene.scene->lightData.pointLights.push_back(PointLight{
-			.color = Color(1.0f, 0.0f, 1.0f, 1.0f),
-			.position = Vector3(2.0f, 2.0f, 2.0f),
-			.intensity = 5.0f,
-			.attenuation = Attenuation{.c0 = 1.0f, .c1 = 0.1f, .c2 = 0.01f },
-			.radius = 10.0f
-			});
-
-		AddEntity(GuidGenerator::GenerateGUID(), entity1, editorScene);
-		AddEntity(GuidGenerator::GenerateGUID(), entity2, editorScene);
+		AddEntity(GuidGenerator::GenerateGUID(), sphereEntity, editorScene);
+		AddEntity(GuidGenerator::GenerateGUID(), planeEntity, editorScene);
 
 		return editorScene;
 	}

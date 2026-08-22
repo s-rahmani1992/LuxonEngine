@@ -154,6 +154,7 @@ namespace LuxonEditor::GUI::QT {
 		if (!material)
 			return;
 
+		material->SetProgramGuid(m_currentGuid);
 		std::string name = ui.nameField->InputText()->text().toStdString();
 		fs::path filePath = m_folderPath / (name + ".lmat");
 
