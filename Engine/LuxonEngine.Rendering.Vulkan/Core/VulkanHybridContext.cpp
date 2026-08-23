@@ -102,6 +102,10 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	if(InitializeLightBuffer(scene->lightData) == false)
 		return false;
 
+	auto colorArray = scene->hybridBackgroundColor.GetColorArray();
+	m_clearValues[0].color = { colorArray[0], colorArray[1], colorArray[2], colorArray[3] };
+	m_clearValues[1].depthStencil = { 1.0f, 0 };
+	
 	// Create Uniform Buffers for Transforms
 	m_bufferFactory->CreateBuffer(sizeof(TransformGPU), scene->entities.size()
 		, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -395,10 +399,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	}
 
-	VkClearValue clearValues[2];
-	clearValues[0].color = { {0.2f, 0.4f, 0.6f, 1.0f} };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-
 	VkRenderPassBeginInfo renderPassInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.pNext = nullptr,
@@ -409,7 +409,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 			.extent = m_swapChainCapability.currentExtent,
 		},
 		.clearValueCount = 2,
-		.pClearValues = clearValues,
+		.pClearValues = m_clearValues,
 	};
 
 	vkCmdBeginRenderPass(m_commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);

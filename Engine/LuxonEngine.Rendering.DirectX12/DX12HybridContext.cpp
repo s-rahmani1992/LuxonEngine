@@ -50,6 +50,12 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Sce
 	UploadTexturesAndMeshes(scene);
 	InitializeEntityGPUData(scene->entities);
 	InitializePipelines();
+
+	auto colorArray = scene->hybridBackgroundColor.GetColorArray();
+	m_hybridBackgroundColor[0] = colorArray[0];
+	m_hybridBackgroundColor[1] = colorArray[1];
+	m_hybridBackgroundColor[2] = colorArray[2];
+	m_hybridBackgroundColor[3] = colorArray[3];
 	return true;
 }
 
@@ -88,9 +94,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_commandList->ClearDepthStencilView(m_depthStencilvHeap->GetCPUDescriptorHandleForHeapStart(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-	float clearColor[] = { 0.2f, 0.4f, 0.6f, 1.0f };
 	auto dsvHandle = m_depthStencilvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_commandList->ClearRenderTargetView(m_rtvHandles[m_current_buffer_index], clearColor, 0, nullptr);
+	m_commandList->ClearRenderTargetView(m_rtvHandles[m_current_buffer_index], m_hybridBackgroundColor, 0, nullptr);
 	m_commandList->OMSetRenderTargets(1, &m_rtvHandles[m_current_buffer_index], false, &dsvHandle);
 	//Viewport
 	D3D12_VIEWPORT viewPort{};

@@ -72,5 +72,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkImageView m_rtOutputImageView;
 
 		VkDescriptorPool m_descriptorPool;
+
+		VkClearValue m_clearValues[2];
 	};
 }

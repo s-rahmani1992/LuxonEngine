@@ -20,5 +20,6 @@ namespace LuxonEngine {
 		std::vector<ref<GameEntity>> entities;
 		ref<Rendering::Material> rtGlobalMaterial;
 		std::vector<ref<Behaviour>> behaviours;
+		Color hybridBackgroundColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
 	};
 }

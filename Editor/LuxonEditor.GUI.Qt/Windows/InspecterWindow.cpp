@@ -6,6 +6,7 @@
 #include "../Material/MaterialInspecterWidget.h"
 #include "../Material/QMaterialField.h"
 #include "../Scene/GameEntityInspecterWidget.h"
+#include "../Scene/RenderSettingWidget.h"
 #include "../Core/PerspectiveCameraWidget.h"
 #include "../Lights/SceneLightInspecterWidget.h"
 #include <filesystem>
@@ -60,18 +61,12 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			return;
 		}
 
-		if(selectedObject == "RayTracing")
+		if(selectedObject == "RenderSettings")
 		{
-			ui.fileLabel->setText("Ray Tracing Settings");
-			QMaterialField* materialField = new QMaterialField(ui.container, "Global RT Material", LuxonEngine::Rendering::ShaderProgramType::RayTracing);
+			ui.fileLabel->setText("Render Settings");
+			RenderSettingWidget* renderSettingWidget = new RenderSettingWidget(EngineApplication::GetSceneManager()->GetCurrentScene(), ui.container);
 			
-			auto currentScene = EngineApplication::GetSceneManager()->GetCurrentScene();
-			materialField->SetMaterial(currentScene->rtGlobalMaterial);
-			connect(materialField, &QMaterialField::ValueChanged, this, [this](ref<LuxonEngine::Rendering::Material> newMaterial) {
-				auto currentScene = EngineApplication::GetSceneManager()->GetCurrentScene();
-				currentScene->rtGlobalMaterial = newMaterial;
-				});
-			m_currentWidget = materialField;
+			m_currentWidget = renderSettingWidget;
 			m_currentWidget->show();
 			ui.container->layout()->addWidget(m_currentWidget);
 			return;

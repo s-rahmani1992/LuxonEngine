@@ -173,6 +173,7 @@
     <ClCompile Include="Scene\GameEntityInspecterWidget.cpp" />
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp" />
     <ClCompile Include="Scene\GameEntityModel.cpp" />
+    <ClCompile Include="Scene\RenderSettingWidget.cpp" />
     <ClCompile Include="ShaderCreation\ShaderCreationWindow.cpp" />
     <ClCompile Include="ShaderCreation\ShaderInspecterWidget.cpp" />
     <ClCompile Include="Texture\QColorField.cpp" />
@@ -227,6 +228,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Scene\RenderSettingWidget.h" />
     <QtMoc Include="Renderer\GBufferRendererWidget.h" />
     <QtMoc Include="Renderer\SplineRendererWidget.h" />
     <QtMoc Include="Renderer\RTComponentWidget.h" />

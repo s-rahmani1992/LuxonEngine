@@ -70,6 +70,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		std::vector<EntityGBufferData> m_gBufferEntities;
 		ref<DX12GBufferPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::DX12RayTracingPipelineModule> m_GBufferrayTracingPipeline;
+		float m_hybridBackgroundColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	};
 }
 

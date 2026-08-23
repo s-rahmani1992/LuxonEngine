@@ -117,6 +117,8 @@ namespace LuxonEditor {
 			m_currentSceneEditor.scene->rtGlobalMaterial = EngineApplication::GetAssetManager()->GetMaterial(rtGlobalGuid);
 		}
 
+		stream.GetColor("hybrid-background-color", m_currentSceneEditor.scene->hybridBackgroundColor);
+
 		return true;
 	}
 
@@ -169,6 +171,8 @@ namespace LuxonEditor {
 		{
 			stream.SetGuid("rt-global-material_uuid", EngineApplication::GetAssetManager()->GetMaterialEntry(sceneEditor.scene->rtGlobalMaterial)->guid);
 		}
+
+		stream.SetColor("hybrid-background-color", sceneEditor.scene->hybridBackgroundColor);
 
 		stream.SaveToFile(ResolveAbsolutePath(path).string());
 	}
