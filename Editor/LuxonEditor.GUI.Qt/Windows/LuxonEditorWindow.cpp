@@ -49,6 +49,16 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
 		gameWindow->show();
 		});
 
+    EngineApplication::GetSceneManager()->RegisterSceneLoadedCallback([this](ref<LuxonEngine::Scene> scene) {
+        UpdateRunPanel();
+		});
+
+    EngineApplication::GetSceneManager()->RegisterRenderSettingChangedCallback([this](ref<LuxonEngine::Scene> scene) {
+        UpdateRunPanel();
+        });
+
+    UpdateRunPanel();
+
 	static_cast<QHBoxLayout*>(ui.runPanel->layout())->insertStretch(0, 1);
 	ui.runPanel->layout()->setAlignment(ui.runButton, Qt::AlignHCenter);
 	ui.runPanel->layout()->setAlignment(ui.renderModeBox, Qt::AlignHCenter);
@@ -106,6 +116,24 @@ void LuxonEditor::GUI::QT::LuxonEditorWindow::OnMenuItemTriggered(ads::CDockWidg
 void LuxonEditor::GUI::QT::LuxonEditorWindow::UpdateDockWidgetMenuItemState(ads::CDockWidget* dockWidget, QAction* menuItem)
 {
     menuItem->setChecked(!dockWidget->isClosed());
+}
+
+void LuxonEditor::GUI::QT::LuxonEditorWindow::UpdateRunPanel()
+{
+	auto scene = EngineApplication::GetSceneManager()->GetCurrentScene();
+
+	ui.renderModeBox->clear();
+
+    if (scene->canSupportHybridRendering) {
+		ui.renderModeBox->addItem("Hybrid", QVariant::fromValue(1));
+    }
+
+    if (scene->canSupportRayTracing) {
+        ui.renderModeBox->addItem("Ray Tracing", QVariant::fromValue(2));
+    }
+
+	ui.renderModeBox->setCurrentIndex(ui.renderModeBox->count() > 0 ? 0 : -1);
+	ui.runButton->setEnabled(ui.renderModeBox->count() > 0);
 }
 
 void LuxonEditor::GUI::QT::LuxonEditorWindow::setupDefaultDockLayout()

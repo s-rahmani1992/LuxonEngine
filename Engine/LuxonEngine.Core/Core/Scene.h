@@ -21,5 +21,7 @@ namespace LuxonEngine {
 		ref<Rendering::Material> rtGlobalMaterial;
 		std::vector<ref<Behaviour>> behaviours;
 		Color hybridBackgroundColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		bool canSupportRayTracing = false;
+		bool canSupportHybridRendering = false;
 	};
 }

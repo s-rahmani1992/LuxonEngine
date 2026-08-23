@@ -119,6 +119,12 @@ namespace LuxonEditor {
 
 		stream.GetColor("hybrid-background-color", m_currentSceneEditor.scene->hybridBackgroundColor);
 
+		int supportRT = stream.GetInt("supprt-rt", 0);
+		m_currentSceneEditor.scene->canSupportRayTracing = (supportRT != 0);
+
+		int supportHybrid = stream.GetInt("support-hybrid", 0);
+		m_currentSceneEditor.scene->canSupportHybridRendering = (supportHybrid != 0);
+
 		return true;
 	}
 
@@ -174,6 +180,9 @@ namespace LuxonEditor {
 
 		stream.SetColor("hybrid-background-color", sceneEditor.scene->hybridBackgroundColor);
 
+		stream.SetInt("supprt-rt", sceneEditor.scene->canSupportRayTracing);
+		stream.SetInt("support-hybrid", sceneEditor.scene->canSupportHybridRendering);
+		
 		stream.SaveToFile(ResolveAbsolutePath(path).string());
 	}
 
@@ -299,6 +308,22 @@ namespace LuxonEditor {
 		RequestRender();
 	}
 
+	void EngineSceneManager::SetHybridSupportEnabled(bool enabled)
+	{
+		if (m_currentSceneEditor.scene->canSupportHybridRendering != enabled) {
+			m_currentSceneEditor.scene->canSupportHybridRendering = enabled;
+			InvokeRenderSettingChangedCallbacks();
+		}
+	}
+
+	void EngineSceneManager::SetRayTracingSupportEnabled(bool enabled)
+	{
+		if (m_currentSceneEditor.scene->canSupportRayTracing != enabled) {
+			m_currentSceneEditor.scene->canSupportRayTracing = enabled;
+			InvokeRenderSettingChangedCallbacks();
+		}
+	}
+
 	ref<LuxonEngine::GameEntity> EngineSceneManager::GetEntityByUUID(const boost::uuids::uuid& uuid) const
 	{
 		auto it = m_currentSceneEditor.entityMap.find(uuid);
@@ -349,6 +374,18 @@ namespace LuxonEditor {
 		m_sceneLoadedCallbacks.erase(id);
 	}
 
+	size_t EngineSceneManager::RegisterRenderSettingChangedCallback(RenderSettingChangedCallback cb)
+	{
+		auto id = ++m_lastRenderSettingChangedCallbackId;
+		m_renderSettingChangedCallbacks[id] = cb;
+		return id;
+	}
+
+	void EngineSceneManager::UnregisterRenderSettingChangedCallback(size_t id)
+	{
+		m_renderSettingChangedCallbacks.erase(id);
+	}
+
 	void EngineSceneManager::SaveCurrentScene()
 	{
 		SaveScene(m_currentScenePath, m_currentSceneEditor);
@@ -385,6 +422,12 @@ namespace LuxonEditor {
 	void EngineSceneManager::InvokeSceneLoadedCallbacks()
 	{
 		for (auto& kv : m_sceneLoadedCallbacks)
+			kv.second(m_currentSceneEditor.scene);
+	}
+
+	void EngineSceneManager::InvokeRenderSettingChangedCallbacks()
+	{
+		for (auto& kv : m_renderSettingChangedCallbacks)
 			kv.second(m_currentSceneEditor.scene);
 	}
 }
