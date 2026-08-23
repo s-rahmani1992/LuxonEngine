@@ -95,7 +95,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Luxun Engine</string>
+    <string>Luxon Engine</string>
    </property>
    <property name="scaledContents">
     <bool>false</bool>

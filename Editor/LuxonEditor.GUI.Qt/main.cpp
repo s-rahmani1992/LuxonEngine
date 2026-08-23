@@ -114,6 +114,8 @@ int main(int argc, char* argv[])
     splashWindow.SetProgress(100, "Starting Editor...");
 
     QT::LuxonEditorWindow mainWindow;
+    QString title = "Luxon Editor --- " + QString::fromStdString(config.graphicAPI == Graphic_API::VULKAN ? "Vulkan" : "DirectX 12");
+	mainWindow.setWindowTitle(title);
     splashWindow.close();
     mainWindow.showMaximized();
     int result = app.exec();
