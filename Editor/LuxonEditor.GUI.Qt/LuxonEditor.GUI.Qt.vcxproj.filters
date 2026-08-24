@@ -306,6 +306,9 @@
     <ClCompile Include="Behaviours\MaterialValueModifierWidget.cpp">
       <Filter>Behaviours</Filter>
     </ClCompile>
+    <ClCompile Include="Behaviours\BasicCameraNavigatorWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -489,6 +492,9 @@
       <Filter>Behaviours</Filter>
     </QtMoc>
     <QtMoc Include="Behaviours\MaterialValueModifierWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\BasicCameraNavigatorWidget.h">
       <Filter>Behaviours</Filter>
     </QtMoc>
   </ItemGroup>

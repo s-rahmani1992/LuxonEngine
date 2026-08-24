@@ -1,6 +1,7 @@
 #include "BehaviourItemWidget.h"
 #include <LuxonEditorAPI.h>
 #include "MaterialValueModifierWidget.h"
+#include "BasicCameraNavigatorWidget.h"
 #include <QLabel>
 #include <QBoxLayout>
 #include <QFont>
@@ -56,6 +57,13 @@ BehaviourItemWidget::BehaviourItemWidget(QWidget *parent, ref<LuxonEngine::Behav
 		MaterialValueModifierWidget* materialValueWidget = new MaterialValueModifierWidget(behaviourContainer, materialValueModifier);
 		titleLabel->setText("Material Value Modifier");
 		behaviourLayout->addWidget(materialValueWidget);
+		return;
+	}
+
+	if(auto cameraNavigator = std::dynamic_pointer_cast<BasicCameraNavigator>(behaviour)) {
+		titleLabel->setText("Basic Camera Navigator");
+		BasicCameraNavigatorWidget* cameraNavigatorWidget = new BasicCameraNavigatorWidget(behaviourContainer, cameraNavigator);
+		behaviourLayout->addWidget(cameraNavigatorWidget);
 		return;
 	}
 }

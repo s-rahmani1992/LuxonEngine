@@ -35,6 +35,11 @@ BehaviourListWidget::BehaviourListWidget(QWidget *parent, ref<LuxonEngine::Scene
 	menu->setStyleSheet("QMenu { background-color: #2b2b2b; color: #ffffff; }"
 		"QMenu::item:selected { background-color: #3c3c3c; }");
 
+	menu->addAction("Basic Camera Navigator", [this]() {
+		auto newBehaviour = LuxonEditor::EngineApplication::GetSceneManager()->AddBehaviour<BasicCameraNavigator>();
+		AddWidgetForBehaviour(newBehaviour);
+		});
+
 	menu->addAction("Material Value Modifier", [this]() {
 		auto newBehaviour = LuxonEditor::EngineApplication::GetSceneManager()->AddBehaviour<MaterialValueModifier>();
 		AddWidgetForBehaviour(newBehaviour);		

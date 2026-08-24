@@ -49,6 +49,9 @@
     <ClInclude Include="Behaviours\MaterialValueModifier.h">
       <Filter>Behaviours</Filter>
     </ClInclude>
+    <ClInclude Include="Behaviours\BasicCameraNavigator.h">
+      <Filter>Behaviours</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -89,6 +92,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Behaviours\MaterialValueModifier.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\BasicCameraNavigator.cpp">
       <Filter>Behaviours</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "SerializationStreamExtensions.h"
 #include "EngineApplication.h"
 #include "AssetRegistry.h"
+#include "../Behaviours/BasicCameraNavigator.h"
 #include "../Behaviours/MaterialValueModifier.h"
 
 namespace LuxonEditor {
@@ -247,19 +248,26 @@ namespace LuxonEditor {
 		int type = stream.GetInt("behaviour-type", -1);
 
 		switch (type) {
-			case 0: // MaterialValueModifier
-			{
-				auto materialGuid = stream.GetGuid("material-guid");
-				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
-				std::string fieldName;
-				stream.GetString("field-name", fieldName);
-				float speed = stream.GetFloat("speed", 0.0f);
-				float minValue = stream.GetFloat("min-value", 0.0f);
-				float maxValue = stream.GetFloat("max-value", 1.0f);
-				return std::make_shared<MaterialValueModifier>(material, fieldName, speed, minValue, maxValue);
-			}
-			default:
-				return nullptr;
+		case 0: // BasicCameraNavigator
+		{
+			float speed = stream.GetFloat("forward-speed", 1.0f);
+			float sideSpeed = stream.GetFloat("side-speed", 1.0f);
+			float rotateSpeed = stream.GetFloat("rotate-speed", 1.0f);
+			return std::make_shared<BasicCameraNavigator>(speed, sideSpeed, rotateSpeed);
+		}
+		case 1: // MaterialValueModifier
+		{
+			auto materialGuid = stream.GetGuid("material-guid");
+			auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+			std::string fieldName;
+			stream.GetString("field-name", fieldName);
+			float speed = stream.GetFloat("speed", 0.0f);
+			float minValue = stream.GetFloat("min-value", 0.0f);
+			float maxValue = stream.GetFloat("max-value", 1.0f);
+			return std::make_shared<MaterialValueModifier>(material, fieldName, speed, minValue, maxValue);
+		}
+		default:
+			return nullptr;
 		}
 	}
 
@@ -268,8 +276,15 @@ namespace LuxonEditor {
 		if (!behaviour) {
 			return;
 		}
-		if (auto materialValueModifier = std::dynamic_pointer_cast<MaterialValueModifier>(behaviour)) {
+
+		if(auto basicCameraNavigator = std::dynamic_pointer_cast<BasicCameraNavigator>(behaviour)) {
 			stream.SetInt("behaviour-type", 0);
+			stream.SetFloat("forward-speed", basicCameraNavigator->GetForwardMoveSpeed());
+			stream.SetFloat("side-speed", basicCameraNavigator->GetSideMoveSpeed());
+			stream.SetFloat("rotate-speed", basicCameraNavigator->GetRotateSpeed());
+		}
+		else if (auto materialValueModifier = std::dynamic_pointer_cast<MaterialValueModifier>(behaviour)) {
+			stream.SetInt("behaviour-type", 1);
 			auto material = materialValueModifier->GetMaterial();
 			if (material) {
 				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);

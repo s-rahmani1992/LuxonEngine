@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Behaviours\BasicCameraNavigator.h" />
     <ClInclude Include="Behaviours\MaterialValueModifier.h" />
     <ClInclude Include="Core\AssetDirectoryWatcher.h" />
     <ClInclude Include="Core\AssetRegistry.h" />
@@ -35,6 +36,7 @@
     <ClInclude Include="LuxonEditorAPI.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Behaviours\BasicCameraNavigator.cpp" />
     <ClCompile Include="Behaviours\MaterialValueModifier.cpp" />
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp" />
     <ClCompile Include="Core\AssetRegistry.cpp" />
