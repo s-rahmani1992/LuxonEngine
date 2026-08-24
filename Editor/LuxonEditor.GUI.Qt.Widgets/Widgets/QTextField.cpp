@@ -1,9 +1,10 @@
 #include "QTextField.h"
 
-QTextField::QTextField(QWidget* parent)
+QTextField::QTextField(QWidget* parent, std::string text)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+	ui.inputText->setText(QString::fromStdString(text));
 	layout()->setAlignment(ui.label, Qt::AlignLeft);
 	connect(ui.inputText, &QLineEdit::textChanged, this, [this](const QString& text) {
 		OnTextChanged(text);

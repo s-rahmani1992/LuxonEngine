@@ -12,7 +12,7 @@ class QTextField : public QWidget
 	Q_PROPERTY(QString placeHolder READ placeHolder WRITE setPlaceHolder DESIGNABLE true)
 
 public:
-	QTextField(QWidget* parent = nullptr);
+	QTextField(QWidget* parent = nullptr, std::string text = "");
 	~QTextField();
 	QString labelText() const;
 	void setLabelText(const QString& t);
@@ -23,6 +23,7 @@ public:
 	void Validate();
 
 	char* GetText();
+	std::string GetStdString() const { return ui.inputText->text().toStdString(); }
 
 	void RegisterValidationFunction(std::function<bool(const QString&)> func) {
 		m_validationFunc = func;

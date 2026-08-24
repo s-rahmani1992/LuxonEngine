@@ -1,6 +1,7 @@
 #include "SerializationStreamExtensions.h"
 #include "EngineApplication.h"
 #include "AssetRegistry.h"
+#include "../Behaviours/MaterialValueModifier.h"
 
 namespace LuxonEditor {
 	ref<LuxonEngine::Transform> DeserializeTransform(LuxonEngine::SerializationStream& stream)
@@ -238,6 +239,49 @@ namespace LuxonEditor {
 		if (material) {
 			auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
 			stream.SetGuid("material-guid", materialEntry->guid);
+		}
+	}
+
+	ref<LuxonEngine::Behaviour> DeserializeBehaviour(LuxonEngine::SerializationStream& stream)
+	{
+		int type = stream.GetInt("behaviour-type", -1);
+
+		switch (type) {
+			case 0: // MaterialValueModifier
+			{
+				auto materialGuid = stream.GetGuid("material-guid");
+				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+				std::string fieldName;
+				stream.GetString("field-name", fieldName);
+				float speed = stream.GetFloat("speed", 0.0f);
+				float minValue = stream.GetFloat("min-value", 0.0f);
+				float maxValue = stream.GetFloat("max-value", 1.0f);
+				return std::make_shared<MaterialValueModifier>(material, fieldName, speed, minValue, maxValue);
+			}
+			default:
+				return nullptr;
+		}
+	}
+
+	void SerializeBehaviour(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::Behaviour>& behaviour)
+	{
+		if (!behaviour) {
+			return;
+		}
+		if (auto materialValueModifier = std::dynamic_pointer_cast<MaterialValueModifier>(behaviour)) {
+			stream.SetInt("behaviour-type", 0);
+			auto material = materialValueModifier->GetMaterial();
+			if (material) {
+				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+				stream.SetGuid("material-guid", materialEntry->guid);
+			}
+			stream.SetString("field-name", materialValueModifier->GetFieldName());
+			stream.SetFloat("speed", materialValueModifier->GetSpeed());
+			stream.SetFloat("min-value", materialValueModifier->GetMinValue());
+			stream.SetFloat("max-value", materialValueModifier->GetMaxValue());
+		}
+		else {
+			stream.SetInt("behaviour-type", -1);
 		}
 	}
 }

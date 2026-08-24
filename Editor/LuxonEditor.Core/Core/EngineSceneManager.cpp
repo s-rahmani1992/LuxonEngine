@@ -111,6 +111,13 @@ namespace LuxonEditor {
 			}
 		}
 
+		for(auto& behaviourStream : stream.Array("behaviours")) {
+			auto behaviour = DeserializeBehaviour(behaviourStream);
+			if(behaviour) {
+				m_currentSceneEditor.scene->behaviours.push_back(behaviour);
+			}
+		}
+
 		auto rtGlobalGuid = stream.GetGuid("rt-global-material_uuid");
 		if(rtGlobalGuid.is_nil() == false)
 		{
@@ -124,7 +131,7 @@ namespace LuxonEditor {
 
 		int supportHybrid = stream.GetInt("support-hybrid", 0);
 		m_currentSceneEditor.scene->canSupportHybridRendering = (supportHybrid != 0);
-
+		
 		return true;
 	}
 
@@ -172,6 +179,16 @@ namespace LuxonEditor {
 			entitiesArray.push_back(entityStream);
 		}
 		stream.SetArray("entities", entitiesArray);
+
+		std::vector<LuxonEngine::SerializationStream> behavioursArray;
+
+		for (const auto& behaviour : sceneEditor.scene->behaviours)
+		{
+			LuxonEngine::SerializationStream behaviourStream;
+			SerializeBehaviour(behaviourStream, behaviour);
+			behavioursArray.push_back(behaviourStream);
+		}
+		stream.SetArray("behaviours", behavioursArray);
 
 		if(sceneEditor.scene->rtGlobalMaterial)
 		{
@@ -410,6 +427,15 @@ namespace LuxonEditor {
 		}
 		else {
 			SaveScene(path, newScene);
+		}
+	}
+
+	void EngineSceneManager::RemoveBehaviour(const ref<LuxonEngine::Behaviour>& behaviour)
+	{
+		auto& behaviours = m_currentSceneEditor.scene->behaviours;
+		auto it = std::find(behaviours.begin(), behaviours.end(), behaviour);
+		if (it != behaviours.end()) {
+			behaviours.erase(it);
 		}
 	}
 

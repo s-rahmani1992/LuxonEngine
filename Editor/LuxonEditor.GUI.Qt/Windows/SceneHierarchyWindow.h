@@ -34,5 +34,6 @@ namespace LuxonEditor::GUI::QT {
 		QListWidgetItem* m_lightItem = nullptr;
 		QListWidgetItem* m_cameraItem = nullptr;
 		QListWidgetItem* m_rtItem = nullptr;
+		QListWidgetItem* m_behaviourItem = nullptr;
 	};
 }

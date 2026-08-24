@@ -5,6 +5,7 @@ namespace LuxonEngine {
 	class Behaviour {
 	public:
 		virtual ~Behaviour() = default;
+		virtual void Start() {}
 		virtual void Update(Float deltaTime) = 0;
 	};
 }

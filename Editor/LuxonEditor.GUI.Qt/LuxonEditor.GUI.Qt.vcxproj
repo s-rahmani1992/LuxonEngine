@@ -149,6 +149,9 @@
     <ClCompile Include="AssetBrowser\AssetBrowserWindow.cpp" />
     <ClCompile Include="AssetBrowser\PathFilter.cpp" />
     <ClCompile Include="AssetBrowser\PathItemStyle.cpp" />
+    <ClCompile Include="Behaviours\BehaviourItemWidget.cpp" />
+    <ClCompile Include="Behaviours\BehaviourListWidget.cpp" />
+    <ClCompile Include="Behaviours\MaterialValueModifierWidget.cpp" />
     <ClCompile Include="Console\ConsoleLogWindow.cpp" />
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
@@ -288,6 +291,9 @@
     <QtMoc Include="AssetBrowser\PathFilter.h" />
     <QtMoc Include="AssetBrowser\AddressBarButton.h" />
     <ClInclude Include="AssetBrowser\PathItemStyle.h" />
+    <QtMoc Include="Behaviours\BehaviourListWidget.h" />
+    <QtMoc Include="Behaviours\BehaviourItemWidget.h" />
+    <QtMoc Include="Behaviours\MaterialValueModifierWidget.h" />
     <ClInclude Include="Console\LogItemStyle.h" />
   </ItemGroup>
   <ItemGroup>

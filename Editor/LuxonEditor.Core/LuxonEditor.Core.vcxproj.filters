@@ -4,6 +4,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{872d029a-38f3-4c84-88b5-e3c6302d36a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Behaviours">
+      <UniqueIdentifier>{d81d7eb1-d7ee-4ab1-ae3d-484f9a382214}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\AssetRegistry.h">
@@ -43,6 +46,9 @@
     <ClInclude Include="Core\SerializationStreamExtensions.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Behaviours\MaterialValueModifier.h">
+      <Filter>Behaviours</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -81,6 +87,9 @@
     </ClCompile>
     <ClCompile Include="Core\SerializationStreamExtensions.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\MaterialValueModifier.cpp">
+      <Filter>Behaviours</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

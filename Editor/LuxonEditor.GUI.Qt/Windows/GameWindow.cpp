@@ -54,6 +54,7 @@ GameWindow::GameWindow(QWidget* parent, ref<Scene> scene, int renderMode)
 	setFocusPolicy(Qt::StrongFocus);
 
 	m_renderTimer = new QTimer(this);
+	m_renderTimer->setTimerType(Qt::PreciseTimer);
 	m_renderTimer->setInterval(1000 / 60); // ~60 fps
 	connect(m_renderTimer, &QTimer::timeout, this, &GameWindow::onRenderTick);
 }
@@ -92,80 +93,38 @@ void GameWindow::initializeContext()
 		QTimer::singleShot(0, this, &QWidget::close);
 		return;
 	}
+
+	for(auto& behaviour : m_scene->behaviours)
+	{
+		behaviour->Start();
+	}
+
 	m_renderTimer->start();
 }
 
 void GameWindow::onRenderTick()
 {
-	update();
-}
-
-void GameWindow::paintEvent(QPaintEvent* event)
-{
 	if (m_context == nullptr || m_scene == nullptr)
 		return;
+
+	float deltaTime = 0.0f;
+	if (m_frameTimer.isValid())
+	{
+		deltaTime = m_frameTimer.nsecsElapsed() / 1000000000.0f;
+	}
+	m_frameTimer.restart();
+
+	for (auto& behaviour : m_scene->behaviours)
+	{
+		behaviour->Update(deltaTime);
+	}
+
 
 	if (!TryRender(m_context))
 	{
 		Logger::LogError("GameWindow::paintEvent: Access violation during rendering.");
 		m_renderTimer->stop();
 		QTimer::singleShot(0, this, &QWidget::close);
-	}
-}
-
-void GameWindow::mousePressEvent(QMouseEvent* event)
-{
-	if (event->button() != Qt::MouseButton::RightButton)
-		return;
-
-	QPoint localPos = m_renderSurface->mapFromGlobal(event->globalPosition().toPoint());
-	if (m_renderSurface->rect().contains(localPos))
-	{
-		m_isMoveMode = true;
-		m_lastMousePos = event->position();
-	}
-}
-
-void GameWindow::mouseReleaseEvent(QMouseEvent* event)
-{
-	m_isMoveMode = false;
-}
-
-void GameWindow::mouseMoveEvent(QMouseEvent* event)
-{
-	if (m_isMoveMode)
-	{
-		float deltaX = event->position().x() - m_lastMousePos.x();
-		float deltaY = event->position().y() - m_lastMousePos.y();
-		auto cameraTransform = m_scene->mainCamera->GetTransform();
-		cameraTransform->RotateAround(cameraTransform->Up(), -deltaX * 0.05f);
-		cameraTransform->RotateAround(cameraTransform->Right(), -deltaY * 0.05f);
-		m_lastMousePos = event->position();
-		update();
-	}
-}
-
-void GameWindow::keyPressEvent(QKeyEvent* event)
-{
-	if (event->key() == Qt::Key_W)
-	{
-		m_scene->mainCamera->GetTransform()->MoveForward(0.05f);
-		update();
-	}
-	else if (event->key() == Qt::Key_S)
-	{
-		m_scene->mainCamera->GetTransform()->MoveForward(-0.05f);
-		update();
-	}
-	if (event->key() == Qt::Key_A)
-	{
-		m_scene->mainCamera->GetTransform()->MoveRight(-0.05f);
-		update();
-	}
-	else if (event->key() == Qt::Key_D)
-	{
-		m_scene->mainCamera->GetTransform()->MoveRight(0.05f);
-		update();
 	}
 }
 
@@ -177,4 +136,9 @@ bool GameWindow::eventFilter(QObject* obj, QEvent* event)
 			initializeContext();
 	}
 	return false;
+}
+
+void GameWindow::closeEvent(QCloseEvent* event)
+{
+	m_renderTimer->stop();
 }

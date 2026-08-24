@@ -20,4 +20,7 @@ namespace LuxonEditor {
 
 	ref<LuxonEngine::Rendering::RayTracingComponent> DeserializeRayTracingComponent(LuxonEngine::SerializationStream& stream);
 	void SerializeRayTracingComponent(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::Rendering::RayTracingComponent>& rtComponent);
+
+	ref<LuxonEngine::Behaviour> DeserializeBehaviour(LuxonEngine::SerializationStream& stream);
+	void SerializeBehaviour(LuxonEngine::SerializationStream& stream, const ref<LuxonEngine::Behaviour>& behaviour);
 }

@@ -9,6 +9,7 @@
 #include "../Scene/RenderSettingWidget.h"
 #include "../Core/PerspectiveCameraWidget.h"
 #include "../Lights/SceneLightInspecterWidget.h"
+#include "../Behaviours/BehaviourListWidget.h"
 #include <filesystem>
 
 LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
@@ -67,6 +68,16 @@ LuxonEditor::GUI::QT::InspecterWindow::InspecterWindow(QWidget* parent)
 			RenderSettingWidget* renderSettingWidget = new RenderSettingWidget(EngineApplication::GetSceneManager()->GetCurrentScene(), ui.container);
 			
 			m_currentWidget = renderSettingWidget;
+			m_currentWidget->show();
+			ui.container->layout()->addWidget(m_currentWidget);
+			return;
+		}
+
+		if(selectedObject == "Behaviours")
+		{
+			ui.fileLabel->setText("Behaviours");
+			BehaviourListWidget* behaviourWidget = new BehaviourListWidget(ui.container, EngineApplication::GetSceneManager()->GetCurrentScene());
+			m_currentWidget = behaviourWidget;
 			m_currentWidget->show();
 			ui.container->layout()->addWidget(m_currentWidget);
 			return;

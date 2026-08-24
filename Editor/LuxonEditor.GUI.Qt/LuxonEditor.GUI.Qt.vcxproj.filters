@@ -43,6 +43,9 @@
     <Filter Include="Lights">
       <UniqueIdentifier>{206d1d48-874e-4bb7-9fc1-9d55a3c6c0ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Behaviours">
+      <UniqueIdentifier>{7024bd48-ca1d-4346-9073-6a8d0363050b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -294,6 +297,15 @@
     <ClCompile Include="Scene\RenderSettingWidget.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Behaviours\BehaviourListWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\BehaviourItemWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\MaterialValueModifierWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -469,6 +481,15 @@
     </QtMoc>
     <QtMoc Include="Scene\RenderSettingWidget.h">
       <Filter>Scene</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\BehaviourListWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\BehaviourItemWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\MaterialValueModifierWidget.h">
+      <Filter>Behaviours</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Behaviours\MaterialValueModifier.h" />
     <ClInclude Include="Core\AssetDirectoryWatcher.h" />
     <ClInclude Include="Core\AssetRegistry.h" />
     <ClInclude Include="Core\AssimpModel3DImporter.h" />
@@ -34,6 +35,7 @@
     <ClInclude Include="LuxonEditorAPI.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Behaviours\MaterialValueModifier.cpp" />
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp" />
     <ClCompile Include="Core\AssetRegistry.cpp" />
     <ClCompile Include="Core\AssimpModel3DImporter.cpp" />

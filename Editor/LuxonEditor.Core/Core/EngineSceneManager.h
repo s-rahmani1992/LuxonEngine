@@ -54,6 +54,11 @@ namespace LuxonEditor {
 
 		void SaveCurrentScene();
 		void CreateScene(const std::string& name, const std::string& path, bool openAfterCreate);
+
+		template<class T, class... Args>
+		ref<T> AddBehaviour(Args&&... args);
+
+		void RemoveBehaviour(const ref<LuxonEngine::Behaviour>& behaviour);
 	private:
 		void InvokeEntityListChangedCallbacks();
 		void InvokeSceneLoadedCallbacks();
@@ -81,4 +86,12 @@ namespace LuxonEditor {
 		std::string m_currentScenePath;
 		SceneEditor m_currentSceneEditor;
 	};
+
+	template<class T, class ...Args>
+	inline ref<T> EngineSceneManager::AddBehaviour(Args && ...args)
+	{
+		ref<T> behaviour = std::make_shared<T>(std::forward<Args>(args)...);
+		m_currentSceneEditor.scene->behaviours.push_back(behaviour);
+		return behaviour;
+	}
 }

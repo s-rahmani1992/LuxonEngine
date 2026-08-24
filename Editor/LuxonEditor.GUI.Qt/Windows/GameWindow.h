@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QWidget>
 #include <QTimer>
+#include <QElapsedTimer>
 
 #include <LuxonEditorAPI.h>
 #include <EngineAPI.h>
@@ -19,13 +20,8 @@ public:
 	~GameWindow();
 
 protected:
-	void paintEvent(QPaintEvent* event) override;
-	void mousePressEvent(QMouseEvent* event) override;
-	void mouseReleaseEvent(QMouseEvent* event) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
-	void keyPressEvent(QKeyEvent* event) override;
 	bool eventFilter(QObject* obj, QEvent* event) override;
-
+	void closeEvent(QCloseEvent* event) override;
 private slots:
 	void onRenderTick();
 
@@ -38,8 +34,7 @@ private:
 
 	QWidget* m_renderSurface = nullptr;
 	QTimer* m_renderTimer = nullptr;
+	QElapsedTimer m_frameTimer;
 
-	bool m_isMoveMode = false;
-	QPointF m_lastMousePos;
 	int m_renderMode = 0;
 };

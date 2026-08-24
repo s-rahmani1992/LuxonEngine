@@ -28,6 +28,9 @@ namespace LuxonEditor::GUI::QT {
 		m_rtItem = new QListWidgetItem("Render Settings", ui.otherComponents);
 		m_rtItem->setFlags(m_rtItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
+		m_behaviourItem = new QListWidgetItem("Behaviours", ui.otherComponents);
+		m_behaviourItem->setFlags(m_behaviourItem->flags() | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 		auto scenePath = EngineApplication::GetSceneManager()->GetCurrentScenePath();
 		ui.scaneLabel->setText(QString::fromStdString(scenePath.empty() ? "Default Scene" : fs::path(scenePath).stem().string()));
 
@@ -66,6 +69,10 @@ namespace LuxonEditor::GUI::QT {
 			else if (current == m_rtItem)
 			{
 				GetSelectionManager()->SetSelectedObject(std::string("RenderSettings"));
+			}
+			else if (current == m_behaviourItem)
+			{
+				GetSelectionManager()->SetSelectedObject(std::string("Behaviours"));
 			}
 			});
 
