@@ -40,6 +40,15 @@ Float LuxonEngine::Vector3::Dot(const Vector3& vectorA, const Vector3& vectorB)
 	return (vectorA.x * vectorB.x) + (vectorA.y * vectorB.y) + (vectorA.z * vectorB.z);
 }
 
+LuxonEngine::Vector3 LuxonEngine::Vector3::Cross(const Vector3& vectorA, const Vector3& vectorB)
+{
+	return Vector3(
+		(vectorA.y * vectorB.z) - (vectorA.z * vectorB.y),
+		(vectorA.z * vectorB.x) - (vectorA.x * vectorB.z),
+		(vectorA.x * vectorB.y) - (vectorA.y * vectorB.x)
+	);
+}
+
 LuxonEngine::Vector3 LuxonEngine::Vector3::operator-()
 {
 	return Vector3(-x, -y, -z);

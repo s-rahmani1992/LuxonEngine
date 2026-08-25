@@ -108,6 +108,9 @@
     <QtUic Include="Material\QMaterialField.ui">
       <Filter>Material</Filter>
     </QtUic>
+    <QtUic Include="Core\QTransformField.ui">
+      <Filter>Core</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -309,6 +312,18 @@
     <ClCompile Include="Behaviours\BasicCameraNavigatorWidget.cpp">
       <Filter>Behaviours</Filter>
     </ClCompile>
+    <ClCompile Include="Core\QTransformField.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityRotatorWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityPositionControllerWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityMoverWidget.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -495,6 +510,18 @@
       <Filter>Behaviours</Filter>
     </QtMoc>
     <QtMoc Include="Behaviours\BasicCameraNavigatorWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Core\QTransformField.h">
+      <Filter>Core</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\EntityRotatorWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\EntityPositionControllerWidget.h">
+      <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Behaviours\EntityMoverWidget.h">
       <Filter>Behaviours</Filter>
     </QtMoc>
   </ItemGroup>

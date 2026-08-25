@@ -52,6 +52,15 @@
     <ClInclude Include="Behaviours\BasicCameraNavigator.h">
       <Filter>Behaviours</Filter>
     </ClInclude>
+    <ClInclude Include="Behaviours\EntityRotator.h">
+      <Filter>Behaviours</Filter>
+    </ClInclude>
+    <ClInclude Include="Behaviours\EntityPositionController.h">
+      <Filter>Behaviours</Filter>
+    </ClInclude>
+    <ClInclude Include="Behaviours\EntityMover.h">
+      <Filter>Behaviours</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\AssetRegistry.cpp">
@@ -95,6 +104,15 @@
       <Filter>Behaviours</Filter>
     </ClCompile>
     <ClCompile Include="Behaviours\BasicCameraNavigator.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityRotator.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityPositionController.cpp">
+      <Filter>Behaviours</Filter>
+    </ClCompile>
+    <ClCompile Include="Behaviours\EntityMover.cpp">
       <Filter>Behaviours</Filter>
     </ClCompile>
   </ItemGroup>

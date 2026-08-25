@@ -20,6 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Behaviours\BasicCameraNavigator.h" />
+    <ClInclude Include="Behaviours\EntityMover.h" />
+    <ClInclude Include="Behaviours\EntityPositionController.h" />
+    <ClInclude Include="Behaviours\EntityRotator.h" />
     <ClInclude Include="Behaviours\MaterialValueModifier.h" />
     <ClInclude Include="Core\AssetDirectoryWatcher.h" />
     <ClInclude Include="Core\AssetRegistry.h" />
@@ -37,6 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Behaviours\BasicCameraNavigator.cpp" />
+    <ClCompile Include="Behaviours\EntityMover.cpp" />
+    <ClCompile Include="Behaviours\EntityPositionController.cpp" />
+    <ClCompile Include="Behaviours\EntityRotator.cpp" />
     <ClCompile Include="Behaviours\MaterialValueModifier.cpp" />
     <ClCompile Include="Core\AssetDirectoryWatcher.cpp" />
     <ClCompile Include="Core\AssetRegistry.cpp" />

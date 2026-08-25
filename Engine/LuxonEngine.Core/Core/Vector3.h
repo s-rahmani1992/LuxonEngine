@@ -60,6 +60,8 @@ namespace LuxonEngine {
 		/// <returns></returns>
 		static Float Dot(const Vector3& vectorA, const Vector3& vectorB);
 
+		static Vector3 Cross(const Vector3& vectorA, const Vector3& vectorB);
+
 	public: // Fields
 		Float x;
 		Float y;
@@ -67,4 +69,4 @@ namespace LuxonEngine {
 	};
 }
 
-LuxonEngine::Vector3 operator*(Float fValue, const LuxonEngine::Vector3& vector);
+LUXON_CORE_API LuxonEngine::Vector3 operator*(Float fValue, const LuxonEngine::Vector3& vector);

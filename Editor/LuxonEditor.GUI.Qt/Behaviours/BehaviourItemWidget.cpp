@@ -2,6 +2,9 @@
 #include <LuxonEditorAPI.h>
 #include "MaterialValueModifierWidget.h"
 #include "BasicCameraNavigatorWidget.h"
+#include "EntityRotatorWidget.h"
+#include "EntityPositionControllerWidget.h"
+#include "EntityMoverWidget.h"
 #include <QLabel>
 #include <QBoxLayout>
 #include <QFont>
@@ -64,6 +67,27 @@ BehaviourItemWidget::BehaviourItemWidget(QWidget *parent, ref<LuxonEngine::Behav
 		titleLabel->setText("Basic Camera Navigator");
 		BasicCameraNavigatorWidget* cameraNavigatorWidget = new BasicCameraNavigatorWidget(behaviourContainer, cameraNavigator);
 		behaviourLayout->addWidget(cameraNavigatorWidget);
+		return;
+	}
+
+	if(auto entityRotator = std::dynamic_pointer_cast<EntityRotator>(behaviour)) {
+		titleLabel->setText("Entity Rotator");
+		EntityRotatorWidget* entityRotatorWidget = new EntityRotatorWidget(behaviourContainer, entityRotator);
+		behaviourLayout->addWidget(entityRotatorWidget);
+		return;
+	}
+
+	if(auto entityPositionController = std::dynamic_pointer_cast<EntityPositionController>(behaviour)) {
+		titleLabel->setText("Entity Position Controller");
+		EntityPositionControllerWidget* entityPositionControllerWidget = new EntityPositionControllerWidget(behaviourContainer, entityPositionController);
+		behaviourLayout->addWidget(entityPositionControllerWidget);
+		return;
+	}
+
+	if(auto entityMover = std::dynamic_pointer_cast<EntityMover>(behaviour)) {
+		titleLabel->setText("Entity Mover");
+		EntityMoverWidget* entityMoverWidget = new EntityMoverWidget(behaviourContainer, entityMover);
+		behaviourLayout->addWidget(entityMoverWidget);
 		return;
 	}
 }

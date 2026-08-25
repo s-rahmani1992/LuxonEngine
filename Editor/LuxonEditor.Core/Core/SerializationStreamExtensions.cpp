@@ -1,8 +1,12 @@
 #include "SerializationStreamExtensions.h"
 #include "EngineApplication.h"
+#include "EngineSceneManager.h"
 #include "AssetRegistry.h"
 #include "../Behaviours/BasicCameraNavigator.h"
 #include "../Behaviours/MaterialValueModifier.h"
+#include "../Behaviours/EntityRotator.h"
+#include "../Behaviours/EntityPositionController.h"
+#include "../Behaviours/EntityMover.h"
 
 namespace LuxonEditor {
 	ref<LuxonEngine::Transform> DeserializeTransform(LuxonEngine::SerializationStream& stream)
@@ -266,6 +270,31 @@ namespace LuxonEditor {
 			float maxValue = stream.GetFloat("max-value", 1.0f);
 			return std::make_shared<MaterialValueModifier>(material, fieldName, speed, minValue, maxValue);
 		}
+		case 2: 
+		{
+			Vector3 rotationAxis;
+			stream.GetVector3("rotation-axis", rotationAxis);
+			float speed = stream.GetFloat("speed", 0.0f);
+			auto entityGuid = stream.GetGuid("entity-guid");
+			auto transform = EngineApplication::GetSceneManager()->GetTransformOfEntity(entityGuid);
+			return std::make_shared<EntityRotator>(transform, speed, rotationAxis);
+		}
+		case 3: {
+			auto entityGuid = stream.GetGuid("entity-guid");
+			auto transform = EngineApplication::GetSceneManager()->GetTransformOfEntity(entityGuid);
+			auto speed = stream.GetFloat("speed", 0.0f);
+			return std::make_shared<EntityPositionController>(transform, speed);
+		}
+		case 4: {
+			auto entityGuid = stream.GetGuid("entity-guid");
+			auto transform = EngineApplication::GetSceneManager()->GetTransformOfEntity(entityGuid);
+			Vector3 point0, point1, point2;
+			stream.GetVector3("point1", point1);
+			stream.GetVector3("point2", point2);
+			auto start = stream.GetFloat("start", 0.0f);	
+			auto speed = stream.GetFloat("speed", 0.0f);
+			return std::make_shared<EntityMover>(transform, point1, point2, start, speed);
+		}
 		default:
 			return nullptr;
 		}
@@ -294,6 +323,37 @@ namespace LuxonEditor {
 			stream.SetFloat("speed", materialValueModifier->GetSpeed());
 			stream.SetFloat("min-value", materialValueModifier->GetMinValue());
 			stream.SetFloat("max-value", materialValueModifier->GetMaxValue());
+		}
+		else if(auto entityRotator = std::dynamic_pointer_cast<EntityRotator>(behaviour)) {
+			stream.SetInt("behaviour-type", 2);
+			auto transform = entityRotator->GetTransform();
+			if (transform) {
+				auto entityGuid = EngineApplication::GetSceneManager()->GetEntityGUIDFromTransform(transform);
+				stream.SetGuid("entity-guid", entityGuid);
+			}
+			stream.SetFloat("speed", entityRotator->GetSpeed());
+			stream.SetVector3("rotation-axis", entityRotator->GetAxis());
+		}
+		else if(auto entityPositionController = std::dynamic_pointer_cast<EntityPositionController>(behaviour)) {
+			stream.SetInt("behaviour-type", 3);
+			auto transform = entityPositionController->GetTransform();
+			if (transform) {
+				auto entityGuid = EngineApplication::GetSceneManager()->GetEntityGUIDFromTransform(transform);
+				stream.SetGuid("entity-guid", entityGuid);
+			}
+			stream.SetFloat("speed", entityPositionController->GetSpeed());
+		}
+		else if(auto entityMover = std::dynamic_pointer_cast<EntityMover>(behaviour)) {
+			stream.SetInt("behaviour-type", 4);
+			auto transform = entityMover->GetTransform();
+			if (transform) {
+				auto entityGuid = EngineApplication::GetSceneManager()->GetEntityGUIDFromTransform(transform);
+				stream.SetGuid("entity-guid", entityGuid);
+			}
+			stream.SetVector3("point1", entityMover->GetPoint1());
+			stream.SetVector3("point2", entityMover->GetPoint2());
+			stream.SetFloat("start", entityMover->GetStart());
+			stream.SetFloat("speed", entityMover->GetSpeed());
 		}
 		else {
 			stream.SetInt("behaviour-type", -1);

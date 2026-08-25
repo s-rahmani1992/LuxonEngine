@@ -439,6 +439,22 @@ namespace LuxonEditor {
 		}
 	}
 
+	ref<LuxonEngine::Transform> EngineSceneManager::GetTransformOfEntity(const boost::uuids::uuid& uuid) const
+	{
+		auto entity = GetEntityByUUID(uuid);
+		return entity ? entity->GetTransform() : nullptr;
+	}
+
+	boost::uuids::uuid EngineSceneManager::GetEntityGUIDFromTransform(const ref<LuxonEngine::Transform>& transform) const
+	{
+		auto it = std::find_if(m_currentSceneEditor.entityList.begin(), m_currentSceneEditor.entityList.end(),
+			[&transform](const EntityEntry& entry) {
+				return entry.entity->GetTransform() == transform;
+			});
+
+		return (it != m_currentSceneEditor.entityList.end()) ? it->uuid : boost::uuids::uuid();
+	}
+
 	void EngineSceneManager::InvokeEntityListChangedCallbacks()
 	{
 		for (auto& kv : m_entityListChangedCallbacks)

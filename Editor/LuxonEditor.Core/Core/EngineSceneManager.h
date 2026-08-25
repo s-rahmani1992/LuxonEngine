@@ -59,6 +59,10 @@ namespace LuxonEditor {
 		ref<T> AddBehaviour(Args&&... args);
 
 		void RemoveBehaviour(const ref<LuxonEngine::Behaviour>& behaviour);
+
+		ref<LuxonEngine::Transform> GetTransformOfEntity(const boost::uuids::uuid& uuid) const;
+		boost::uuids::uuid GetEntityGUIDFromTransform(const ref<LuxonEngine::Transform>& transform) const;
+	
 	private:
 		void InvokeEntityListChangedCallbacks();
 		void InvokeSceneLoadedCallbacks();

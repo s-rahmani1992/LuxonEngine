@@ -36,6 +36,7 @@ namespace LuxonEngine {
 		void MoveRight(Float delta);
 		void RotateAround(const Vector3& axis, Float angleDeg);
 		void Translate(const Vector3& delta);
+		void SetOrientation(const Vector3& forward, const Vector3& up);
 	private:
 		void UpdateDirections();
 		void UpdateMatrix();

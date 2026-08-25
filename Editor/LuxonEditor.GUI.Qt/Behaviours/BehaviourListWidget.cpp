@@ -45,6 +45,21 @@ BehaviourListWidget::BehaviourListWidget(QWidget *parent, ref<LuxonEngine::Scene
 		AddWidgetForBehaviour(newBehaviour);		
 		});
 
+	menu->addAction("Entity Rotator", [this]() {
+		auto newBehaviour = LuxonEditor::EngineApplication::GetSceneManager()->AddBehaviour<EntityRotator>();
+		AddWidgetForBehaviour(newBehaviour);
+		});
+
+	menu->addAction("Entity Position Controller", [this]() {
+		auto newBehaviour = LuxonEditor::EngineApplication::GetSceneManager()->AddBehaviour<EntityPositionController>();
+		AddWidgetForBehaviour(newBehaviour);
+		});
+
+	menu->addAction("Entity Mover", [this]() {
+		auto newBehaviour = LuxonEditor::EngineApplication::GetSceneManager()->AddBehaviour<EntityMover>();
+		AddWidgetForBehaviour(newBehaviour);
+		});
+
 	addBehaviourButton->setMenu(menu);
 	layout->addWidget(addBehaviourButton);
 }

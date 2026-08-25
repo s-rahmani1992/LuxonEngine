@@ -152,12 +152,16 @@
     <ClCompile Include="Behaviours\BasicCameraNavigatorWidget.cpp" />
     <ClCompile Include="Behaviours\BehaviourItemWidget.cpp" />
     <ClCompile Include="Behaviours\BehaviourListWidget.cpp" />
+    <ClCompile Include="Behaviours\EntityMoverWidget.cpp" />
+    <ClCompile Include="Behaviours\EntityPositionControllerWidget.cpp" />
+    <ClCompile Include="Behaviours\EntityRotatorWidget.cpp" />
     <ClCompile Include="Behaviours\MaterialValueModifierWidget.cpp" />
     <ClCompile Include="Console\ConsoleLogWindow.cpp" />
     <ClCompile Include="Console\LogFilter.cpp" />
     <ClCompile Include="Console\LogItemStyle.cpp" />
     <ClCompile Include="Console\LogModel.cpp" />
     <ClCompile Include="Core\PerspectiveCameraWidget.cpp" />
+    <ClCompile Include="Core\QTransformField.cpp" />
     <ClCompile Include="Core\TransformWidget.cpp" />
     <ClCompile Include="Lights\DirectionalLightItem.cpp" />
     <ClCompile Include="Lights\PointLightItem.cpp" />
@@ -192,6 +196,7 @@
     <ClCompile Include="Windows\SplashStartWidget.cpp" />
     <QtUic Include="AssetBrowser\AssetBrowserWindow.ui" />
     <QtUic Include="Console\ConsoleLogWindow.ui" />
+    <QtUic Include="Core\QTransformField.ui" />
     <QtUic Include="Core\TransformWidget.ui" />
     <QtUic Include="Material\MaterialCreationWindow.ui" />
     <QtUic Include="Material\MaterialInspecterWidget.ui" />
@@ -232,6 +237,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Core\QTransformField.h" />
     <QtMoc Include="Scene\RenderSettingWidget.h" />
     <QtMoc Include="Renderer\GBufferRendererWidget.h" />
     <QtMoc Include="Renderer\SplineRendererWidget.h" />
@@ -296,6 +302,9 @@
     <QtMoc Include="Behaviours\BehaviourItemWidget.h" />
     <QtMoc Include="Behaviours\MaterialValueModifierWidget.h" />
     <QtMoc Include="Behaviours\BasicCameraNavigatorWidget.h" />
+    <QtMoc Include="Behaviours\EntityRotatorWidget.h" />
+    <QtMoc Include="Behaviours\EntityPositionControllerWidget.h" />
+    <QtMoc Include="Behaviours\EntityMoverWidget.h" />
     <ClInclude Include="Console\LogItemStyle.h" />
   </ItemGroup>
   <ItemGroup>

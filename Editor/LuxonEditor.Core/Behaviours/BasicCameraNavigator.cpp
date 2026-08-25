@@ -35,19 +35,19 @@ void BasicCameraNavigator::Update(Float deltaTime)
 	xPos = mousePos.x;
 	yPos = mousePos.y;
 
-	if (GetKeyState('W') & 0x80 || GetKeyState(VK_UP) & 0x80) {
+	if (GetKeyState('W') & 0x80) {
 		m_transform->MoveForward(m_forwardMoveSpeed * deltaTime);
 	}
 
-	if (GetKeyState('S') & 0x80 || GetKeyState(VK_DOWN) & 0x80) {
+	if (GetKeyState('S') & 0x80) {
 		m_transform->MoveForward(-m_forwardMoveSpeed * deltaTime);
 	}
 
-	if (GetKeyState('A') & 0x80 || GetKeyState(VK_LEFT) & 0x80) {
+	if (GetKeyState('A') & 0x80) {
 		m_transform->MoveRight(-m_sideMoveSpeed * deltaTime);
 	}
 
-	if (GetKeyState('D') & 0x80 || GetKeyState(VK_RIGHT) & 0x80) {
+	if (GetKeyState('D') & 0x80) {
 		m_transform->MoveRight(m_sideMoveSpeed * deltaTime);
 	}
 }

@@ -9,6 +9,9 @@
 #include "Core/GuidUtilities.h"
 #include "Behaviours/MaterialValueModifier.h"
 #include "Behaviours/BasicCameraNavigator.h"
+#include "Behaviours/EntityRotator.h"
+#include "Behaviours/EntityPositionController.h"
+#include "Behaviours/EntityMover.h"
 
 LUXON_ENGINE_API LuxonEditor::EngineApplication* CreateEngineApplication(const LuxonEditor::ApplicationConfig& config, std::string& errorString);
 
