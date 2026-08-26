@@ -111,6 +111,9 @@
     <QtUic Include="Core\QTransformField.ui">
       <Filter>Core</Filter>
     </QtUic>
+    <QtUic Include="Windows\LuxonStartWindow.ui">
+      <Filter>Windows</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -324,6 +327,9 @@
     <ClCompile Include="Behaviours\EntityMoverWidget.cpp">
       <Filter>Behaviours</Filter>
     </ClCompile>
+    <ClCompile Include="Windows\LuxonStartWindow.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Windows\LuxonEditorWindow.h">
@@ -523,6 +529,9 @@
     </QtMoc>
     <QtMoc Include="Behaviours\EntityMoverWidget.h">
       <Filter>Behaviours</Filter>
+    </QtMoc>
+    <QtMoc Include="Windows\LuxonStartWindow.h">
+      <Filter>Windows</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 #include "Windows/LuxonEditorWindow.h"
 #include "Windows/SplashStartWidget.h"
+#include "Windows/LuxonStartWindow.h"
 #include <QtWidgets/QApplication>
 #include <QSettings>
 #include <LuxonEditorAPI.h>
@@ -105,14 +106,6 @@ int main(int argc, char* argv[])
         }
     )");
 
-    LuxonEditor::ApplicationConfig config{
-        .projectPath = QCoreApplication::applicationDirPath().toStdString(),
-        .graphicAPI = Graphic_API::VULKAN,
-    };
-
-    std::string errorString;
-    auto engineApp = CreateEngineApplication(config, errorString);
-
     // Persist the last opened scene path when the application closes
     QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
         const std::string& currentPath =
@@ -120,6 +113,27 @@ int main(int argc, char* argv[])
         QSettings settings;
         settings.setValue(k_lastScenePathKey, QString::fromStdString(currentPath));
         });
+
+#ifdef _DEBUG
+	Graphic_API selectedAPI = Graphic_API::DIRECTX_12; // default to DirectX 12 in debug mode
+#else
+    QT::LuxonStartWindow startWindow;
+    startWindow.exec();
+
+    if (startWindow.result() == QDialog::Rejected)
+        return 0;
+
+	Graphic_API selectedAPI = startWindow.GetSelectedGraphicAPI();
+#endif
+	
+
+    LuxonEditor::ApplicationConfig config{
+        .projectPath = QCoreApplication::applicationDirPath().toStdString(),
+        .graphicAPI = selectedAPI,
+    };
+
+    std::string errorString;
+    auto engineApp = CreateEngineApplication(config, errorString);
 
     QT::SplashStartWidget splashWindow;
     splashWindow.show();

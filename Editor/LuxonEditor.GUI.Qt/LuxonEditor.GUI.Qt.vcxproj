@@ -191,6 +191,7 @@
     <ClCompile Include="Windows\InspecterWindow.cpp" />
     <ClCompile Include="Windows\LuxonEditorWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Windows\LuxonStartWindow.cpp" />
     <ClCompile Include="Windows\SceneEditorWindow.cpp" />
     <ClCompile Include="Windows\SceneHierarchyWindow.cpp" />
     <ClCompile Include="Windows\SplashStartWidget.cpp" />
@@ -212,6 +213,7 @@
     <QtUic Include="Texture\TextureInspecterWidget.ui" />
     <QtUic Include="Windows\InspecterWindow.ui" />
     <QtUic Include="Windows\LuxonEditorWindow.ui" />
+    <QtUic Include="Windows\LuxonStartWindow.ui" />
     <QtUic Include="Windows\SceneEditorWindow.ui" />
     <QtUic Include="Windows\SceneHierarchyWindow.ui" />
     <QtUic Include="Windows\SplashStartWidget.ui" />
@@ -237,6 +239,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Windows\LuxonStartWindow.h" />
     <QtMoc Include="Core\QTransformField.h" />
     <QtMoc Include="Scene\RenderSettingWidget.h" />
     <QtMoc Include="Renderer\GBufferRendererWidget.h" />
