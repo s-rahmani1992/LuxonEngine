@@ -47,15 +47,16 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Sce
 	if (InitializeLight(scene->lightData) == false)
 		return false;
 
-	UploadTexturesAndMeshes(scene);
-	InitializeEntityGPUData(scene->entities);
-	InitializePipelines();
-
 	auto colorArray = scene->hybridBackgroundColor.GetColorArray();
 	m_hybridBackgroundColor[0] = colorArray[0];
 	m_hybridBackgroundColor[1] = colorArray[1];
 	m_hybridBackgroundColor[2] = colorArray[2];
 	m_hybridBackgroundColor[3] = colorArray[3];
+
+	UploadTexturesAndMeshes(scene);
+	InitializeEntityGPUData(scene->entities);
+	InitializePipelines();
+
 	return true;
 }
 
@@ -323,7 +324,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 				});
 		}
 		auto gBufferRTMaterial = DX12MaterialFactory::BuildMaterial(m_shaderRegistery->GetShaderProgram("G_Buffer_RT_Global_Program"));
-
+		gBufferRTMaterial->SetValue("missColor", m_hybridBackgroundColor, sizeof(m_hybridBackgroundColor));
 		m_GBufferrayTracingPipeline = std::make_shared<RayTracing::DX12RayTracingPipelineModule>();
 
 		m_commandAllocator->Reset();
