@@ -14,6 +14,32 @@ BehaviourListWidget::BehaviourListWidget(QWidget *parent, ref<LuxonEngine::Scene
 	layout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 	setLayout(layout);
 
+	setStyleSheet(styleSheet() + R"(
+		QToolButton {
+            background-color: #555555;
+            color: white;
+            border: 1px solid #666666;
+            border-radius: 4px;
+            padding: 4px 4px;
+        }
+
+        ToolButton:hover {
+            background-color: #606060;
+            border-color: #2a82da;
+        }
+
+        ToolButton:pressed {
+            background-color: #2a82da;
+            border-color: #2a82da;
+        }
+
+        ToolButton:disabled {
+            background-color: #404040;
+            color: #808080;
+            border-color: #505050;
+        }
+	)");
+
 	m_behaviourContainer = new QWidget(this);
 	m_behaviourContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_containerLayout = new QVBoxLayout(m_behaviourContainer);

@@ -80,30 +80,6 @@ int main(int argc, char* argv[])
             color: #808080;
             border-color: #505050;
         }
-
-        QToolButton {
-            background-color: #555555;
-            color: white;
-            border: 1px solid #666666;
-            border-radius: 4px;
-            padding: 4px 4px;
-        }
-
-        ToolButton:hover {
-            background-color: #606060;
-            border-color: #2a82da;
-        }
-
-        ToolButton:pressed {
-            background-color: #2a82da;
-            border-color: #2a82da;
-        }
-
-        ToolButton:disabled {
-            background-color: #404040;
-            color: #808080;
-            border-color: #505050;
-        }
     )");
 
     // Persist the last opened scene path when the application closes
