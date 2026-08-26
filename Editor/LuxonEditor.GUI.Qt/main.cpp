@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 
     LuxonEditor::ApplicationConfig config{
         .projectPath = QCoreApplication::applicationDirPath().toStdString(),
-        .graphicAPI = Graphic_API::DIRECTX_12,
+        .graphicAPI = Graphic_API::VULKAN,
     };
 
     std::string errorString;

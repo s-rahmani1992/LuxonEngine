@@ -54,9 +54,9 @@ void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineM
 	vkCmdDrawIndexed(commandBuffer, m_mesh->GetIndexCount(), 1, 0, 0, 0);
 }
 
-bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<GameEntity>& entity, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
+bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<Mesh>& mesh, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
 {
-	m_mesh = entity->GetRenderer()->GetMesh();
+	m_mesh = mesh;
 
 	if(m_mesh == nullptr || material == nullptr)
 		return false;

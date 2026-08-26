@@ -16,6 +16,8 @@
 #include "Core/VulkanMaterialFactory.h"
 #include <set>
 #include <algorithm>
+#include <Rendering/RayTracingComponent.h>
+#include <Rendering/GBufferRTReflectionRenderer.h>
 
 LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::VulkanEditorGraphicContext(
 	const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
@@ -248,12 +250,17 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::UploadMeshesToG
 	std::set<ref<Mesh>> uniqueMeshes;
 	for (auto& entity : entities) {
 		auto renderer = entity->GetRenderer();
-		if (renderer == nullptr)
-			continue;
+		if (renderer != nullptr) {
+			auto mesh = renderer->GetMesh();
 
-		auto mesh = entity->GetRenderer()->GetMesh();
-		if (mesh != nullptr)
-			uniqueMeshes.insert(mesh);
+			if (mesh != nullptr)
+				uniqueMeshes.insert(mesh);
+		}
+
+		auto rtcomponent = entity->GetRayTracingComponent();
+
+		if (rtcomponent != nullptr)
+			uniqueMeshes.insert(rtcomponent->GetMesh());
 	}
 	m_assetManager->UploadMeshesToGPU(std::vector<ref<Mesh>>(uniqueMeshes.begin(), uniqueMeshes.end()));
 }
@@ -440,12 +447,12 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializePipel
 
 	// Build a pipeline module per mesh-renderer entity using the shared material
 	for (auto& entityGPU : m_entityGPUList) {
-		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGPU.gameEntity->GetRenderer());
-		if (meshRenderer == nullptr)
+		auto mesh = ExtractMeshFromGameEntity(entityGPU.gameEntity);
+		if (mesh == nullptr)
 			continue;
 
 		auto rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-		if (rasterizationModule->Initialize(entityGPU.gameEntity, m_sharedRasterMaterial, m_renderPass) == false)
+		if (rasterizationModule->Initialize(mesh, m_sharedRasterMaterial, m_renderPass) == false)
 			continue;
 
 		rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
@@ -508,4 +515,26 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::SyncEntities(co
 
 	UploadMeshesToGPU(sceneEntities);
 	InitializePipelines(m_overrideMaterial);
+}
+
+ref<LuxonEngine::Mesh> LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::ExtractMeshFromGameEntity(const ref<GameEntity>& entity)
+{
+	auto renderer = entity->GetRenderer();
+
+	if (renderer != nullptr) {
+		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(renderer);
+		if (meshRenderer != nullptr)
+			return meshRenderer->GetMesh();
+
+		auto gbufferRenderer = std::dynamic_pointer_cast<GBufferRTReflectionRenderer>(renderer);
+		if (gbufferRenderer != nullptr)
+			return gbufferRenderer->GetMesh();
+	}
+
+	auto rtComponent = entity->GetRayTracingComponent();
+
+	if (rtComponent != nullptr)
+		return rtComponent->GetMesh();
+
+	return nullptr;
 }

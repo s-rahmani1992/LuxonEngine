@@ -26,6 +26,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		void InitializePipelines(const ref<Material>& overrideMaterial);
 		void SyncEntities();
 
+		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
+
 	private:
 		// Depth Stencil
 		const DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;

@@ -37,6 +37,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void InitializePipelines(const ref<Material>& overrideMaterial);
 		void SyncEntities(const ref<Scene>& scene);
 
+		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
+
 	private:
 		UInt32 m_transformStride;
 		VkBuffer m_transformBuffer;

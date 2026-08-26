@@ -1,5 +1,6 @@
 #include "RTComponentWidget.h"
 #include <QBoxLayout>
+#include <LuxonEditorAPI.h>
 
 RTComponentWidget::RTComponentWidget(QWidget *parent)
 	: QWidget(parent)
@@ -17,6 +18,7 @@ RTComponentWidget::RTComponentWidget(QWidget *parent)
 	connect(m_meshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {
 		if (m_rtComponent) {
 			m_rtComponent->SetMesh(mesh);
+			LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
 		}
 		});
 

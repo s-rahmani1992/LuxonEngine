@@ -199,17 +199,13 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::UploadTexturesAndMeshes(c
 	std::set<ref<Mesh>> uniqueMeshes;
 
 	for (auto& entity : scene->entities) {
-		if(entity->GetRenderer() == nullptr)
-			continue;
-
 		auto renderer = entity->GetRenderer();
+		if (renderer != nullptr) {
+			auto mesh = renderer->GetMesh();
 
-		auto mesh = renderer->GetMesh();
-		
-		if(mesh == nullptr)
-			continue;
-
-		uniqueMeshes.insert(mesh);
+			if (mesh != nullptr)
+				uniqueMeshes.insert(mesh);
+		}
 
 		auto rtcomponent = entity->GetRayTracingComponent();
 

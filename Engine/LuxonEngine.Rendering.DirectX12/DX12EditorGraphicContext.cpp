@@ -11,6 +11,8 @@
 #include "Rasterization/DX12RasterizationMaterial.h"
 #include "Rasterization/HLSLRasterizationProgram.h"
 #include "DX12MaterialFactory.h"
+#include <Rendering/GBufferRTReflectionRenderer.h>
+#include <Rendering/RayTracingComponent.h>
 
 bool LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
@@ -226,15 +228,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 
 	// Per-entity transform CBVs
 	for (auto& entityGpu : m_entityGPUData) {
-		if(entityGpu.gameEntity->GetRenderer() == nullptr)
+		auto mesh = ExtractMeshFromGameEntity(entityGpu.gameEntity);
+		if(mesh == nullptr)
 			continue;
-
-		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer());
-		if (meshRenderer == nullptr) {
-			cpuHandle.ptr += incrementSize;
-			gpuHandle.ptr += incrementSize;
-			continue;
-		}
 
 		D3D12_CONSTANT_BUFFER_VIEW_DESC transformViewDesc;
 		transformViewDesc.BufferLocation = entityGpu.transformResource->GetGPUVirtualAddress();
@@ -242,7 +238,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 		m_device->CreateConstantBufferView(&transformViewDesc, cpuHandle);
 
 		m_meshRendererData.push_back(DX12MeshRendererGPUData{
-			.meshRenderer = meshRenderer,
+			.meshRenderer = std::make_shared<MeshRenderer>(mesh, nullptr),
 			.material = sharedRasterMaterial,
 			.transformResource = entityGpu.transformResource,
 			.transformHandle = gpuHandle,
@@ -310,4 +306,26 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()
 	InitializeEntityGPUData(added);
 	// Rebuild pipelines for the full updated entity list
 	InitializePipelines(m_overrideMaterial);
+}
+
+ref<LuxonEngine::Mesh> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::ExtractMeshFromGameEntity(const ref<GameEntity>& entity)
+{
+	auto renderer = entity->GetRenderer();
+
+	if(renderer != nullptr) {
+		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(renderer);
+		if (meshRenderer != nullptr)
+			return meshRenderer->GetMesh();
+
+		auto gbufferRenderer = std::dynamic_pointer_cast<GBufferRTReflectionRenderer>(renderer);
+		if (gbufferRenderer != nullptr)
+			return gbufferRenderer->GetMesh();
+	}
+
+	auto rtComponent = entity->GetRayTracingComponent();
+
+	if (rtComponent != nullptr)
+		return rtComponent->GetMesh();
+
+	return nullptr;
 }

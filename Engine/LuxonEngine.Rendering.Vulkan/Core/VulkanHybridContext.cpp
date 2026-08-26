@@ -188,7 +188,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		if (meshRenderer != nullptr) {
 			auto& gpuMateiral = usedMaterials[meshRenderer->GetMaterial()];
 			ref<Rasterization::VulkanRasterizationPipelineModule> rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-			if (rasterizationModule->Initialize(entity, gpuMateiral, m_renderPass)) {
+			if (rasterizationModule->Initialize(meshRenderer->GetMesh(), gpuMateiral, m_renderPass)) {
 				m_rasterizationModules.push_back(rasterizationModule);
 				rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
 				rasterizationModule->SetDescriptorOffset(HLSL_CAMERA_DATA_NAME, 0);
@@ -225,7 +225,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 			auto& gpuMateiral = usedMaterials[gBufferRenderer->GetMaterial()];
 			ref<Rasterization::VulkanRasterizationPipelineModule> rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-			if (rasterizationModule->Initialize(entity, gpuMateiral, m_renderPass)) {
+			if (rasterizationModule->Initialize(gBufferRenderer->GetMesh(), gpuMateiral, m_renderPass)) {
 				m_gBufferRasterizationModules.push_back(rasterizationModule);
 				rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
 				rasterizationModule->SetDescriptorOffset(HLSL_CAMERA_DATA_NAME, 0);
