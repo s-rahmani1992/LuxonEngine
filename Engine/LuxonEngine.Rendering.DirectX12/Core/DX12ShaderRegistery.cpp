@@ -224,8 +224,8 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
 		RayTracing::HLSLRayTracingProgramProperties rayProps;
 
-		if (properties.contains("rayGeneration"))
-			rayProps.rayGenerationFunction = std::string(properties["rayGeneration"].as_string());
+		if (properties.contains("rayGen"))
+			rayProps.rayGenerationFunction = std::string(properties["rayGen"].as_string());
 		if (properties.contains("intersection"))
 			rayProps.intersectionFunction = std::string(properties["intersection"].as_string());
 		if (properties.contains("anyHit"))
@@ -238,7 +238,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 		ComPtr<IDxcBlob> pshaderObjectData;
 		ComPtr<IUnknown> shaderRefl;
 
-		UInt32 argCount = properties.contains("rayGeneration") ? m_minArguments : m_minArguments + 2;
+		UInt32 argCount = properties.contains("rayGen") ? m_minArguments : m_minArguments + 2;
 		m_compileArguments[11] = (WCHAR*)L"_DX12_RAY_TRACING_LOCAL";
 		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, argCount, error) == false) {
 			return nullptr;

@@ -12,8 +12,9 @@ class QMaterialField : public QWidget
 		Q_PROPERTY(QString label READ GetLabel WRITE SetLabel)
 
 public:
-	QMaterialField(QWidget* parent = nullptr, std::string fieldName = "",
-		LuxonEngine::Rendering::ShaderProgramType programType = LuxonEngine::Rendering::ShaderProgramType::Rasterization);
+	QMaterialField(QWidget* parent, std::string fieldName,
+		LuxonEngine::Rendering::ShaderProgramType programType);
+	QMaterialField(QWidget* parent, std::string fieldName);
 	~QMaterialField();
 
 	void SetMaterial(ref<LuxonEngine::Rendering::Material> material);

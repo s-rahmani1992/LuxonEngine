@@ -12,7 +12,7 @@ MeshRendererWidget::MeshRendererWidget(QWidget *parent)
 	layout->addWidget(m_meshField);
 	layout->setAlignment(m_meshField, Qt::AlignTop | Qt::AlignLeft);
 
-	m_materialField = new QMaterialField(this, "Material");
+	m_materialField = new QMaterialField(this, "Material", LuxonEngine::Rendering::ShaderProgramType::Rasterization);
 	layout->addWidget(m_materialField);
 	layout->setAlignment(m_materialField, Qt::AlignTop | Qt::AlignLeft);
 	connect(m_meshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {

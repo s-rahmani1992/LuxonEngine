@@ -9,6 +9,10 @@
 // Wrap the dangerous call in a standalone function using SEH
 static bool TryRender(const ref<Rendering::GraphicContext>& context)
 {
+#ifdef _DEBUG
+	context->Render();
+	return true;
+#else
 	__try
 	{
 		context->Render();
@@ -18,10 +22,15 @@ static bool TryRender(const ref<Rendering::GraphicContext>& context)
 	{
 		return false;
 	}
+#endif
 }
 
 static bool TryPrepareScene(const ref<Rendering::GraphicContext>& context, const ref<Scene>& scene)
 {
+#ifdef _DEBUG
+	context->PrepareScene(scene);
+	return true;
+#else
 	__try
 	{
 		context->PrepareScene(scene);
@@ -31,6 +40,7 @@ static bool TryPrepareScene(const ref<Rendering::GraphicContext>& context, const
 	{
 		return false;
 	}
+#endif	
 }
 
 GameWindow::GameWindow(QWidget* parent, ref<Scene> scene, int renderMode)

@@ -253,8 +253,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 		auto materialFactory = VulkanDeviceManager::Instance()->CreateMaterialFactory();
 		auto gBufferGlobalMaterial = materialFactory->CreateMaterial(gBufferGlobalProgram);
+		gBufferGlobalMaterial->SetValue("missColor", &m_clearValues[0], 4 * sizeof(Float));
 		m_rayTracingModule = std::make_shared<RayTracing::VulkanRayTracingPipelineModule>();
-		gBufferGlobalMaterial->SetValue("missColor", &m_clearValues[0], 4*  sizeof(Float));
 		if (m_rayTracingModule->Initialize(scene->entities, gBufferGlobalMaterial, m_cameraBuffer, m_lightBuffer, m_transformBuffer, m_swapChainCapability.currentExtent) == false)
 			return false;
 

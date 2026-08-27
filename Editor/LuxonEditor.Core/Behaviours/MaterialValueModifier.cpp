@@ -2,13 +2,13 @@
 #include <Platform/CommonWin.h>
 
 MaterialValueModifier::MaterialValueModifier()
-	:m_material(nullptr), m_fieldName("ambient"), m_speed(1.0f), m_minValue(0.0f), m_maxValue(1.0f), m_currentValue(0.0f)
+	:m_material(nullptr), m_fieldName("ambient"), m_speed(1.0f), m_minValue(0.0f), m_maxValue(1.0f)
 {
 }
 
 MaterialValueModifier::MaterialValueModifier(ref<Rendering::Material>& material, const std::string& fieldName, Float speed, Float minValue, Float maxValue)
-	:m_material(material), m_fieldName(fieldName), m_speed(speed), m_minValue(minValue), m_maxValue(maxValue),
-	m_currentValue(material->GetValue(fieldName, 0.0f))
+	:m_material(material), m_fieldName(fieldName), m_speed(speed), 
+	m_minValue(minValue), m_maxValue(maxValue)
 {
 }
 

@@ -186,7 +186,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 		ComPtr<IDxcResult> compileResult;
 		HRESULT result;
-		UInt32 argumentCounts = properties.contains("rayGeneration") ? m_minArguments + 2 : m_minArguments + 4;
+		UInt32 argumentCounts = properties.contains("rayGen") ? m_minArguments + 2 : m_minArguments + 4;
 		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), argumentCounts, m_includeHandler, IID_PPV_ARGS(&compileResult));
 
 		if (FAILED(result)) {
