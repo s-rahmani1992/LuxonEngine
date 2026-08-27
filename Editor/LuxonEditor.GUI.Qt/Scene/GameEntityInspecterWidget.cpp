@@ -81,7 +81,7 @@ namespace LuxonEditor::GUI::QT {
 				GenerateRendererWidget(meshRenderer);
 			}
 			else if (m_rendererTypeComboBox->currentIndex() == 1) {
-				auto splineRenderer = std::make_shared<LuxonEngine::Rendering::SplineRenderer>(nullptr, std::vector<LuxonEngine::Vector3>{LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f)}, 1.0f, 1);
+				auto splineRenderer = std::make_shared<LuxonEngine::Rendering::SplineRenderer>(nullptr, std::vector<LuxonEngine::Vector3>{LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f)}, 1.0f, 10, 1.0f);
 				m_entity->SetRenderer(splineRenderer);
 				GenerateRendererWidget(splineRenderer);
 			}

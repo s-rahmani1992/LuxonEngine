@@ -67,8 +67,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::ComputeCommand(
 		m_splineParameters.startPoint = m_splineRenderer->GetCurve().m_point1;
 		m_splineParameters.midPoint = m_splineRenderer->GetCurve().m_point2;
 		m_splineParameters.endPoint = m_splineRenderer->GetCurve().m_point3;
-		m_splineParameters.width = m_splineRenderer->GetWidth();
+		m_splineParameters.tileFactor = m_splineRenderer->GetTileFactor();
 		m_splineParameters.length = m_splineRenderer->GetCurve().InterpolateLength(1.0f);
+		m_width = m_splineRenderer->GetWidth();
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_computePipeline);
 		vkCmdPushConstants(commandBuffer, m_computeProgram->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(SplineParameters), &m_splineParameters);
@@ -83,7 +84,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanSplinePipelineModule::RenderCommand(V
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexBuffer, offsets);
-	vkCmdPushConstants(commandBuffer, m_program->GetPipelineLayout(), VK_SHADER_STAGE_ALL_GRAPHICS, m_widthOffset, sizeof(Float), &m_splineParameters.width);
+	vkCmdPushConstants(commandBuffer, m_program->GetPipelineLayout(), VK_SHADER_STAGE_ALL_GRAPHICS, m_widthOffset, sizeof(Float), &m_width);
 
 	m_material->BindValues(commandBuffer);
 	m_material->BindDynamicValues(commandBuffer, m_offset.data(), (UInt32)m_offset.size());

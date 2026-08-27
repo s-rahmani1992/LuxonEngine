@@ -42,7 +42,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	struct SplineParameters {
 		Vector3 startPoint;
-		float width;
+		float tileFactor;
 		Vector3 midPoint;
 		float length;
 		Vector3 endPoint;
@@ -82,5 +82,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<Rasterization::SPIRVRasterizationProgram> m_program;
 		std::vector<UInt32> m_offset;
 		std::vector<UInt32> m_computeOffset = { 0 };
+		float m_width;
 	};
 }

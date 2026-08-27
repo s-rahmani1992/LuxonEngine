@@ -12,9 +12,9 @@ namespace LuxonEngine::Rendering {
 	{
 	public: // Constructors
 
-		SplineRenderer(const ref<Material>& material, const std::vector<Vector3>& points, const float width, const int segments)
+		SplineRenderer(const ref<Material>& material, const std::vector<Vector3>& points, const float width, const int segments, const float tileFactor)
 			: Renderer(material), m_curve(points[0], points[1], points[2]),
-			m_width(width), m_segments(segments) {
+			m_width(width), m_segments(segments), m_tileFactor(tileFactor) {
 		}
 
 	public: // Methods
@@ -39,6 +39,10 @@ namespace LuxonEngine::Rendering {
 		/// </summary>
 		inline void SetSegments(int segments) { m_segments = segments; }
 
+		inline float GetTileFactor() const { return m_tileFactor; }
+
+		inline void SetTileFactor(float tileFactor) { m_tileFactor = tileFactor; }
+
 		/// <summary>
 		/// Gets the bezier curve used by this spline renderer
 		/// </summary>
@@ -57,6 +61,7 @@ namespace LuxonEngine::Rendering {
 		float m_width;
 		int m_segments;
 		bool m_isDirty = true;
+		float m_tileFactor = 1.0f;
 		Core::BezierCurve m_curve;
 	};
 }

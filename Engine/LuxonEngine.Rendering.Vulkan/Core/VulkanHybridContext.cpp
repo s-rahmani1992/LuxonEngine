@@ -213,6 +213,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 				splineModule->WriteOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
 				splineModule->WriteOffset(HLSL_CAMERA_DATA_NAME, 0);
 				splineModule->WriteOffset(HLSL_LIGHT_DATA_NAME, 0);
+				splineRenderer->SetDirty();
 			}
 
 			continue;

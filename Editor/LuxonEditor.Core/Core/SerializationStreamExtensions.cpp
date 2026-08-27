@@ -66,9 +66,10 @@ namespace LuxonEditor {
 				stream.GetVector3("point2", point2);
 				float width = stream.GetFloat("width", 1.0f);
 				int segments = stream.GetInt("segments", 1);
+				float tileFactor = stream.GetFloat("tile-factor", 1.0f);
 				auto materialGuid = stream.GetGuid("material-guid");
 				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
-				return std::make_shared<LuxonEngine::Rendering::SplineRenderer>(material, std::vector<LuxonEngine::Vector3>{point0, point1, point2}, width, segments);
+				return std::make_shared<LuxonEngine::Rendering::SplineRenderer>(material, std::vector<LuxonEngine::Vector3>{point0, point1, point2}, width, segments, tileFactor);
 			}
 			case 2:
 				{
@@ -113,6 +114,7 @@ namespace LuxonEditor {
 			stream.SetVector3("point1", curve.m_point2);
 			stream.SetVector3("point2", curve.m_point3);
 			stream.SetFloat("width", splineRenderer->GetWidth());
+			stream.SetFloat("tile-factor", splineRenderer->GetTileFactor());
 			stream.SetInt("segments", splineRenderer->GetSegments());
 		}
 		else if(auto gBufferRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(renderer)) {

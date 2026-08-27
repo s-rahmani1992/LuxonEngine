@@ -22,6 +22,7 @@ private:
 	QVector3Field* m_point3Field;
 
 	QFloatField* m_widthField;
+	QFloatField* m_tileFactorField;
 	QSpinBox* m_segmentsField;
 
 	QMaterialField* m_materialField;

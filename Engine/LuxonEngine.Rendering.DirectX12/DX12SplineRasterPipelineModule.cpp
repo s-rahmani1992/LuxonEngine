@@ -67,7 +67,7 @@ LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::DX12SplineRasterPi
 	m_splineParams.startPoint = m_splineRenderer->GetCurve().m_point1;
 	m_splineParams.midPoint = m_splineRenderer->GetCurve().m_point2;
 	m_splineParams.endPoint = m_splineRenderer->GetCurve().m_point3;
-	m_splineParams.width = m_splineWidth;
+	m_splineParams.tileFactor = m_splineRenderer->GetTileFactor();
 	m_splineParams.length = m_splineRenderer->GetCurve().InterpolateLength(1.0f);
 }
 
@@ -220,7 +220,7 @@ void LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Render(ComPtr
 		m_splineParams.startPoint = m_splineRenderer->GetCurve().m_point1;
 		m_splineParams.midPoint = m_splineRenderer->GetCurve().m_point2;
 		m_splineParams.endPoint = m_splineRenderer->GetCurve().m_point3;
-		m_splineParams.width = m_splineWidth;
+		m_splineParams.tileFactor = m_splineRenderer->GetTileFactor();
 		m_splineParams.length = m_splineRenderer->GetCurve().InterpolateLength(1.0f);
 
 		commandList->SetComputeRootSignature(m_computeProgram->GetRootSignature().Get());

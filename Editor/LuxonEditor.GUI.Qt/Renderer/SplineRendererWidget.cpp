@@ -51,6 +51,12 @@ SplineRendererWidget::SplineRendererWidget(QWidget* parent, ref<LuxonEngine::Ren
 	layout->addWidget(segmentsRow);
 	layout->setAlignment(segmentsRow, Qt::AlignTop | Qt::AlignLeft);
 
+	m_tileFactorField = new QFloatField(this);
+	m_tileFactorField->setLabelText("Tile Factor");
+	m_tileFactorField->setValue(splineRenderer->GetTileFactor());
+	layout->addWidget(m_tileFactorField);
+	layout->setAlignment(m_tileFactorField, Qt::AlignTop | Qt::AlignLeft);
+
 	// Material field with Rasterization filter
 	m_materialField = new QMaterialField(this, "Material",
 		LuxonEngine::Rendering::ShaderProgramType::Rasterization);
@@ -81,6 +87,12 @@ SplineRendererWidget::SplineRendererWidget(QWidget* parent, ref<LuxonEngine::Ren
 
 	connect(m_segmentsField, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int value) {
 		m_splineRenderer->SetSegments(value);
+		m_splineRenderer->SetDirty();
+		LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
+		});
+
+	connect(m_tileFactorField, &QFloatField::ValueChanged, this, [this](float value) {
+		m_splineRenderer->SetTileFactor(value);
 		m_splineRenderer->SetDirty();
 		LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
 		});

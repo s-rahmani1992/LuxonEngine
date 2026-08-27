@@ -39,7 +39,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	struct SplineParameters {
 		Vector3 startPoint;
-		float width;
+		float tileFactor;
 		Vector3 midPoint;
 		float length;
 		Vector3 endPoint;
