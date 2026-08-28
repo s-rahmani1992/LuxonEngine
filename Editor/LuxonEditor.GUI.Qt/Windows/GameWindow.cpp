@@ -46,7 +46,7 @@ static bool TryPrepareScene(const ref<Rendering::GraphicContext>& context, const
 GameWindow::GameWindow(QWidget* parent, ref<Scene> scene, int renderMode)
 	: QDialog(parent), m_scene(scene), m_renderMode(renderMode)
 {
-	auto title = QString("Game - %1").arg(m_renderMode == 0 ? "Hybrid" : "Ray Tracing");
+	auto title = QString("Game - %1").arg(m_renderMode == 1 ? "Hybrid" : "Ray Tracing");
 	setWindowTitle(title);
 	setFixedSize(1280, 720);
 
@@ -87,7 +87,7 @@ void GameWindow::initializeContext()
 
 	m_window = std::make_shared<LuxonEngine::Platform::GraphicWindow>(props, h);
 
-	if(m_renderMode == 0)
+	if(m_renderMode == 1)
 	{
 		m_context = GetGPUApplication()->CreateHybridContextForWindows(m_window);
 	}

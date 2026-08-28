@@ -45,7 +45,7 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
         });
 
     connect(ui.runButton, &QPushButton::clicked, [this]() {
-        GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene(), ui.renderModeBox->currentIndex());
+        GameWindow* gameWindow = new GameWindow(this, EngineApplication::GetSceneManager()->GetCurrentScene(), ui.renderModeBox->currentData().toInt());
 		gameWindow->show();
 		});
 
