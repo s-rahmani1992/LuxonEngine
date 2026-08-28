@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QPushButton>
+#include <qtoolbutton.h>
 #include <EngineAPI.h>
 
 namespace LuxonEditor::GUI::QT {
@@ -19,11 +20,11 @@ namespace LuxonEditor::GUI::QT {
 		void UpdateRTComponentSection();
 
 		ref<LuxonEngine::GameEntity> m_entity;
-		QWidget* m_rendererWidget = nullptr;
 
+		QPushButton* m_removeRendererButton;
+		QToolButton* m_addRendererButton;
+		QWidget* m_rendererWidget = nullptr;
 		QWidget* m_rendererPanel = nullptr;
-		QComboBox* m_rendererTypeComboBox = nullptr;
-		int m_rendererTypeIndex = -1;
 
 		QWidget* m_rtPanel = nullptr;
 		QPushButton* m_rtButton = nullptr;

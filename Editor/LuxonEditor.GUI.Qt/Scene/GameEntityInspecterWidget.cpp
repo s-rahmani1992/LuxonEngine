@@ -8,6 +8,7 @@
 #include "../Renderer/GBufferRendererWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
+#include <QMenu>
 
 namespace LuxonEditor::GUI::QT {
 	GameEntityInspecterWidget::GameEntityInspecterWidget(QWidget* parent, ref<LuxonEngine::GameEntity>& entity)
@@ -52,19 +53,55 @@ namespace LuxonEditor::GUI::QT {
 		QWidget* rendererSelectorPanel = new QWidget(m_rendererPanel);
 		QHBoxLayout* rendererSelectorLayout = new QHBoxLayout();
 		rendererSelectorLayout->setContentsMargins(4, 4, 4, 4);
+		rendererSelectorLayout->setAlignment(Qt::AlignHCenter);
 		rendererSelectorPanel->setLayout(rendererSelectorLayout);
 		rendererLayout->addWidget(rendererSelectorPanel);
 		rendererLayout->setAlignment(rendererSelectorPanel, Qt::AlignVCenter);
-		m_rendererTypeComboBox = new QComboBox(rendererSelectorPanel);
-		rendererSelectorLayout->addWidget(m_rendererTypeComboBox);
-		m_rendererTypeComboBox->setPlaceholderText("Select Renderer Type");
-		m_rendererTypeComboBox->addItem("MeshRenderer");
-		m_rendererTypeComboBox->addItem("SplineRenderer");
-		m_rendererTypeComboBox->addItem("G Buffer Renderer");
-		rendererSelectorLayout->setAlignment(m_rendererTypeComboBox, Qt::AlignLeft | Qt::AlignVCenter);
-		QPushButton* addRendererButton = new QPushButton("Add", rendererSelectorPanel);
-		rendererSelectorLayout->addWidget(addRendererButton);
-		rendererSelectorLayout->setAlignment(addRendererButton, Qt::AlignLeft | Qt::AlignVCenter);
+
+		m_addRendererButton = new QToolButton(this);
+		m_addRendererButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		m_addRendererButton->setMinimumWidth(150);
+		m_addRendererButton->setText("Add Renderer");
+		m_addRendererButton->setPopupMode(QToolButton::MenuButtonPopup); // enables dropdown arrow
+
+		m_addRendererButton->setStyleSheet(m_addRendererButton->styleSheet() + "QToolButton { background-color: #555555; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px 4px; }"
+			"QToolButton:hover { background-color: #606060; border-color: #2a82da; }"
+			"QToolButton:pressed { background-color: #2a82da; border-color: #2a82da; }"
+			"QToolButton:disabled { background-color: #404040; color: #808080; border-color: #505050; }");
+
+		QMenu* menu = new QMenu(m_addRendererButton);
+		menu->setStyleSheet("QMenu { background-color: #2b2b2b; color: #ffffff; }"
+			"QMenu::item:selected { background-color: #3c3c3c; }");
+
+		menu->addAction("Mesh Renderer", [this]() {
+			auto meshRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(nullptr, nullptr);
+			m_entity->SetRenderer(meshRenderer);
+			GenerateRendererWidget(meshRenderer);
+			});
+
+		menu->addAction("Spline Renderer", [this]() {
+			auto splineRenderer = std::make_shared<LuxonEngine::Rendering::SplineRenderer>(nullptr, std::vector<LuxonEngine::Vector3>{LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f)}, 1.0f, 10, 1.0f);
+			m_entity->SetRenderer(splineRenderer);
+			GenerateRendererWidget(splineRenderer);
+			});
+
+		menu->addAction("G Buffer Reflection Renderer", [this]() {
+			auto gbufferRenderer = std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(nullptr, nullptr);
+			m_entity->SetRenderer(gbufferRenderer);
+			GenerateRendererWidget(gbufferRenderer);
+			});
+
+		m_addRendererButton->setMenu(menu);
+
+		rendererSelectorLayout->addWidget(m_addRendererButton);
+
+		m_removeRendererButton = new QPushButton("Remove Renderer", rendererSelectorPanel);
+		rendererSelectorLayout->addWidget(m_removeRendererButton);
+
+		connect(m_removeRendererButton, &QPushButton::clicked, this, [this]() {
+			m_entity->SetRenderer(nullptr);
+			GenerateRendererWidget(nullptr);
+			});
 
 		QFrame* line = new QFrame(m_rendererPanel);
 		line->setFrameShape(QFrame::HLine);
@@ -72,29 +109,6 @@ namespace LuxonEditor::GUI::QT {
 		rendererLayout->addWidget(line);
 
 		GenerateRendererWidget(m_entity->GetRenderer());
-		addRendererButton->setEnabled(m_rendererTypeComboBox->currentIndex() != m_rendererTypeIndex);
-
-		connect(addRendererButton, &QPushButton::clicked, this, [this]() {
-			if (m_rendererTypeComboBox->currentIndex() == 0) {
-				auto meshRenderer = std::make_shared<LuxonEngine::Rendering::MeshRenderer>(nullptr, nullptr);
-				m_entity->SetRenderer(meshRenderer);
-				GenerateRendererWidget(meshRenderer);
-			}
-			else if (m_rendererTypeComboBox->currentIndex() == 1) {
-				auto splineRenderer = std::make_shared<LuxonEngine::Rendering::SplineRenderer>(nullptr, std::vector<LuxonEngine::Vector3>{LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f), LuxonEngine::Vector3(0.0f)}, 1.0f, 10, 1.0f);
-				m_entity->SetRenderer(splineRenderer);
-				GenerateRendererWidget(splineRenderer);
-			}
-			else if(m_rendererTypeComboBox->currentIndex() == 2) {
-				auto gbufferRenderer = std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(nullptr, nullptr);
-				m_entity->SetRenderer(gbufferRenderer);
-				GenerateRendererWidget(gbufferRenderer);
-			}
-		});
-
-		connect(m_rendererTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, addRendererButton](int index) {
-			addRendererButton->setEnabled(index != m_rendererTypeIndex);
-			});
 
 		// Ray Tracing Component section
 		m_rtPanel = new QWidget(this);
@@ -142,22 +156,21 @@ namespace LuxonEditor::GUI::QT {
 		}
 
 		if (renderer == nullptr) {
-			m_rendererTypeIndex = -1;
-			m_rendererTypeComboBox->setCurrentIndex(-1);
 			auto noRendererLabel = new QLabel("No Renderer is attached", m_rendererPanel);
 			noRendererLabel->setContentsMargins(2, 2, 2, 2);
 			noRendererLabel->setAlignment(Qt::AlignCenter);
 			m_rendererWidget = noRendererLabel;
 			m_rendererPanel->layout()->addWidget(m_rendererWidget);
+			m_removeRendererButton->setVisible(false);
+			m_addRendererButton->setVisible(true);
 			return;
 		}
 
+		m_addRendererButton->setVisible(false);
+		m_removeRendererButton->setVisible(true);
 		auto meshRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::MeshRenderer>(renderer);
 
 		if(meshRenderer != nullptr) {
-			m_rendererTypeIndex = 0;
-			m_rendererTypeComboBox->setCurrentIndex(0);
-
 			auto meshRendererPanel = new QWidget(m_rendererPanel);
 			auto meshRendererLayout = new QVBoxLayout();
 			meshRendererPanel->setLayout(meshRendererLayout);
@@ -182,8 +195,6 @@ namespace LuxonEditor::GUI::QT {
 		auto splineRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SplineRenderer>(renderer);
 
 		if(splineRenderer != nullptr) {
-			m_rendererTypeIndex = 1;
-			m_rendererTypeComboBox->setCurrentIndex(1);
 			auto splineRendererPanel = new QWidget(m_rendererPanel);
 			auto splineRendererLayout = new QVBoxLayout();
 			splineRendererPanel->setLayout(splineRendererLayout);
@@ -206,8 +217,6 @@ namespace LuxonEditor::GUI::QT {
 		auto gBufferRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(renderer);
 
 		if (gBufferRenderer != nullptr) {
-			m_rendererTypeIndex = 2;
-			m_rendererTypeComboBox->setCurrentIndex(2);
 			auto gBufferRendererPanel = new QWidget(m_rendererPanel);
 			auto gBufferRendererLayout = new QVBoxLayout();
 			gBufferRendererPanel->setLayout(gBufferRendererLayout);
