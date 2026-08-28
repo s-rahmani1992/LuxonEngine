@@ -148,7 +148,11 @@
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y
+IF NOT EXIST "$(TargetDir)Assets\" (
+    MKDIR "$(TargetDir)Assets"
+    XCOPY "$(ProjectDir)Assets\" "$(TargetDir)Assets\" /E /Y
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -171,7 +175,11 @@
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y
+IF NOT EXIST "$(TargetDir)Assets\" (
+    MKDIR "$(TargetDir)Assets"
+    XCOPY "$(ProjectDir)Assets\" "$(TargetDir)Assets\" /E /Y
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -192,7 +200,11 @@
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y
+IF NOT EXIST "$(TargetDir)Assets\" (
+    MKDIR "$(TargetDir)Assets"
+    XCOPY "$(ProjectDir)Assets\" "$(TargetDir)Assets\" /E /Y
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -215,7 +227,11 @@
       <AdditionalLibraryDirectories>$(CoreProjectDir)ExternalPackages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y</Command>
+      <Command>XCOPY "$(ProjectDir)Data\" "$(TargetDir)Data\" /E /Y
+IF NOT EXIST "$(TargetDir)Assets\" (
+    MKDIR "$(TargetDir)Assets"
+    XCOPY "$(ProjectDir)Assets\" "$(TargetDir)Assets\" /E /Y
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

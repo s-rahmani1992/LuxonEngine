@@ -1,0 +1,9 @@
+{
+    "uuid" : "738fb62f-7b30-48e1-8cd4-4e06afeda5e0",
+    "data":{
+        "type" : "RayTracing",
+        "model" : "6_6",
+        "closestHit" : "chs",
+        "miss" : "miss"
+    }
+}

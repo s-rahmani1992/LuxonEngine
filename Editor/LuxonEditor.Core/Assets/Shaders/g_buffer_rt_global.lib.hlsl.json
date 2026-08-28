@@ -1,0 +1,9 @@
+{
+    "uuid" : "546dfae8-5e5a-47d9-b132-5877fbd5efd7",
+    "data" : {
+        "model" : "6_6",
+        "type" : "RayTracing",
+        "rayGen" : "rayGen",
+        "miss" : "miss"
+    }
+}

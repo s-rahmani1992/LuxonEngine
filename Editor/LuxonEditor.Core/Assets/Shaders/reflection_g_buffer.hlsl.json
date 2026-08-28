@@ -1,0 +1,9 @@
+{
+    "uuid" : "c94cd9cf-bc99-4a0f-b27b-cf29fe453d1a",
+    "data":{
+        "type" : "Rasterization",
+        "model" : "6_6",
+        "vsMain" : "vs_main",
+        "psMain" : "ps_main"
+    }
+}

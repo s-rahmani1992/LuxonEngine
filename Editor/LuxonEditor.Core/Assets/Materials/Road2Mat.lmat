@@ -1,0 +1,34 @@
+{
+    "program_id" : "c5e694a0-fb00-4a8f-9f70-77eda31f08a5",
+    "fields" : {
+        "_width" : {
+            "data" : 0.0000000000000000,
+            "type" : "float"
+        },
+        "ambient" : {
+            "data" : 0.20000000298023224,
+            "type" : "float"
+        },
+        "color" : {
+            "data" : {
+                "r" : 1.0000000000000000,
+                "g" : 1.0000000000000000,
+                "b" : 1.0000000000000000,
+                "a" : 1.0000000000000000
+            },
+            "type" : "color"
+        },
+        "diffuse" : {
+            "data" : 0.69999998807907104,
+            "type" : "float"
+        },
+        "specular" : {
+            "data" : 1.0000000000000000,
+            "type" : "float"
+        },
+        "mainTexture" : {
+            "data" : "e62da4c4-d363-4643-a1e6-e64a895e9776",
+            "type" : "texture"
+        }
+    }
+}

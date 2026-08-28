@@ -1,0 +1,25 @@
+{
+    "program_id" : "68b8282a-be04-494d-a907-ddc302280459",
+    "fields" : {
+        "ambient" : {
+            "data" : 0.20000000298023224,
+            "type" : "float"
+        },
+        "castShadow" : {
+            "data" : 0.0000000000000000,
+            "type" : "float"
+        },
+        "diffuse" : {
+            "data" : 1.0000000000000000,
+            "type" : "float"
+        },
+        "specular" : {
+            "data" : 1.0000000000000000,
+            "type" : "float"
+        },
+        "mainTexture" : {
+            "data" : "b203b1e3-de3d-4936-8d44-9393262ea71b",
+            "type" : "texture"
+        }
+    }
+}
