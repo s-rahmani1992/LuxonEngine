@@ -5,12 +5,16 @@
 #include <QFloatField.h>
 #include <QTextField.h>
 
-MaterialValueModifierWidget::MaterialValueModifierWidget(QWidget *parent, ref<MaterialValueModifier> materialValueModifier)
+MaterialValueModifierWidget::MaterialValueModifierWidget(QWidget* parent, ref<MaterialValueModifier> materialValueModifier)
 	: QWidget(parent), m_materialValueModifier(materialValueModifier)
 {
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(2, 2, 2, 2);
-	layout->setAlignment(Qt::AlignTop);
+
+	QLabel* guideLabel = new QLabel("use - and + ro increase/decrease value of the material with specified field name between two values", this);
+	guideLabel->setWordWrap(true);
+	guideLabel->setStyleSheet(guideLabel->styleSheet() + "QLabel {padding: 5px; border: 1px solid #ffffff; border-radius: 5px; }");
+	layout->addWidget(guideLabel);
 
 	QMaterialField* materialField = new QMaterialField(this, "material");
 	materialField->SetMaterial(materialValueModifier->GetMaterial());
@@ -51,8 +55,9 @@ MaterialValueModifierWidget::MaterialValueModifierWidget(QWidget *parent, ref<Ma
 		m_materialValueModifier->SetMaxValue(newMaxValue);
 		});
 	layout->addWidget(maxValueField);
-}
 
+	layout->addStretch();
+}
 MaterialValueModifierWidget::~MaterialValueModifierWidget()
 {}
 

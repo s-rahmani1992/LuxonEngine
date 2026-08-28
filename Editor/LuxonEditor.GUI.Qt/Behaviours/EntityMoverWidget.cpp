@@ -11,6 +11,11 @@ EntityMoverWidget::EntityMoverWidget(QWidget* parent, ref<EntityMover> entityMov
 	layout->setContentsMargins(2, 2, 2, 2);
 	layout->setAlignment(Qt::AlignTop);
 
+	QLabel* guideLabel = new QLabel("Moves the entity between two points", this);
+	guideLabel->setWordWrap(true);
+	guideLabel->setStyleSheet(guideLabel->styleSheet() + "QLabel {padding: 5px; border: 1px solid #ffffff; border-radius: 5px; }");
+	layout->addWidget(guideLabel);
+
 	QTransformField* transformField = new QTransformField(this, "Transform", entityMover->GetTransform());
 	connect(transformField, &QTransformField::ValueChanged, this, [this](ref<LuxonEngine::Transform> transform) {
 		m_entityMover->SetTransform(transform);

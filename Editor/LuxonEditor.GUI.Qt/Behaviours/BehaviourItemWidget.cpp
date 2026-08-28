@@ -10,7 +10,7 @@
 #include <QFont>
 #include <QPushButton>
 
-BehaviourItemWidget::BehaviourItemWidget(QWidget *parent, ref<LuxonEngine::Behaviour> behaviour)
+BehaviourItemWidget::BehaviourItemWidget(QWidget* parent, ref<LuxonEngine::Behaviour> behaviour)
 	: QWidget(parent), m_behaviour(behaviour)
 {
 	QBoxLayout* mainLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
@@ -54,44 +54,48 @@ BehaviourItemWidget::BehaviourItemWidget(QWidget *parent, ref<LuxonEngine::Behav
 	behaviourContainer->setLayout(behaviourLayout);
 	mainLayout->addWidget(behaviourContainer);
 
+	auto addBehaviourWidget = [behaviourLayout](QWidget* widget) {
+		widget->setSizePolicy(QSizePolicy::Expanding, widget->sizePolicy().verticalPolicy());
+		behaviourLayout->addWidget(widget);
+		};
+
 	auto materialValueModifier = std::dynamic_pointer_cast<MaterialValueModifier>(behaviour);
 
-	if(materialValueModifier != nullptr) {
+	if (materialValueModifier != nullptr) {
 		MaterialValueModifierWidget* materialValueWidget = new MaterialValueModifierWidget(behaviourContainer, materialValueModifier);
 		titleLabel->setText("Material Value Modifier");
-		behaviourLayout->addWidget(materialValueWidget);
+		addBehaviourWidget(materialValueWidget);
 		return;
 	}
 
-	if(auto cameraNavigator = std::dynamic_pointer_cast<BasicCameraNavigator>(behaviour)) {
+	if (auto cameraNavigator = std::dynamic_pointer_cast<BasicCameraNavigator>(behaviour)) {
 		titleLabel->setText("Basic Camera Navigator");
 		BasicCameraNavigatorWidget* cameraNavigatorWidget = new BasicCameraNavigatorWidget(behaviourContainer, cameraNavigator);
-		behaviourLayout->addWidget(cameraNavigatorWidget);
+		addBehaviourWidget(cameraNavigatorWidget);
 		return;
 	}
 
-	if(auto entityRotator = std::dynamic_pointer_cast<EntityRotator>(behaviour)) {
+	if (auto entityRotator = std::dynamic_pointer_cast<EntityRotator>(behaviour)) {
 		titleLabel->setText("Entity Rotator");
 		EntityRotatorWidget* entityRotatorWidget = new EntityRotatorWidget(behaviourContainer, entityRotator);
-		behaviourLayout->addWidget(entityRotatorWidget);
+		addBehaviourWidget(entityRotatorWidget);
 		return;
 	}
 
-	if(auto entityPositionController = std::dynamic_pointer_cast<EntityPositionController>(behaviour)) {
+	if (auto entityPositionController = std::dynamic_pointer_cast<EntityPositionController>(behaviour)) {
 		titleLabel->setText("Entity Position Controller");
 		EntityPositionControllerWidget* entityPositionControllerWidget = new EntityPositionControllerWidget(behaviourContainer, entityPositionController);
-		behaviourLayout->addWidget(entityPositionControllerWidget);
+		addBehaviourWidget(entityPositionControllerWidget);
 		return;
 	}
 
-	if(auto entityMover = std::dynamic_pointer_cast<EntityMover>(behaviour)) {
+	if (auto entityMover = std::dynamic_pointer_cast<EntityMover>(behaviour)) {
 		titleLabel->setText("Entity Mover");
 		EntityMoverWidget* entityMoverWidget = new EntityMoverWidget(behaviourContainer, entityMover);
-		behaviourLayout->addWidget(entityMoverWidget);
+		addBehaviourWidget(entityMoverWidget);
 		return;
 	}
 }
-
 BehaviourItemWidget::~BehaviourItemWidget()
 {}
 

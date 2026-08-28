@@ -2,12 +2,16 @@
 #include <QBoxLayout>
 #include <QFloatField.h>
 
-BasicCameraNavigatorWidget::BasicCameraNavigatorWidget(QWidget *parent, ref<BasicCameraNavigator> cameraNavigator)
+BasicCameraNavigatorWidget::BasicCameraNavigatorWidget(QWidget* parent, ref<BasicCameraNavigator> cameraNavigator)
 	: QWidget(parent), m_cameraNavigator(cameraNavigator)
 {
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(2, 2, 2, 2);
-	layout->setAlignment(Qt::AlignTop);
+
+	QLabel* guideLabel = new QLabel("When Holding Right Mouse Button, Use 'WASD' keys and mouse movement to navigate the camera", this);
+	guideLabel->setWordWrap(true);
+	guideLabel->setStyleSheet(guideLabel->styleSheet() + "QLabel {padding: 5px; border: 1px solid #ffffff; border-radius: 5px; }");
+	layout->addWidget(guideLabel);
 
 	QFloatField* forwardSpeedField = new QFloatField(this);
 	layout->addWidget(forwardSpeedField);

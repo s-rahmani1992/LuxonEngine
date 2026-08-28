@@ -9,7 +9,11 @@ EntityRotatorWidget::EntityRotatorWidget(QWidget* parent, ref<EntityRotator> rot
 {
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(2, 2, 2, 2);
-	layout->setAlignment(Qt::AlignTop);
+
+	QLabel* guideLabel = new QLabel("Rotates the entity around an axis at with the specified speed", this);
+	guideLabel->setWordWrap(true);
+	guideLabel->setStyleSheet(guideLabel->styleSheet() + "QLabel {padding: 5px; border: 1px solid #ffffff; border-radius: 5px; }");
+	layout->addWidget(guideLabel);
 
 	QTransformField* transformField = new QTransformField(this, "Transform", m_rotator->GetTransform());
 	connect(transformField, &QTransformField::ValueChanged, this, [this](ref<LuxonEngine::Transform> transform) {
@@ -32,6 +36,8 @@ EntityRotatorWidget::EntityRotatorWidget(QWidget* parent, ref<EntityRotator> rot
 		m_rotator->SetAxis(newAxis);
 		});
 	layout->addWidget(axisField);
+
+	layout->addStretch();
 }
 
 EntityRotatorWidget::~EntityRotatorWidget()
