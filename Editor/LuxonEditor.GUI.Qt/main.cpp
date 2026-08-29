@@ -82,11 +82,13 @@ int main(int argc, char* argv[])
         }
     )");
 
+    QString projectPrefsPath;
+
     // Persist the last opened scene path when the application closes
-    QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
+    QObject::connect(&app, &QApplication::aboutToQuit, [&, projectPrefsPath]() {
         const std::string& currentPath =
             LuxonEditor::EngineApplication::GetSceneManager()->GetCurrentScenePath();
-        QSettings settings;
+        QSettings settings(QString::fromStdString(GetProjectPath() + "/LuxonEditorPrefs.ini"), QSettings::IniFormat);
         settings.setValue(k_lastScenePathKey, QString::fromStdString(currentPath));
         });
 
@@ -120,8 +122,10 @@ int main(int argc, char* argv[])
     engineApp->LoadAssets();
     splashWindow.SetProgress(75, "Loading Scene...");
 
+    projectPrefsPath = QString::fromStdString(GetProjectPath() + "/LuxonEditorPrefs.ini");
+
     // Read the last opened scene from Qt settings and pass it to the scene manager
-    QSettings settings;
+    QSettings settings(projectPrefsPath, QSettings::IniFormat);
     std::string lastScenePath = settings.value(k_lastScenePathKey).toString().toStdString();
     engineApp->LoadScene(lastScenePath);
 

@@ -8,6 +8,11 @@ BasicCameraNavigator::BasicCameraNavigator()
 {
 }
 
+BasicCameraNavigator::BasicCameraNavigator(ref<LuxonEngine::Camera> camera)
+	:m_forwardMoveSpeed(1.0f), m_sideMoveSpeed(1.0f), m_rotateSpeed(5.0f), m_camera(camera), m_transform(camera->GetTransform())
+{
+}
+
 BasicCameraNavigator::BasicCameraNavigator(float forwardMoveSpeed, float sideMoveSpeed, float rotateSpeed)
 	:m_forwardMoveSpeed(forwardMoveSpeed), m_sideMoveSpeed(sideMoveSpeed), m_rotateSpeed(rotateSpeed)
 {

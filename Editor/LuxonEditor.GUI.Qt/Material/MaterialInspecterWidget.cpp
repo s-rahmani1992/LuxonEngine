@@ -132,6 +132,7 @@ void MaterialInspecterWidget::CreateScene(const QSize& size)
 	m_scene->entities = { sphereEntity };
 	m_scene->behaviours = { };
 	m_scene->rtGlobalMaterial = nullptr;
+	m_scene->hybridBackgroundColor = Color(0.3f, 0.3f, 0.3f, 1.0f);
 }
 
 void MaterialInspecterWidget::UpdateContext()

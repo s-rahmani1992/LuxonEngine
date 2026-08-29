@@ -5,6 +5,7 @@ class __declspec(dllexport) BasicCameraNavigator : public LuxonEngine::Behaviour
 {
 public:
 	BasicCameraNavigator();
+	BasicCameraNavigator(ref<LuxonEngine::Camera> camera);
 	BasicCameraNavigator(float forwardMoveSpeed, float sideMoveSpeed, float rotateSpeed);
 	virtual void Update(Float deltaTime) override;
 	virtual void Start() override;

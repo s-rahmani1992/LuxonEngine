@@ -141,6 +141,7 @@ void MeshViewWindow::resizeEvent1(QResizeEvent * event)
 		m_scene->entities = { meshEntity, groundEntity };
 		m_scene->behaviours = { };
 		m_scene->rtGlobalMaterial = nullptr;
+		m_scene->hybridBackgroundColor = Color(0.33f, 0.33f, 0.5f, 1.0f);
 		m_context->PrepareScene(m_scene);
 		m_transformWidget->SetTransform(meshTransform);
 	}

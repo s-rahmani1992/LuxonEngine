@@ -5,7 +5,8 @@
 #include <Core/SerializationStream.h>
 #include "SerializationStreamExtensions.h"
 #include "AssetRegistry.h"
-#include "GuidUtilities.h"
+#include "../Behaviours/EntityRotator.h"
+#include "../Behaviours/BasicCameraNavigator.h"
 
 namespace LuxonEditor {
 
@@ -253,11 +254,11 @@ namespace LuxonEditor {
 
 		auto defaultMaterial = assetManager->GetMaterial(LuxonEditor::GuidGenerator::GenerateGUIDFromString("222d330a-5081-4e42-8b2e-0b09ecbbaaf5"));
 		
-		auto sphereTransform = std::make_shared<Transform>(Vector3(0.0f, 1.5f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
-		auto sphereMesh = assetManager->GetMesh(LuxonEditor::GuidGenerator::GenerateGUIDFromString("585aa516-59c6-4fb4-a893-e4d56f65431a"));
-		auto sphereRenderer = std::make_shared<Rendering::MeshRenderer>(sphereMesh, defaultMaterial);
-		auto sphereEntity = std::make_shared<GameEntity>(sphereTransform, sphereRenderer, nullptr);
-		sphereEntity->SetName("Sphere");
+		auto cubeTransform = std::make_shared<Transform>(Vector3(0.0f, 1.5f, 0.0f), Vector3(1.0f), Vector3(0.0f, 1.0f, 0.0f), 0);
+		auto cubeMesh = assetManager->GetMesh(LuxonEditor::GuidGenerator::GenerateGUIDFromString("3a749398-71d0-4277-bb2d-dd01a5e140c4"));
+		auto cubeRenderer = std::make_shared<Rendering::MeshRenderer>(cubeMesh, defaultMaterial);
+		auto cubeEntity = std::make_shared<GameEntity>(cubeTransform, cubeRenderer, nullptr);
+		cubeEntity->SetName("Cube");
 
 		auto planeTransform = std::make_shared<Transform>(Vector3(0.0f, 0.0f, 0.0f), Vector3(10.0f), Vector3(0.0f, 1.0f, 0.0f), 45);
 		auto planeMesh = assetManager->GetMesh(LuxonEditor::GuidGenerator::GenerateGUIDFromString("837f517a-9689-4c3f-88a9-0042120f3abd"));
@@ -274,9 +275,18 @@ namespace LuxonEditor {
 			.intensity = 1.0f
 			});
 
-		AddEntity(GuidGenerator::GenerateGUID(), sphereEntity, editorScene);
+		AddEntity(GuidGenerator::GenerateGUID(), cubeEntity, editorScene);
 		AddEntity(GuidGenerator::GenerateGUID(), planeEntity, editorScene);
 
+		editorScene.scene->hybridBackgroundColor = Color(0.0f, 0.25f, 0.75f, 1.0f);
+		editorScene.scene->canSupportRayTracing = false;
+		editorScene.scene->canSupportHybridRendering = true;
+
+		auto cubeRotator = std::make_shared<EntityRotator>(cubeTransform, 20.0f, Vector3(0.0f, 1.0f, 0.0f));
+		auto camNavigator = std::make_shared<BasicCameraNavigator>(editorScene.scene->mainCamera);
+		
+		editorScene.scene->behaviours.push_back(cubeRotator);
+		editorScene.scene->behaviours.push_back(camNavigator);
 		return editorScene;
 	}
 
