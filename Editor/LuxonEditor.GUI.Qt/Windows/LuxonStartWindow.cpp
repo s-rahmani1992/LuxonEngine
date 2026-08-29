@@ -9,6 +9,8 @@ namespace LuxonEditor::GUI::QT {
 		ui.setupUi(this);
 		setFixedSize(450, 320);
 
+		setWindowIcon(QIcon(":/LuxonEditorWindow/app-icon.png"));
+
 		ui.uiPanel->layout()->setAlignment(Qt::AlignCenter);
 		ui.buttonPanel->layout()->setAlignment(Qt::AlignCenter);
 

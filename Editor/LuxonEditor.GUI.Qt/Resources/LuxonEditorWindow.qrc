@@ -11,5 +11,6 @@
         <file>splash.png</file>
         <file>material.png</file>
         <file>scene.png</file>
+        <file>app-icon.png</file>
     </qresource>
 </RCC>

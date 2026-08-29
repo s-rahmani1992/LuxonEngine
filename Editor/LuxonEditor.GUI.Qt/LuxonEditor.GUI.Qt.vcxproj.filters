@@ -46,6 +46,9 @@
     <Filter Include="Behaviours">
       <UniqueIdentifier>{7024bd48-ca1d-4346-9073-6a8d0363050b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewFilter1">
+      <UniqueIdentifier>{00a18f49-8cdc-4d36-87b4-620ede4fcaf5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Windows\LuxonEditorWindow.ui">
@@ -550,6 +553,9 @@
     <ClInclude Include="AssetBrowser\PathItemStyle.h">
       <Filter>AssetBrowser</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resources\LuxonEditorWindow.qrc">
@@ -558,5 +564,15 @@
     <QtRcc Include="ADS\src\ads.qrc">
       <Filter>ADS\src</Filter>
     </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="engine-icon.ico">
+      <Filter>Resources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

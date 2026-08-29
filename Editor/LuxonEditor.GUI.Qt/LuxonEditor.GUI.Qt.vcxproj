@@ -63,9 +63,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
+    <TargetName>LuxonEngine</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
+    <TargetName>LuxonEngine</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -239,6 +241,7 @@
     <QtMoc Include="Console\LogModel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <QtMoc Include="Windows\LuxonStartWindow.h" />
     <QtMoc Include="Core\QTransformField.h" />
     <QtMoc Include="Scene\RenderSettingWidget.h" />
@@ -313,6 +316,12 @@
   <ItemGroup>
     <QtRcc Include="ADS\src\ads.qrc" />
     <QtRcc Include="Resources\LuxonEditorWindow.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="engine-icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

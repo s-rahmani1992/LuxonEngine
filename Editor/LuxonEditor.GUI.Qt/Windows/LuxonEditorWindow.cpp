@@ -24,6 +24,8 @@ LuxonEditor::GUI::QT::LuxonEditorWindow::LuxonEditorWindow(QWidget* parent)
 {
     ui.setupUi(this);
 
+    setWindowIcon(QIcon(":/LuxonEditorWindow/app-icon.png"));
+
     connect(ui.createShaderMenuItem, &QAction::triggered, [this]() {
         ShaderCreationWindow shaderWindow(this);
         shaderWindow.exec();
