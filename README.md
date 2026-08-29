@@ -1,63 +1,107 @@
 # LuxonEngine
 
-**LuxonEngine** is a custom render engine for Windows OS capable of rendering scenes using either **rasterization** or **ray tracing**. The engine supports both **DirectX 12** and **Vulkan** as graphics APIs.
+## Table of Contents
 
-A demo build with several pre‑made scenes is available for download.
+- [Overview](#overview)
+- [Main Features](#main-features)
+- [How to set up the project (Windows Only)](#how-to-set-up-the-project-windows-only)
+- [Building And Running the Project](#building-and-running-the-project)
+
+## Overview
+
+**LuxonEngine** is a custom render engine for Windows OS capable of rendering scenes using either **rasterization** or **ray tracing**. The engine supports both **DirectX 12** and **Vulkan** as graphics APIs.
 
 > **Note:** Ray tracing requires a GPU with hardware‑accelerated ray tracing support (NVIDIA RTX, AMD RDNA2+, Intel Arc). Running ray‑tracing mode on unsupported hardware may cause crashes.
 
----
 
 ## Main Features
-- It features two main renderers: a full ray tracing renderer and a hybrid renderer that can utilize rasterization or a combination of rasterization and ray tracing.
-- The engine can use either DirectX 12 or Vulkan API
-- It includes a feature for importing and rendering 3D model files using the ‘Assimp’ package ([link](https://assimp.org/)). Currently, it only supports static meshes.
-- It offers the capability to import and utilize textures for rendering via the ‘Windows Image Component’ SDK.
-- It is capable of compiling and using rasterization, compute and ray tracing HLSL shaders with the ‘DXC Compiler’.
-- For every rasterization and ray tracing shader, we can generate material instances with unique parameters and textures for customization.
-- Each material’s properties can be modified at runtime.
-- The application can render at a fixed frame rate or with unlimited FPS, depending on the settings.
-- Each object has a ‘transform’ component for its position and orientation, a ‘Renderer component’ for the Hybrid Renderer, and a ‘Ray Tracing component’ for the Ray Tracing Renderer.
-- By holding the right mouse button, the user can navigate through the scene using mouse movement and the WASD keys.
-- Applications can include ‘Behaviour’ objects that allow for custom control over scene like object movement, data logging, and more.
 
----
+### Rendering
+- Full Ray Tracing Renderer.
+- Hybrid Renderer supporting rasterization, compute and ray tracing.
+- Mesh, G-Buffer, and Spline renderer components.
+- Fixed or unlimited FPS modes.
+- In-editor preview renderer. (it only renders meshes with a fixed material at the moment)
 
-## Building & Running the Project (Visual Studio)
+### Graphics APIs and Shaders
+- DirectX 12 and Vulkan support.
+- Macro-driven DXC shader compiler for HLSL targeting both APIs.
+- Rasterization, ray tracing, and compute shader support.
+- Runtime-editable material instances.
 
-Follow the steps below to build **LuxonEngine** from source.
+### Asset Import and Management
+- Model import (.fbx and .obj) via Assimp (static meshes).
+- Texture import (.png , .jpg and .jpeg) via Windows Imaging Component.
+- Asset browser with basic file management actions like delete, move and rename.
+- Isolated mesh viewer window.
 
-### 1. Clone the repository
-```bash
+### Serialization
+- Materials and scenes are saved and loaded as JSON.
+- Boost used for GUIDs and JSON serialization.
+
+### Scene and Entities
+- Transform and optional Renderer and Ray Tracing components per entity.
+- Directional and point lights.
+- Behaviour objects for custom scene logic.
+
+### Editor and Tools
+- Qt Widgets based Editor GUI for scene, asset management, material, and shader workflows.
+- In-editor shader authoring and compilation.
+- Built-in logging console.
+
+### Misc
+- Engine API separated from Editor GUI.
+- Drag/drop and file dialog import for external files.
+
+
+## How to set up the project (Windows Only)
+
+### Prerequisites
+- Visual Studio 2022 (Desktop development with C++)
+- Qt 6 (msvc2022_64) with Widgets
+- Vulkan SDK (LunarG)
+- CMake (if used)
+- Latest GPU drivers (NVIDIA/AMD/Intel)
+
+### 1. Clone
+```
 git clone https://github.com/s-rahmani1992/LuxonEngine.git
 ```
-### 2. Update your GPU drivers
-Install the latest NVIDIA / AMD / Intel drivers just in case.
+### 2. Install Vulkan SDK
+Download from https://vulkan.lunarg.com/sdk/home#windows and install.
 
-### 3. Install the Vulkan SDK
-If you already installed the Vulkan SDK, skip this step
+### 3. Set environment variables
+Set `VULKAN_SDK` to your Vulkan SDK path, e.g.:
+`C:\VulkanSDK\1.3.xxx.x`
+Add `C:\VulkanSDK\1.3.xxx.x\Bin` to PATH if needed.
 
-Download the Windows version of Vulkan from LunarG:
-https://vulkan.lunarg.com/sdk/home#windows
-
-### 4. Set the VULKAN_SDK_PATH environment variable
-If it does not already exist:
-- Name: VULKAN_SDK_PATH
-- Value: Path to your Vulkan SDK installation
-
-example
-```code
-C:\VulkanSDK\1.3.xxx.x
-```
+### 4. Install Qt 6 and Qt Visual Studio Tools
+Install Qt 6 (Widgets) matching MSVC toolset and the "Qt Visual Studio Tools" extension for Your Visual studio.
 
 ### 5. Set the correct startup project
-- Open the generated .sln file using Visual Studio.
-- Right‑click the Demo Project at 'Editor/LuxonEditor.Demo' which is a WPF project
-- Select 'Set as Startup Project'
+Open the `.sln` in Visual Studio, set `Editor/LuxonEditor.GUI.Qt` as Startup Project
 
-### 6. Build and run
-- Select either Debug or Release Configuration 
+## Building And Running the Project
+Follow the steps below to build **LuxonEngine** from fully setup project.
+
+### 1. Build the project
+- choose `x64` and `Release`
 - Select Debug->Start Debugging or Start Without Debugging
 
 After the build, the .exe file along with other Assets and DLLs will be at  
-(Solution Directory)/Build/(Configuration)/
+(Solution Directory)/Build/Release/
+
+### 2. Run windeployqt
+The built project is still not ready because the required Qt DLLs must be added to the build folder. In order to do it:
+
+1. Locate the `windeployqt.exe`. it is located inside the Qt installation folder at the address below
+```
+C:\Qt\6.x.x\msvc2022_64\bin\windeployqt.exe
+```
+2. Open the Cmd at the path and run the command with the format below to add required files to your build folder
+```
+windeployqt.exe "Build Location" --release
+```
+
+You can now run LuxonEngine.exe to start the app
+
