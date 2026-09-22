@@ -8,10 +8,8 @@
 #include <vulkan/vulkan.h>
 #include "Core/spirv_reflect.h"
 #include <wrl/client.h>
-#include <dxcapi.h>
 
 #pragma comment(lib, "vulkan-1.lib")
-#pragma comment(lib, "dxcompiler.lib")
 
 #ifdef _DEBUG
 #pragma comment(lib, "libboost_json-vc143-mt-gd-x64-1_90.lib")

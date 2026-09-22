@@ -3,9 +3,15 @@
 #include "Rendering/ShaderRegistery.h"
 #include <vector>
 #include <map>
+#include <memory>
 #include <boost/uuid/uuid.hpp>
 
 using namespace Microsoft::WRL;
+
+namespace LuxonEngine::Rendering::DXC {
+	class DXCCompiler;
+	struct DXCCompileOptions;
+}
 
 namespace LuxonEngine::Rendering::Vulkan {
 	class SPIRVShader;
@@ -18,25 +24,23 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		VulkanShaderRegistery(VkDevice device);
 		~VulkanShaderRegistery();
+
+		VulkanShaderRegistery(const VulkanShaderRegistery&) = delete;
+		VulkanShaderRegistery& operator=(const VulkanShaderRegistery&) = delete;
+
 		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) override;
 		virtual ref<ShaderProgram> CompileProgram(const std::wstring& fileName, std::string& error) override;
 		virtual ShaderProgram* CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& properties, std::string& error) override;
 		virtual ref<ShaderProgram> GetProgramByGUID(boost::uuids::uuid guid) override;
 		ref<SPIRVShaderProgram> GetShaderPrograms(const std::string& name);
-		void Initialize();
+		bool Initialize();
 	private:
-		ref<SPIRVShader> CompileShaderStage(const DxcBuffer* sourceBuffer, Vulkan_Shader_Type shaderType, const std::string entryName, std::string& error);
+		DXC::DXCCompileOptions CreateCompileOptions(const std::wstring& includeDir) const;
+		ref<SPIRVShader> CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error);
 		std::map<boost::uuids::uuid, ref<SPIRVShaderProgram>> m_registeredPrograms;
 		std::map<std::string, ref<SPIRVShaderProgram>> m_specialPrograms;
 		VkDevice m_device;
 
-		IDxcUtils* m_utils;
-		IDxcIncludeHandler* m_includeHandler;
-		IDxcCompiler3* m_dxcCompiler;
-
-		std::vector<LPWSTR> m_compileArguments;
-		const UInt32 m_mainIndex = 1;
-		const UInt32 m_targetIndex = 3;
-		const UInt32 m_minArguments = 12;
+		std::unique_ptr<DXC::DXCCompiler> m_compiler;
 	};
 }

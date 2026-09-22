@@ -1,6 +1,8 @@
 
 #include "vulkan-pch.h"
 #include "VulkanShaderRegistery.h"
+#include <dxcapi.h>
+#include "DXCCompiler.h"
 
 #include <fstream>
 #include <filesystem>
@@ -19,45 +21,11 @@
 using namespace Microsoft::WRL;
 
 LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::VulkanShaderRegistery(VkDevice device)
-	: m_compileArguments(16), m_device(device)
+	: m_device(device)
 {
-	// Create compiler-related objects
-	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_utils));
-
-	m_utils->CreateDefaultIncludeHandler(&m_includeHandler);
-
-	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_dxcCompiler));
-
-	// -E for the entry point (eg. 'main')
-	m_compileArguments[0] = (WCHAR*)L"-E";
-	m_compileArguments[1] = (WCHAR*)L"-Main";
-
-	// -T for the target profile (eg. 'ps_6_6')
-	m_compileArguments[2] = (WCHAR*)L"-T";
-	m_compileArguments[3] = (WCHAR*)L"target";
-
-	m_compileArguments[4] = (WCHAR*)L"-I";
-	m_compileArguments[5] = (WCHAR*)L"direction";
-
-	m_compileArguments[6] = (WCHAR*)L"-D";
-	m_compileArguments[7] = (WCHAR*)L"_VULKAN";
-
-	m_compileArguments[8] = (WCHAR*)L"-spirv";
-	m_compileArguments[9] = (WCHAR*)L"-fspv-target-env=vulkan1.3";
-	m_compileArguments[10] = (WCHAR*)L"-O3";
-	m_compileArguments[11] = (WCHAR*)L"-fvk-use-dx-layout";
-	m_compileArguments[12] = (WCHAR*)L"-D";
-	m_compileArguments[13] = (WCHAR*)L"_VK_RAY_TRACING";
-	m_compileArguments[14] = (WCHAR*)L"-D";
-	m_compileArguments[15] = (WCHAR*)L"_VK_RAY_TRACING_LOCAL";
 }
 
-LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::~VulkanShaderRegistery()
-{
-	m_dxcCompiler->Release();
-	m_includeHandler->Release();
-	m_utils->Release();
-}
+LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::~VulkanShaderRegistery() = default;
 
 void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
 {
@@ -80,16 +48,10 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 		return nullptr;
 	}
 
-	DxcBuffer sourceBuffer{
-		.Ptr = buffer.data(),
-		.Size = buffer.size(),
-		.Encoding = DXC_CP_ACP,
-	};
-
 	auto path = std::filesystem::path(fileName);
 	std::wstring shaderDir = path.parent_path().c_str(); /* extract directory from fileName */;
 
-	m_compileArguments[5] = (WCHAR*)shaderDir.c_str();
+	const auto baseOptions = CreateCompileOptions(shaderDir);
 
 	std::ifstream metafile(WStringToString(fileName) + ".json", std::ios::in | std::ios::binary);
 	if (!metafile) throw std::runtime_error("Failed to open meta file");
@@ -105,6 +67,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	auto& properties = metaData["data"].as_object();
 
 	auto programType = properties["type"].as_string().c_str();
+	std::string model = properties["model"].as_string().c_str();
 
 	ref<SPIRVShaderProgram> finalProgram;
 
@@ -114,15 +77,11 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 		if (properties.contains("vsMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["vsMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["vsMain"].as_string().c_str());
+			options.targetProfile = CharToString(("vs_" + model).c_str());
 
-			std::string target("vs_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto vertexShader = CompileShaderStage(&sourceBuffer, Vulkan_Vertex, WStringToString(wMain), stageError);
+			auto vertexShader = CompileShaderStage(buffer.data(), buffer.size(), options, Vulkan_Vertex, stageError);
 
 			if (vertexShader == nullptr) {
 				error = "Error in compiling Vertex Stage: " + stageError;
@@ -134,15 +93,11 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 		if (properties.contains("gsMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["gsMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["gsMain"].as_string().c_str());
+			options.targetProfile = CharToString(("gs_" + model).c_str());
 
-			std::string target("gs_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto geometryShader = CompileShaderStage(&sourceBuffer, Vulkan_Geometry, WStringToString(wMain), stageError);
+			auto geometryShader = CompileShaderStage(buffer.data(), buffer.size(), options, Vulkan_Geometry, stageError);
 
 			if (geometryShader == nullptr) {
 				error = "Error in compiling Geometry Stage: " + stageError;
@@ -154,15 +109,11 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 		if (properties.contains("psMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["psMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["psMain"].as_string().c_str());
+			options.targetProfile = CharToString(("ps_" + model).c_str());
 
-			std::string target("ps_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto pixelShader = CompileShaderStage(&sourceBuffer, Vulkan_Fragment, WStringToString(wMain), stageError);
+			auto pixelShader = CompileShaderStage(buffer.data(), buffer.size(), options, Vulkan_Fragment, stageError);
 
 			if (pixelShader == nullptr) {
 				error = "Error in compiling Pixel Stage: " + stageError;
@@ -176,43 +127,16 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	}
 
 	else if(strcmp(programType, "RayTracing") == 0) {
-		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
-		std::string target("lib_");
-		target += properties["model"].as_string().c_str();
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.targetProfile = CharToString(("lib_" + model).c_str());
+		options.defines.push_back(L"_VK_RAY_TRACING");
+
+		if (!properties.contains("rayGen"))
+			options.defines.push_back(L"_VK_RAY_TRACING_LOCAL");
 
 		ComPtr<IDxcBlob> pshaderObjectData;
 
-		ComPtr<IDxcResult> compileResult;
-		HRESULT result;
-		UInt32 argumentCounts = properties.contains("rayGen") ? m_minArguments + 2 : m_minArguments + 4;
-		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), argumentCounts, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		ComPtr<IDxcBlobUtf8> pErrors;
-
-		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		if (pErrors && pErrors->GetStringLength() > 0)
-		{
-			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-			return nullptr;
-		}
-
-		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Obtaining Shader Bytecode";
+		if (m_compiler->Compile(buffer.data(), buffer.size(), options, pshaderObjectData, error) == false) {
 			return nullptr;
 		}
 
@@ -220,44 +144,13 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	}
 
 	else if (strcmp(programType, "Compute") == 0) {
-		std::wstring wMain = CharToString(properties["csMain"].as_string().c_str());
-		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-		std::string target("cs_");
-		target += properties["model"].as_string().c_str();
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.entryPoint = CharToString(properties["csMain"].as_string().c_str());
+		options.targetProfile = CharToString(("cs_" + model).c_str());
 
 		ComPtr<IDxcBlob> pshaderObjectData;
 
-		ComPtr<IDxcResult> compileResult;
-		HRESULT result;
-		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), m_minArguments, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		ComPtr<IDxcBlobUtf8> pErrors;
-
-		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		if (pErrors && pErrors->GetStringLength() > 0)
-		{
-			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-			return nullptr;
-		}
-
-		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Obtaining Shader Bytecode";
+		if (m_compiler->Compile(buffer.data(), buffer.size(), options, pshaderObjectData, error) == false) {
 			return nullptr;
 		}
 
@@ -272,13 +165,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
 {
-	DxcBuffer sourceBuffer{
-		.Ptr = shaderCode,
-		.Size = codeLength,
-		.Encoding = DXC_CP_ACP,
-	};
-
-	m_compileArguments[5] = (WCHAR*)compileProperties.folderPath.c_str();
+	const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
 
 	SPIRVShaderProgram* finalProgram;
 
@@ -288,15 +175,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 
 		if (compileProperties.rasterProperties.vertexMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.vertexMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.vertexMain);
+			options.targetProfile = CharToString(("vs_" + compileProperties.model).c_str());
 
-			std::string target("vs_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto vertexShader = CompileShaderStage(&sourceBuffer, Vulkan_Vertex, WStringToString(wMain), stageError);
+			auto vertexShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Vertex, stageError);
 
 			if (vertexShader == nullptr) {
 				error = "Error in compiling Vertex Stage: " + stageError;
@@ -308,15 +191,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 
 		if (compileProperties.rasterProperties.geometryMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.geometryMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.geometryMain);
+			options.targetProfile = CharToString(("gs_" + compileProperties.model).c_str());
 
-			std::string target("gs_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto geometryShader = CompileShaderStage(&sourceBuffer, Vulkan_Geometry, WStringToString(wMain), stageError);
+			auto geometryShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Geometry, stageError);
 
 			if (geometryShader == nullptr) {
 				error = "Error in compiling Geometry Stage: " + stageError;
@@ -328,15 +207,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 
 		if (compileProperties.rasterProperties.pixelMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.pixelMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.pixelMain);
+			options.targetProfile = CharToString(("ps_" + compileProperties.model).c_str());
 
-			std::string target("ps_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-
-			auto pixelShader = CompileShaderStage(&sourceBuffer, Vulkan_Fragment, WStringToString(wMain), stageError);
+			auto pixelShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Fragment, stageError);
 
 			if (pixelShader == nullptr) {
 				error = "Error in compiling Pixel Stage: " + stageError;
@@ -350,43 +225,16 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 	}
 
 	else if (compileProperties.type == ShaderProgramType::RayTracing) {
-		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
-		std::string target("lib_");
-		target += compileProperties.model;
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
+		options.defines.push_back(L"_VK_RAY_TRACING");
+
+		if (compileProperties.rayTracingProperties.rayGen == nullptr)
+			options.defines.push_back(L"_VK_RAY_TRACING_LOCAL");
 
 		ComPtr<IDxcBlob> pshaderObjectData;
 
-		ComPtr<IDxcResult> compileResult;
-		HRESULT result;
-		UInt32 argumentCounts = compileProperties.rayTracingProperties.rayGen != nullptr ? m_minArguments + 2 : m_minArguments + 4;
-		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), argumentCounts, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		ComPtr<IDxcBlobUtf8> pErrors;
-
-		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		if (pErrors && pErrors->GetStringLength() > 0)
-		{
-			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-			return nullptr;
-		}
-
-		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Obtaining Shader Bytecode";
+		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error) == false) {
 			return nullptr;
 		}
 
@@ -394,44 +242,13 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 	}
 
 	else if (compileProperties.type == ShaderProgramType::Compute) {
-		std::wstring wMain = CharToString(compileProperties.computeProperties.computeMain);
-		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-		std::string target("cs_");
-		target += compileProperties.model;
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.entryPoint = CharToString(compileProperties.computeProperties.computeMain);
+		options.targetProfile = CharToString(("cs_" + compileProperties.model).c_str());
 
 		ComPtr<IDxcBlob> pshaderObjectData;
 
-		ComPtr<IDxcResult> compileResult;
-		HRESULT result;
-		result = m_dxcCompiler->Compile(&sourceBuffer, (LPCWSTR*)m_compileArguments.data(), m_minArguments, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		ComPtr<IDxcBlobUtf8> pErrors;
-
-		result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Beginning to compile";
-			return nullptr;
-		}
-
-		if (pErrors && pErrors->GetStringLength() > 0)
-		{
-			error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-			return nullptr;
-		}
-
-		result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
-
-		if (FAILED(result)) {
-			error = "Unknown Error when Obtaining Shader Bytecode";
+		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error) == false) {
 			return nullptr;
 		}
 
@@ -464,8 +281,15 @@ ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::
 	return nullptr;
 }
 
-void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
+bool LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
 {
+	std::string error;
+	m_compiler = std::make_unique<DXC::DXCCompiler>();
+
+	if (m_compiler->Initialize(error) == false) {
+		return false;
+	}
+
 	std::wstring root = Platform::Application::GetExecutablePath();
 
 	std::string errorStr;
@@ -487,43 +311,34 @@ void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
 	if (computeProgram != nullptr) {
 		m_specialPrograms.emplace("Bezier_Curve_Compute_Program", std::dynamic_pointer_cast<SPIRVShaderProgram>(computeProgram));
 	}
+
+	return true;
 }
 
-ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, Vulkan_Shader_Type shaderType, const std::string entryName, std::string& error)
+LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CreateCompileOptions(const std::wstring& includeDir) const
+{
+	DXC::DXCCompileOptions options;
+	options.includeDirs.push_back(includeDir);
+	options.defines.push_back(L"_VULKAN");
+
+	options.arguments = {
+		L"-spirv",
+		L"-fspv-target-env=vulkan1.3",
+		L"-O3",
+		L"-fvk-use-dx-layout",
+	};
+
+	return options;
+}
+
+ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
 
-	ComPtr<IDxcResult> compileResult;
-	HRESULT result;
-	result = m_dxcCompiler->Compile(sourceBuffer, (LPCWSTR*)m_compileArguments.data(), m_minArguments, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Beginning to compile";
+	if (m_compiler->Compile(source, size, options, pshaderObjectData, error) == false) {
 		return nullptr;
 	}
 
-	ComPtr<IDxcBlobUtf8> pErrors;
-
-	result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Beginning to compile";
-		return nullptr;
-	}
-
-	if (pErrors && pErrors->GetStringLength() > 0)
-	{
-		error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-		return nullptr;
-	}
-
-	result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderObjectData), nullptr);
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Obtaining Shader Bytecode";
-		return nullptr;
-	}
-
-	ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, entryName);
+	ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, WStringToString(options.entryPoint));
 	return shader;
 }

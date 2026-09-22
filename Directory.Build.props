@@ -8,5 +8,7 @@
     <EngineAPIDir>$(SolutionDir)Editor\LuxonEditor.Core\</EngineAPIDir>
     <GUIProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI\</GUIProjectDir>
     <QTWidgetProjectDir>$(SolutionDir)Editor\LuxonEditor.GUI.Qt.Widgets\</QTWidgetProjectDir>
+    <DXCProjectDir>$(SolutionDir)Engine\LuxonEngine.Rendering.DXC\</DXCProjectDir>
+    <DXCPackageDir>$(SolutionDir)ExternalPackages\dxc_2026_07_29\</DXCPackageDir>
   </PropertyGroup>
 </Project>

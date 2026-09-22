@@ -48,7 +48,8 @@ bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 		return false;
 
 	m_shaderRegistry = std::make_shared<DX12ShaderRegistery>();
-	m_shaderRegistry->Initialize(m_device);
+	if(m_shaderRegistry->Initialize(m_device) == false)
+		return false;
 
 	m_assetManager = std::make_shared<DX12AssetManager>();
 

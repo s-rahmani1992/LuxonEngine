@@ -262,7 +262,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	m_bufferFactory = std::make_shared<VulkanBufferFactory>(m_graphicDevice, m_physicalDevice);
 
 	m_shaderRegistry = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);
-	m_shaderRegistry->Initialize();
+	
+	if(m_shaderRegistry->Initialize() == false)
+		return false;
 
 	m_assetManager = std::make_shared<VulkanAssetManager>(m_graphicDevice, m_physicalDevice);
 

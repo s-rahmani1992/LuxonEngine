@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "DX12ShaderRegistery.h"
-
+#include "DXCCompiler.h"
 #include <fstream>
 #include <filesystem>
 
@@ -12,7 +12,6 @@
 #include <vector>
 #include <memory>
 #include <Platform/Application.h>
-#include <dxcapi.h>
 
 #include <boost/uuid/string_generator.hpp>
 #include <boost/json.hpp>
@@ -26,46 +25,21 @@ namespace HLSL = LuxonEngine::Rendering::DX12::Rasterization;
 namespace Compute = LuxonEngine::Rendering::DX12::Compute;
 
 LuxonEngine::Rendering::DX12::DX12ShaderRegistery::DX12ShaderRegistery()
-	:m_minArguments(10), m_compileArguments(15)
 {
-	// Create compiler-related objects
-	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_utils));
-
-	m_utils->CreateDefaultIncludeHandler(&m_includeHandler);
-
-	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_dxcCompiler));
-
-	m_compileArguments.reserve(20);
-	// -E for the entry point (eg. 'main')
-	m_compileArguments[0] = (WCHAR*)L"-E";
-	m_compileArguments[1] = (WCHAR*)L"-Main";
-
-	// -T for the target profile (eg. 'ps_6_6')
-	m_compileArguments[2] = (WCHAR*)L"-T";
-	m_compileArguments[3] = (WCHAR*)L"target";
-
-	m_compileArguments[4] = (WCHAR*)L"-I";
-	m_compileArguments[5] = (WCHAR*)L"direction";
-
-	// Strip reflection data and pdbs (see later)
-	m_compileArguments[6] = (WCHAR*)L"-Qstrip_debug";
-	m_compileArguments[7] = (WCHAR*)L"-Qstrip_reflect";
-	m_compileArguments[8] = (WCHAR*)DXC_ARG_WARNINGS_ARE_ERRORS; //-WX
-	m_compileArguments[9] = (WCHAR*)DXC_ARG_DEBUG; //-Zi
-	m_compileArguments[10] = (WCHAR*)L"-D";
-	m_compileArguments[11] = (WCHAR*)L"";
+	m_compiler = std::make_unique<DXC::DXCCompiler>();
 }
 
-LuxonEngine::Rendering::DX12::DX12ShaderRegistery::~DX12ShaderRegistery()
-{
-	m_dxcCompiler->Release();
-	m_includeHandler->Release();
-	m_utils->Release();
-}
+LuxonEngine::Rendering::DX12::DX12ShaderRegistery::~DX12ShaderRegistery() = default;
 
-void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<ID3D12Device10>& device)
 {
+	std::string error;
+	if (m_compiler->Initialize(error) == false) {
+		return false;
+	}
+
 	m_device = device;
+	
 	std::wstring root = Platform::Application::GetExecutablePath();
 
 	std::string errorStr;
@@ -74,7 +48,7 @@ void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<
 
 	if(gBufferProgram != nullptr)
 		m_specialShaders.emplace("G_Buffer_Program", std::dynamic_pointer_cast<HLSLShaderProgram>(gBufferProgram));
-	
+
 	auto reflectionRTLightProgram = CompileProgram(root + L"\\Assets\\Shaders\\g_buffer_rt_global.lib.hlsl", errorStr);
 
 	if (reflectionRTLightProgram != nullptr)
@@ -85,6 +59,8 @@ void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<
 	if (computeProgram != nullptr) {
 		m_specialShaders.emplace("Bezier_Curve_Compute_Program", std::dynamic_pointer_cast<HLSLShaderProgram>(computeProgram));
 	}
+
+	return true;
 }
 
 ref<LuxonEngine::Rendering::DX12::HLSLShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetShaderProgram(const std::string& name)
@@ -121,16 +97,10 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 		return nullptr;
 	}
 
-	DxcBuffer sourceBuffer{
-		.Ptr = buffer.data(),
-		.Size = buffer.size(),
-		.Encoding = DXC_CP_ACP,
-	};
-
 	auto path = std::filesystem::path(hlslFile);
 	std::wstring shaderDir = path.parent_path().c_str(); /* extract directory from fileName */;
 
-	m_compileArguments[5] = (WCHAR*)shaderDir.c_str();
+	const auto baseOptions = CreateCompileOptions(shaderDir);
 
 	std::ifstream metafile(WStringToString(hlslFile) + ".json", std::ios::in | std::ios::binary);
 	if (!metafile) throw std::runtime_error("Failed to open meta file");
@@ -146,7 +116,8 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	auto& properties = metaData["data"].as_object();
 
 	auto programType = properties["type"].as_string().c_str();
-	
+	std::string model = properties["model"].as_string().c_str();
+
 	ref<HLSLShaderProgram> finalProgram;
 
 	if (strcmp(programType, RASTERIZATION) == 0) {
@@ -155,16 +126,12 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 
 		if (properties.contains("vsMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["vsMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-			
-			std::string target("vs_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_VERTEX_STAGE";
-			auto vertexShader = CompileShaderStage(&sourceBuffer, DX12::VERTEX_SHADER, stageError);
-			
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["vsMain"].as_string().c_str());
+			options.targetProfile = CharToString(("vs_" + model).c_str());
+			options.defines.push_back(L"_DX12_VERTEX_STAGE");
+			auto vertexShader = CompileShaderStage(buffer.data(), buffer.size(), options, DX12::VERTEX_SHADER, stageError);
+
 			if (vertexShader == nullptr) {
 				error = "Error in compiling Vertex Stage: " + stageError;
 				return nullptr;
@@ -175,15 +142,11 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 
 		if (properties.contains("gsMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["gsMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-			std::string target("gs_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_GEOMETRY_STAGE";
-			auto geometryShader = CompileShaderStage(&sourceBuffer, DX12::GEOMETRY_SHADER, stageError);
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["gsMain"].as_string().c_str());
+			options.targetProfile = CharToString(("gs_" + model).c_str());
+			options.defines.push_back(L"_DX12_GEOMETRY_STAGE");
+			auto geometryShader = CompileShaderStage(buffer.data(), buffer.size(), options, DX12::GEOMETRY_SHADER, stageError);
 
 			if (geometryShader == nullptr) {
 				error = "Error in compiling Geometry Stage: " + stageError;
@@ -195,15 +158,11 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 
 		if (properties.contains("psMain")) {
 			std::string stageError;
-			std::wstring wMain = CharToString(properties["psMain"].as_string().c_str());
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-			std::string target("ps_");
-			target += properties["model"].as_string().c_str();
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_PIXEL_STAGE";
-			auto pixelShader = CompileShaderStage(&sourceBuffer, DX12::PIXEL_SHADER, stageError);
+			auto options = baseOptions;
+			options.entryPoint = CharToString(properties["psMain"].as_string().c_str());
+			options.targetProfile = CharToString(("ps_" + model).c_str());
+			options.defines.push_back(L"_DX12_PIXEL_STAGE");
+			auto pixelShader = CompileShaderStage(buffer.data(), buffer.size(), options, DX12::PIXEL_SHADER, stageError);
 
 			if (pixelShader == nullptr) {
 				error = "Error in compiling Pixel Stage: " + stageError;
@@ -217,11 +176,8 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	}
 
 	else if (strcmp(programType, RAY_TRACING) == 0) {
-		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
-		std::string target("lib_");
-		target += properties["model"].as_string().c_str();
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.targetProfile = CharToString(("lib_" + model).c_str());
 		RayTracing::HLSLRayTracingProgramProperties rayProps;
 
 		if (properties.contains("rayGen"))
@@ -235,41 +191,46 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 		if (properties.contains("miss"))
 			rayProps.missFunction = std::string(properties["miss"].as_string());
 
-		ComPtr<IDxcBlob> pshaderObjectData;
-		ComPtr<IUnknown> shaderRefl;
+		if (!properties.contains("rayGen"))
+			options.defines.push_back(L"_DX12_RAY_TRACING_LOCAL");
 
-		UInt32 argCount = properties.contains("rayGen") ? m_minArguments : m_minArguments + 2;
-		m_compileArguments[11] = (WCHAR*)L"_DX12_RAY_TRACING_LOCAL";
-		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, argCount, error) == false) {
+		ComPtr<IDxcBlob> pshaderObjectData;
+		ComPtr<IDxcBlob> pReflectionData;
+
+		if (m_compiler->Compile(buffer.data(), buffer.size(), options, pshaderObjectData, error, &pReflectionData) == false) {
 			return nullptr;
 		}
 
 		ComPtr<ID3D12LibraryReflection> pLibraryReflection;
-		shaderRefl->QueryInterface(IID_PPV_ARGS(&pLibraryReflection));
+		if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pLibraryReflection)))) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
 		finalProgram = std::make_shared<RayTracing::HLSLRayTracingProgram>((Byte*)pshaderObjectData->GetBufferPointer(), (UInt64)pshaderObjectData->GetBufferSize(), rayProps, pLibraryReflection);
 	}
-	
-	else if (strcmp(programType, COMPUTE) == 0) {
-		std::wstring wMain = CharToString(properties["csMain"].as_string().c_str());
-		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
 
-		std::string target("cs_");
-		target += properties["model"].as_string().c_str();
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+	else if (strcmp(programType, COMPUTE) == 0) {
+		auto options = baseOptions;
+		options.entryPoint = CharToString(properties["csMain"].as_string().c_str());
+		options.targetProfile = CharToString(("cs_" + model).c_str());
 
 		ComPtr<IDxcBlob> pshaderObjectData;
-		ComPtr<IUnknown> shaderRefl;
-		
-		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, m_minArguments, error) == false) {
+		ComPtr<IDxcBlob> pReflectionData;
+
+		if (m_compiler->Compile(buffer.data(), buffer.size(), options, pshaderObjectData, error, &pReflectionData) == false) {
 			return nullptr;
 		}
 
 		ComPtr<ID3D12ShaderReflection> pShaderReflection;
-		shaderRefl->QueryInterface(IID_PPV_ARGS(&pShaderReflection));
+		if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pShaderReflection)))) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
 		finalProgram = std::make_shared<Compute::HLSLComputeProgram>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), pShaderReflection);
 	}
-	
+
 	else {
 		error = "Unknown Shader Type";
 		return nullptr;
@@ -291,13 +252,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 
 LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
 {
-	DxcBuffer sourceBuffer{
-		.Ptr = shaderCode,
-		.Size = codeLength,
-		.Encoding = DXC_CP_ACP,
-	};
-
-	m_compileArguments[5] = (WCHAR*)compileProperties.folderPath.c_str();
+	const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
 
 	HLSLShaderProgram* finalProgram;
 
@@ -307,15 +262,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 
 		if (compileProperties.rasterProperties.vertexMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.vertexMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-			std::string target("vs_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_VERTEX_STAGE";
-			auto vertexShader = CompileShaderStage(&sourceBuffer, DX12::VERTEX_SHADER, stageError);
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.vertexMain);
+			options.targetProfile = CharToString(("vs_" + compileProperties.model).c_str());
+			options.defines.push_back(L"_DX12_VERTEX_STAGE");
+			auto vertexShader = CompileShaderStage(shaderCode, codeLength, options, DX12::VERTEX_SHADER, stageError);
 
 			if (vertexShader == nullptr) {
 				error = "Error in compiling Vertex Stage: " + stageError;
@@ -327,15 +278,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 
 		if (compileProperties.rasterProperties.geometryMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.geometryMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-			std::string target("gs_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_GEOMETRY_STAGE";
-			auto geometryShader = CompileShaderStage(&sourceBuffer, DX12::GEOMETRY_SHADER, stageError);
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.geometryMain);
+			options.targetProfile = CharToString(("gs_" + compileProperties.model).c_str());
+			options.defines.push_back(L"_DX12_GEOMETRY_STAGE");
+			auto geometryShader = CompileShaderStage(shaderCode, codeLength, options, DX12::GEOMETRY_SHADER, stageError);
 
 			if (geometryShader == nullptr) {
 				error = "Error in compiling Geometry Stage: " + stageError;
@@ -347,15 +294,11 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 
 		if (compileProperties.rasterProperties.pixelMain != nullptr) {
 			std::string stageError;
-			std::wstring wMain = CharToString(compileProperties.rasterProperties.pixelMain);
-			m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-			std::string target("ps_");
-			target += compileProperties.model;
-			std::wstring wTarget = CharToString(target.c_str());
-			m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
-			m_compileArguments[11] = (WCHAR*)L"_DX12_PIXEL_STAGE";
-			auto pixelShader = CompileShaderStage(&sourceBuffer, DX12::PIXEL_SHADER, stageError);
+			auto options = baseOptions;
+			options.entryPoint = CharToString(compileProperties.rasterProperties.pixelMain);
+			options.targetProfile = CharToString(("ps_" + compileProperties.model).c_str());
+			options.defines.push_back(L"_DX12_PIXEL_STAGE");
+			auto pixelShader = CompileShaderStage(shaderCode, codeLength, options, DX12::PIXEL_SHADER, stageError);
 
 			if (pixelShader == nullptr) {
 				error = "Error in compiling Pixel Stage: " + stageError;
@@ -369,11 +312,8 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 	}
 
 	else if (compileProperties.type == ShaderProgramType::RayTracing) {
-		m_compileArguments[m_mainIndex] = (WCHAR*)L"";
-		std::string target("lib_");
-		target += compileProperties.model;
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
 		RayTracing::HLSLRayTracingProgramProperties rayProps;
 
 		if (compileProperties.rayTracingProperties.rayGen != nullptr)
@@ -387,38 +327,43 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 		if (compileProperties.rayTracingProperties.miss)
 			rayProps.missFunction = std::string(compileProperties.rayTracingProperties.miss);
 
-		ComPtr<IDxcBlob> pshaderObjectData;
-		ComPtr<IUnknown> shaderRefl;
+		if (compileProperties.rayTracingProperties.rayGen == nullptr)
+			options.defines.push_back(L"_DX12_RAY_TRACING_LOCAL");
 
-		UInt32 argCount = compileProperties.rayTracingProperties.rayGen != nullptr ? m_minArguments : m_minArguments + 2;
-		m_compileArguments[11] = (WCHAR*)L"_DX12_RAY_TRACING_LOCAL";
-		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, argCount, error) == false) {
+		ComPtr<IDxcBlob> pshaderObjectData;
+		ComPtr<IDxcBlob> pReflectionData;
+
+		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error, &pReflectionData) == false) {
 			return nullptr;
 		}
 
 		ComPtr<ID3D12LibraryReflection> pLibraryReflection;
-		shaderRefl->QueryInterface(IID_PPV_ARGS(&pLibraryReflection));
+		if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pLibraryReflection)))) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
 		finalProgram = new RayTracing::HLSLRayTracingProgram((Byte*)pshaderObjectData->GetBufferPointer(), (UInt64)pshaderObjectData->GetBufferSize(), rayProps, pLibraryReflection);
 	}
 
 	else if (compileProperties.type == ShaderProgramType::Compute) {
-		std::wstring wMain = CharToString(compileProperties.computeProperties.computeMain);
-		m_compileArguments[m_mainIndex] = (WCHAR*)(wMain.c_str());
-
-		std::string target("cs_");
-		target += compileProperties.model;
-		std::wstring wTarget = CharToString(target.c_str());
-		m_compileArguments[m_targetIndex] = (WCHAR*)(wTarget.c_str());
+		auto options = baseOptions;
+		options.entryPoint = CharToString(compileProperties.computeProperties.computeMain);
+		options.targetProfile = CharToString(("cs_" + compileProperties.model).c_str());
 
 		ComPtr<IDxcBlob> pshaderObjectData;
-		ComPtr<IUnknown> shaderRefl;
+		ComPtr<IDxcBlob> pReflectionData;
 
-		if (CompileInternal(&sourceBuffer, pshaderObjectData, shaderRefl, m_minArguments, error) == false) {
+		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error, &pReflectionData) == false) {
 			return nullptr;
 		}
 
 		ComPtr<ID3D12ShaderReflection> pShaderReflection;
-		shaderRefl->QueryInterface(IID_PPV_ARGS(&pShaderReflection));
+		if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pShaderReflection)))) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
 		finalProgram = new Compute::HLSLComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), pShaderReflection);
 	}
 
@@ -448,74 +393,37 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	return nullptr;
 }
 
-ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const DxcBuffer* sourceBuffer, DX12_Shader_Type shaderType, std::string& error)
+LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CreateCompileOptions(const std::wstring& includeDir) const
+{
+	DXC::DXCCompileOptions options;
+	options.includeDirs.push_back(includeDir);
+
+	// Strip reflection data and pdbs, reflection is obtained separately
+	options.arguments = {
+		L"-Qstrip_debug",
+		L"-Qstrip_reflect",
+		DXC_ARG_WARNINGS_ARE_ERRORS, //-WX
+		DXC_ARG_DEBUG, //-Zi
+	};
+
+	options.outputReflection = true;
+	return options;
+}
+
+ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, DX12_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
-	ComPtr<IUnknown> shaderRefl;
+	ComPtr<IDxcBlob> pReflectionData;
 
-	if (CompileInternal(sourceBuffer, pshaderObjectData, shaderRefl, m_minArguments + 2, error) == false) {
+	if (m_compiler->Compile(source, size, options, pshaderObjectData, error, &pReflectionData) == false) {
 		return nullptr;
 	}
 
 	ComPtr<ID3D12ShaderReflection> pShaderReflection;
-	shaderRefl->QueryInterface(IID_PPV_ARGS(&pShaderReflection));
-	return std::make_shared<HLSLShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, pShaderReflection);
-}
-
-bool LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileInternal(const DxcBuffer* sourceBuffer, ComPtr<IDxcBlob>& pshaderData, ComPtr<IUnknown>& reflection, UInt32 argumentCount, std::string& error)
-{
-	ComPtr<IDxcResult> compileResult;
-	HRESULT result;
-	result = m_dxcCompiler->Compile(sourceBuffer, (LPCWSTR*)m_compileArguments.data(), argumentCount, m_includeHandler, IID_PPV_ARGS(&compileResult));
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Beginning to compile";
-		return false;
-	}
-
-	ComPtr<IDxcBlobUtf8> pErrors;
-
-	result = compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Beginning to compile";
-		return false;
-	}
-
-	if (pErrors && pErrors->GetStringLength() > 0)
-	{
-		error = std::string(pErrors->GetStringPointer(), pErrors->GetStringLength());
-		return false;
-	}
-
-	result = compileResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pshaderData), nullptr);
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Obtaining Shader Bytecode";
-		return false;
-	}
-
-	// Get Reflection
-	ComPtr<IDxcBlob> pReflectionData;
-	result = compileResult->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(pReflectionData.GetAddressOf()), nullptr);
-
-	if (FAILED(result)) {
-		error = "Unknown Error when Obtaining Reflection Bytecode";
-		return false;
-	}
-
-	DxcBuffer reflectionBuffer{
-		.Ptr = pReflectionData->GetBufferPointer(),
-		.Size = pReflectionData->GetBufferSize(),
-		.Encoding = 0,
-	};
-
-	result = m_utils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&reflection));
-
-	if (FAILED(result)) {
+	if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pShaderReflection)))) {
 		error = "Unknown Error when Creating Reflection";
-		return false;
+		return nullptr;
 	}
 
-	return true;
+	return std::make_shared<HLSLShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, pShaderReflection);
 }

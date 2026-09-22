@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXCProjectDir);$(DXCPackageDir)inc;$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -115,7 +115,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXCProjectDir);$(DXCPackageDir)inc;$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXCProjectDir);$(DXCPackageDir)inc;$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -161,7 +161,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>vulkan-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXCProjectDir);$(DXCPackageDir)inc;$(CoreProjectDir);$(VKProjectDir);$(VK_SDK_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -252,6 +252,9 @@
     <ClCompile Include="VulkanSplinePipelineModule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LuxonEngine.Rendering.DXC\LuxonEngine.Rendering.DXC.vcxproj">
+      <Project>{6ee4762f-3e4b-42e0-80f4-6867db657173}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\LuxonEngine.Core\LuxonEngine.Core.vcxproj">
       <Project>{9daa880f-4d66-4557-b473-d8183fd9dcfb}</Project>
     </ProjectReference>
