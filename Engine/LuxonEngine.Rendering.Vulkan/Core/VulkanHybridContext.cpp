@@ -11,7 +11,7 @@
 #include "Rendering/RayTracingComponent.h"
 #include "VulkanAssetManager.h"
 #include "VulkanUtilities.h"
-#include "VulkanShaderCompiler.h"
+#include <Rendering/ShaderRegistery.h>
 #include "VulkanBufferFactory.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "Rasterization/VulkanRasterizationMaterial.h"
@@ -23,8 +23,8 @@
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanMaterialFactory.h"
 
-LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
-	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window)
+LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window, ShaderRegistery* shaderRegistery)
+	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window), m_shaderProgramRegistery(shaderRegistery)
 {
 	m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
@@ -206,7 +206,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 			SplineEntityData splineEntityData{
 				.splineRenderer = splineRenderer,
 				.material = gpuMateiral,
-				.computeProgram = std::dynamic_pointer_cast<Compute::SPIRVComputeProgram>(m_shaderRegistery->GetShaderPrograms("Bezier_Curve_Compute_Program")),
+				.computeProgram = std::dynamic_pointer_cast<Compute::SPIRVComputeProgram>(GetInternalProgram("Bezier_Curve_Compute_Program")),
 			};
 			if (splineModule->Initialize(splineEntityData, m_renderPass, m_descriptorPool)) {
 				m_splineModues.push_back(splineModule);
@@ -244,13 +244,13 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	}
 
 	if (m_gBufferEntityGPUList.size() > 0) {
-		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( m_shaderRegistery->GetShaderPrograms("G_Buffer_Program"));
+		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
 		m_gbufferModule = std::make_shared<VulkanGBufferPipelineModule>();
 		m_gbufferModule->InitializePipeline(m_gBufferEntityGPUList, gBufferProgram, m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, m_depthImageView);
 		m_gbufferModule->WriteBuffer(HLSL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer, m_transformStride);
 		m_gbufferModule->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
 
-		auto gBufferGlobalProgram = m_shaderRegistery->GetShaderPrograms("G_Buffer_RT_Global_Program");
+		auto gBufferGlobalProgram = GetInternalProgram("G_Buffer_RT_Global_Program");
 
 		auto materialFactory = VulkanDeviceManager::Instance()->CreateMaterialFactory();
 		auto gBufferGlobalMaterial = materialFactory->CreateMaterial(gBufferGlobalProgram);
@@ -707,4 +707,17 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms
 	}
 
 	vkUnmapMemory(m_logicDevice, m_transformBufferMemory);
+}
+
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanHybridContext::GetInternalProgram(const std::string& identifier) const
+{
+	if (m_shaderProgramRegistery == nullptr)
+		return nullptr;
+
+	ShaderProgram* program = m_shaderProgramRegistery->GetShaderProgram(identifier);
+	if (program == nullptr)
+		return nullptr;
+
+	// the registery owns the program. the empty deleter keeps the ref from deleting it
+	return ref<ShaderProgram>(program, [](ShaderProgram*) {});
 }

@@ -144,9 +144,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="JSONUtilities.h" />
-    <ClInclude Include="Rendering\MaterialImporter.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="export.h" />
     <ClInclude Include="Core\SerializationStream.h">
       <Filter>Core</Filter>
@@ -209,9 +206,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="JSONUtilities.cpp" />
-    <ClCompile Include="Rendering\MaterialImporter.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\ShaderRegistery.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>

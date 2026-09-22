@@ -8,6 +8,7 @@ namespace LuxonEngine::Rendering {
 	class GraphicContext;
 	class GPUAssetManager;
 	class ShaderCompiler;
+	class ShaderRegistery;
 	class MaterialFactory;
 
 	/// <summary>
@@ -54,5 +55,15 @@ namespace LuxonEngine::Rendering {
 		/// </summary>
 		/// <returns></returns>
 		virtual ref<MaterialFactory> CreateMaterialFactory() = 0;
+
+		/// <summary>
+		/// Sets the shader registery used by the graphic contexts to retrieve internal shader programs.
+		/// the device manager does not take ownership of the registery
+		/// </summary>
+		/// <param name="shaderRegistery">shader registery</param>
+		void SetShaderRegistery(ShaderRegistery* shaderRegistery) { m_shaderRegistery = shaderRegistery; }
+
+	protected:
+		ShaderRegistery* m_shaderRegistery = nullptr;
 	};
 }

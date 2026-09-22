@@ -12,7 +12,7 @@
 #include "Core/GameEntity.h"
 #include "Rendering/MeshRenderer.h"
 #include "Rendering/GBufferRTReflectionRenderer.h"
-#include "DX12ShaderCompiler.h"
+#include <Rendering/ShaderRegistery.h>
 #include "Rendering/RayTracingComponent.h"
 #include "DX12MeshController.h"
 #include "Core/Mesh.h"
@@ -282,7 +282,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 				.renderer = splineRenderer,
 				.material = usedMaterials[splineRenderer->GetMaterial()],
 				.transformHandle = gpuHandle
-				}, m_depthFormat, std::dynamic_pointer_cast<Compute::HLSLComputeProgram>(m_shaderRegistery->GetShaderProgram("Bezier_Curve_Compute_Program")));
+				}, m_depthFormat, std::dynamic_pointer_cast<Compute::HLSLComputeProgram>(GetInternalProgram("Bezier_Curve_Compute_Program")));
 			splinePipeline->Initialize(m_device);
 			splineRenderer->SetDirty();
 			m_splinePipelines.push_back(splinePipeline);
@@ -304,7 +304,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	if (m_gBufferEntities.size() > 0) {
 		m_gBufferPipeline = std::make_shared<DX12GBufferPipelineModule>();
 
-		if (m_gBufferPipeline->Initialize(m_device, Vector2UInt(m_window->GetWidth(), m_window->GetHeight()), std::dynamic_pointer_cast<Rasterization::HLSLRasterizationProgram>(m_shaderRegistery->GetShaderProgram("G_Buffer_Program"))))
+		if (m_gBufferPipeline->Initialize(m_device, Vector2UInt(m_window->GetWidth(), m_window->GetHeight()), std::dynamic_pointer_cast<Rasterization::HLSLRasterizationProgram>(GetInternalProgram("G_Buffer_Program"))))
 			m_gBufferPipeline->PrepareEntities(m_gBufferEntities);
 
 		// Initialize Ray Tracing Stage of Reflection Renderer
@@ -323,7 +323,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 				.transform = entity.gameEntity->GetTransform(),
 				});
 		}
-		auto gBufferRTMaterial = DX12MaterialFactory::BuildMaterial(m_shaderRegistery->GetShaderProgram("G_Buffer_RT_Global_Program"));
+		auto gBufferRTMaterial = DX12MaterialFactory::BuildMaterial(GetInternalProgram("G_Buffer_RT_Global_Program"));
 		gBufferRTMaterial->SetValue("missColor", m_hybridBackgroundColor, sizeof(m_hybridBackgroundColor));
 		m_GBufferrayTracingPipeline = std::make_shared<RayTracing::DX12RayTracingPipelineModule>();
 
@@ -387,3 +387,16 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	}
 }
 
+
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12HybridContext::GetInternalProgram(const std::string& identifier) const
+{
+	if (m_shaderProgramRegistery == nullptr)
+		return nullptr;
+
+	ShaderProgram* program = m_shaderProgramRegistery->GetShaderProgram(identifier);
+	if (program == nullptr)
+		return nullptr;
+
+	// the registery owns the program. the empty deleter keeps the ref from deleting it
+	return ref<ShaderProgram>(program, [](ShaderProgram*) {});
+}

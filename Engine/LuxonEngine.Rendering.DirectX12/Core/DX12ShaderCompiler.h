@@ -28,12 +28,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		DX12ShaderCompiler& operator=(const DX12ShaderCompiler&) = delete;
 
 		bool Initialize(const ComPtr<ID3D12Device10>& device);
-		ref<HLSLShaderProgram> GetShaderProgram(const std::string& name);
 
-		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) override;
-		virtual ref<ShaderProgram> CompileProgram(const std::wstring& fileName, std::string& error) override;
 		virtual ShaderProgram* CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& properties, std::string& error) override;
-		virtual ref<ShaderProgram> GetProgramByGUID(boost::uuids::uuid guid) override;
 	private:
 
 		DXC::DXCCompileOptions CreateCompileOptions(const std::wstring& includeDir) const;
@@ -41,8 +37,6 @@ namespace LuxonEngine::Rendering::DX12 {
 	
 	private:
 		ComPtr<ID3D12Device10> m_device;
-		std::map<std::string, ref<HLSLShaderProgram>> m_specialShaders;
-		std::map<boost::uuids::uuid, ref<HLSLShaderProgram>> m_shaders;
 
 		std::unique_ptr<DXC::DXCCompiler> m_compiler;
 	};

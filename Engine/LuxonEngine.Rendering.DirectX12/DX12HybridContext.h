@@ -3,6 +3,8 @@
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
+	class ShaderRegistery;
+	class ShaderProgram;
 }
 
 namespace LuxonEngine::Rendering::DX12 {
@@ -43,8 +45,8 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12HybridContext : public DX12GraphicContext
 	{
 	public:
-		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager)
-			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager) {
+		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager, ShaderRegistery* shaderRegistery)
+			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager), m_shaderProgramRegistery(shaderRegistery) {
 		}
 
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) override;
@@ -54,8 +56,11 @@ namespace LuxonEngine::Rendering::DX12 {
 	private:
 		bool InitializeDepthBuffer();
 		void InitializePipelines();
+		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 
 	private:
+		ShaderRegistery* m_shaderProgramRegistery;
+
 		// Depth Stencil
 		const DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;
 		ComPtr<ID3D12Resource> m_depthStencilBuffer;

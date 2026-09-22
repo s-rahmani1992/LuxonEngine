@@ -85,7 +85,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 
 #endif
 
-	// Create a temporary hidden Win32 window to query surface support — no Application dependency needed
+	// Create a temporary hidden Win32 window to query surface support ï¿½ no Application dependency needed
 	HINSTANCE hInstance = GetModuleHandle(nullptr);
 	const wchar_t* tempClassName = L"VkTempWindowClass";
 
@@ -275,13 +275,12 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 }
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
-	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window);
+	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_shaderRegistery);
 
 	if(context->Initialize() == false)
 		return nullptr;
 
 	context->RegisterAssetManager(m_assetManager);
-	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	return context;
 }

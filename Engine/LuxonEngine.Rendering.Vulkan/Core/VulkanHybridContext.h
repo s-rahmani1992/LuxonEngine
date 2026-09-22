@@ -6,6 +6,8 @@ namespace LuxonEngine {
 	namespace Rendering
 	{
 		class SplineRenderer;
+		class ShaderRegistery;
+		class ShaderProgram;
 	}
 }
 
@@ -30,7 +32,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	class VulkanHybridContext : public VulkanGraphicContext {
 	public:
-		VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window);
+		VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window, ShaderRegistery* shaderRegistery);
 		~VulkanHybridContext();
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
@@ -41,6 +43,11 @@ namespace LuxonEngine::Rendering::Vulkan {
 		
 
 		void UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities);
+		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
+
+		// not owned. programs retrieved from it are wrapped in non-owning refs
+		ShaderRegistery* m_shaderProgramRegistery;
+
 		bool InitializeDepthBuffer();
 		bool InitializeRenderPass();
 		void UpdateEntityTransforms();

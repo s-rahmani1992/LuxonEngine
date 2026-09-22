@@ -72,6 +72,7 @@ bool LuxonEditor::EngineApplication::Initialize(std::string& error)
 	m_gpuApplication = CreateGPUApplication(m_graphicAPI);
 	auto compiler = m_gpuApplication->GetShaderCompiler();
 	m_shaderRegistery = new EngineShaderRegistry(compiler.get(), m_assetWatcher);
+	m_gpuApplication->SetShaderRegistery(m_shaderRegistery);
 	m_assetManager = new AssetRegistry(m_projectPath, m_assetWatcher);
 	m_sceneManager = new EngineSceneManager();
 	return true;
