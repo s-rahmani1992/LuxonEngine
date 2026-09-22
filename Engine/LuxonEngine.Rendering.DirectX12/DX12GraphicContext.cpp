@@ -7,7 +7,7 @@
 #include "Core/Transform.h"
 #include "Core/Camera/Camera.h"
 #include "DX12Utilities.h"
-#include "DX12ShaderRegistery.h"
+#include "DX12ShaderCompiler.h"
 #include "DX12AssetManager.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RayTracingComponent.h"
@@ -32,9 +32,9 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterAssetManager(cons
 	m_assetManager = std::dynamic_pointer_cast<DX12AssetManager>(assetManager);
 }
 
-void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::RegisterShaderRegistery(const ref<ShaderCompiler>& shaderRegistery)
 {
-	m_shaderRegistery = std::dynamic_pointer_cast<DX12ShaderRegistery>(shaderRegistery);
+	m_shaderRegistery = std::dynamic_pointer_cast<DX12ShaderCompiler>(shaderRegistery);
 }
 
 void LuxonEngine::Rendering::DX12::DX12GraphicContext::Detach()

@@ -21,7 +21,7 @@ namespace LuxonEngine {
 namespace LuxonEngine::Rendering::DX12 {
 	class DX12CommandExecuter;
 	class DX12MeshController;
-	class DX12ShaderRegistery;
+	class DX12ShaderCompiler;
 	class DX12AssetManager;
 
 	class DX12GPUDeviceManager : public GPUDeviceManager
@@ -32,7 +32,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GraphicContext> CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GPUAssetManager> CreateAssetManager() override;
-		virtual ref<ShaderRegistery> CreateShaderRegistery() override;
+		virtual ref<ShaderCompiler> GetShaderCompiler() override;
 		virtual ref<MaterialFactory> CreateMaterialFactory() override;
 		~DX12GPUDeviceManager();
 		ref<DX12CommandExecuter> CreateCommandExecuter();
@@ -41,7 +41,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<IDXGIAdapter4> m_adapter;
 		ComPtr<ID3D12Device10> m_device;
 
-		ref<DX12ShaderRegistery> m_shaderRegistry;
+		ref<DX12ShaderCompiler> m_shaderCompiler;
 		ref<DX12AssetManager> m_assetManager;
 
 #ifdef _DEBUG

@@ -7,7 +7,7 @@ namespace LuxonEngine::Rendering {
 
 	class GraphicContext;
 	class GPUAssetManager;
-	class ShaderRegistery;
+	class ShaderCompiler;
 	class MaterialFactory;
 
 	/// <summary>
@@ -44,10 +44,10 @@ namespace LuxonEngine::Rendering {
 		virtual ref<GPUAssetManager> CreateAssetManager() = 0;
 
 		/// <summary>
-		/// Creates Shader Registery for managing shaders and shader programs
+		/// Creates Shader Compiler for managing shaders and shader programs
 		/// </summary>
 		/// <returns></returns>
-		virtual ref<ShaderRegistery> CreateShaderRegistery() = 0;
+		virtual ref<ShaderCompiler> GetShaderCompiler() = 0;
 
 		/// <summary>
 		/// Creates Material Factory for creating materials from shader programs

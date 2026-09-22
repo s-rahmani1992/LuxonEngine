@@ -11,7 +11,7 @@
 #include "Rendering/RayTracingComponent.h"
 #include "VulkanAssetManager.h"
 #include "VulkanUtilities.h"
-#include "VulkanShaderRegistery.h"
+#include "VulkanShaderCompiler.h"
 #include "VulkanBufferFactory.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "Rasterization/VulkanRasterizationMaterial.h"

@@ -8,7 +8,6 @@
 #include "Rendering/MeshRenderer.h"
 #include "VulkanAssetManager.h"
 #include "VulkanUtilities.h"
-#include "VulkanShaderRegistery.h"
 #include "VulkanBufferFactory.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "Rasterization/VulkanRasterizationMaterial.h"

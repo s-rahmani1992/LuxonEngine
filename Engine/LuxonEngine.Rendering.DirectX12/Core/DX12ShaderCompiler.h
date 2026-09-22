@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-#include "Rendering/ShaderRegistery.h"
+#include "Rendering/ShaderCompiler.h"
 #include <comdef.h>
 #include <boost/uuid/uuid.hpp>
 #include <map>
@@ -18,14 +18,14 @@ namespace LuxonEngine::Rendering::DX12 {
 	class HLSLShader;
 	enum DX12_Shader_Type;
 
-	class DX12ShaderRegistery : public ShaderRegistery
+	class DX12ShaderCompiler : public ShaderCompiler
 	{
 	public:
-		DX12ShaderRegistery();
-		~DX12ShaderRegistery();
+		DX12ShaderCompiler();
+		~DX12ShaderCompiler();
 
-		DX12ShaderRegistery(const DX12ShaderRegistery&) = delete;
-		DX12ShaderRegistery& operator=(const DX12ShaderRegistery&) = delete;
+		DX12ShaderCompiler(const DX12ShaderCompiler&) = delete;
+		DX12ShaderCompiler& operator=(const DX12ShaderCompiler&) = delete;
 
 		bool Initialize(const ComPtr<ID3D12Device10>& device);
 		ref<HLSLShaderProgram> GetShaderProgram(const std::string& name);

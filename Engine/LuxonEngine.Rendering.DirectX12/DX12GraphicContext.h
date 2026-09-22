@@ -30,7 +30,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12AssetManager;
 	class HLSLMaterial;
 	class HLSLShaderProgram;
-	class DX12ShaderRegistery;
+	class DX12ShaderCompiler;
 	struct EntityGBufferData;
 
 	namespace RayTracing {
@@ -65,7 +65,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) = 0;
 		virtual void Flush() override;
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& mesh) override;
-		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
+		virtual void RegisterShaderRegistery(const ref<ShaderCompiler>& shaderRegistery) override;
 		virtual void Detach() override;
 	protected:
 		bool InitializeCommandObjects(const ComPtr<ID3D12Device10>& device);
@@ -83,7 +83,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12GraphicsCommandList7> m_commandList;
 
 		ref<DX12AssetManager> m_assetManager;
-		ref<DX12ShaderRegistery> m_shaderRegistery;
+		ref<DX12ShaderCompiler> m_shaderRegistery;
 
 		std::vector<DX12EntityGPUData> m_entityGPUData;
 

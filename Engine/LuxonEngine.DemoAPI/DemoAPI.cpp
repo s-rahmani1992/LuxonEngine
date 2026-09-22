@@ -49,7 +49,7 @@ bool Run_Simple_Scene(HWND parentWindow, Graphics_API graphicApi, RenderMode ren
 
 	auto assetManager = gpuDevice->CreateAssetManager();
 	gpuContext->RegisterAssetManager(assetManager);
-	auto shaderRegistery = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistery = gpuDevice->GetShaderCompiler();
 	gpuContext->RegisterShaderRegistery(shaderRegistery);
 	auto materialRegistery = gpuDevice->CreateMaterialFactory();
 	std::string error;
@@ -110,7 +110,7 @@ bool Run_Reflection_Scene(HWND parentWindow, Graphics_API graphicApi, RenderMode
 
 	auto assetManager = gpuDevice->CreateAssetManager();
 	gpuContext->RegisterAssetManager(assetManager);
-	auto shaderRegistery = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistery = gpuDevice->GetShaderCompiler();
 	gpuContext->RegisterShaderRegistery(shaderRegistery);
 	auto materialRegistery = gpuDevice->CreateMaterialFactory();
 	std::string error;
@@ -158,7 +158,7 @@ bool Run_Shadow_Scene(HWND parentWindow, Graphics_API graphicApi)
 
 	auto assetManager = gpuDevice->CreateAssetManager();
 	gpuContext->RegisterAssetManager(assetManager);
-	auto shaderRegistery = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistery = gpuDevice->GetShaderCompiler();
 	gpuContext->RegisterShaderRegistery(shaderRegistery);
 	auto materialRegistery = gpuDevice->CreateMaterialFactory();
 	std::string error;
@@ -206,7 +206,7 @@ bool Run_Refraction_Scene(HWND parentWindow, Graphics_API graphicApi)
 
 	auto assetManager = gpuDevice->CreateAssetManager();
 	gpuContext->RegisterAssetManager(assetManager);
-	auto shaderRegistery = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistery = gpuDevice->GetShaderCompiler();
 	gpuContext->RegisterShaderRegistery(shaderRegistery);
 	auto materialRegistery = gpuDevice->CreateMaterialFactory();
 	std::string error;
@@ -254,7 +254,7 @@ bool Run_Complete_Scene(HWND parentWindow, Graphics_API graphicApi)
 
 	auto assetManager = gpuDevice->CreateAssetManager();
 	gpuContext->RegisterAssetManager(assetManager);
-	auto shaderRegistery = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistery = gpuDevice->GetShaderCompiler();
 	gpuContext->RegisterShaderRegistery(shaderRegistery);
 	auto materialRegistery = gpuDevice->CreateMaterialFactory();
 	std::string error;

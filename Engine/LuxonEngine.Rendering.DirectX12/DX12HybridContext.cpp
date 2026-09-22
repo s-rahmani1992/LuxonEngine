@@ -12,7 +12,7 @@
 #include "Core/GameEntity.h"
 #include "Rendering/MeshRenderer.h"
 #include "Rendering/GBufferRTReflectionRenderer.h"
-#include "DX12ShaderRegistery.h"
+#include "DX12ShaderCompiler.h"
 #include "Rendering/RayTracingComponent.h"
 #include "DX12MeshController.h"
 #include "Core/Mesh.h"

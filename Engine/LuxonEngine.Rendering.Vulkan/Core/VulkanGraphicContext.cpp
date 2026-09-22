@@ -6,7 +6,7 @@
 #include "Core/Transform.h"
 #include "VulkanUtilities.h"
 #include "VulkanAssetManager.h"
-#include "VulkanShaderRegistery.h"
+#include "VulkanShaderCompiler.h"
 #include "Core/VulkanDeviceManager.h"
 
 LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::VulkanGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
@@ -48,9 +48,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterAssetManager(
 	m_assetManager = std::dynamic_pointer_cast<VulkanAssetManager>(assetManager);
 }
 
-void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery)
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterShaderRegistery(const ref<ShaderCompiler>& shaderRegistery)
 {
-	m_shaderRegistery = std::dynamic_pointer_cast<VulkanShaderRegistery>(shaderRegistery);
+	m_shaderRegistery = std::dynamic_pointer_cast<VulkanShaderCompiler>(shaderRegistery);
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuffer(const SceneLightData& lightData)

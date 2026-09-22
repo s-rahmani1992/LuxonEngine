@@ -8,7 +8,7 @@
     <ClInclude Include="Core\VulkanGraphicContext.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\VulkanShaderRegistery.h">
+    <ClInclude Include="Core\VulkanShaderCompiler.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Rasterization\SPIRVRasterizationProgram.h">
@@ -86,7 +86,7 @@
     <ClCompile Include="Core\VulkanGraphicContext.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\VulkanShaderRegistery.cpp">
+    <ClCompile Include="Core\VulkanShaderCompiler.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Rasterization\SPIRVRasterizationProgram.cpp">

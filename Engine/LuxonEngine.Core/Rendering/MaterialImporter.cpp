@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <Platform/Application.h>
 #include <Core/AssetRegistry.h>
-#include <Rendering/ShaderRegistery.h>
+#include <Rendering/ShaderCompiler.h>
 #include <Rendering/MaterialFactory.h>
 #include <Rendering/Material.h>
 #include "JSONUtilities.h"
@@ -34,7 +34,7 @@ ref<LuxonEngine::Rendering::Material> LuxonEngine::Rendering::MaterialImporter::
 
 	auto gpuDevice = Platform::Application::GetGPUDevice();
 	auto assetManager = Platform::Application::GetAssetRegistry();
-	auto shaderRegistry = gpuDevice->CreateShaderRegistery();
+	auto shaderRegistry = gpuDevice->GetShaderCompiler();
 	auto materialFactory = gpuDevice->CreateMaterialFactory();
 
 	auto uidStr = materialJson.as_object()["program_id"].as_string().c_str();

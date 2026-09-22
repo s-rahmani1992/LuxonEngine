@@ -1,6 +1,6 @@
 #pragma once
 #include "vulkan-pch.h"
-#include "Rendering/ShaderRegistery.h"
+#include "Rendering/ShaderCompiler.h"
 #include <vector>
 #include <map>
 #include <memory>
@@ -18,15 +18,15 @@ namespace LuxonEngine::Rendering::Vulkan {
 	class SPIRVShaderProgram;
 	enum Vulkan_Shader_Type;
 
-	class VulkanShaderRegistery : public ShaderRegistery
+	class VulkanShaderCompiler : public ShaderCompiler
 	{
 	public:
 
-		VulkanShaderRegistery(VkDevice device);
-		~VulkanShaderRegistery();
+		VulkanShaderCompiler(VkDevice device);
+		~VulkanShaderCompiler();
 
-		VulkanShaderRegistery(const VulkanShaderRegistery&) = delete;
-		VulkanShaderRegistery& operator=(const VulkanShaderRegistery&) = delete;
+		VulkanShaderCompiler(const VulkanShaderCompiler&) = delete;
+		VulkanShaderCompiler& operator=(const VulkanShaderCompiler&) = delete;
 
 		virtual void RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT = false) override;
 		virtual ref<ShaderProgram> CompileProgram(const std::wstring& fileName, std::string& error) override;

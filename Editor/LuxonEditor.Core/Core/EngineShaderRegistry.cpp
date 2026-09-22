@@ -1,6 +1,6 @@
 #include "EngineShaderRegistry.h"
 #include "AssetDirectoryWatcher.h"
-#include "Rendering/ShaderRegistery.h"
+#include "Rendering/ShaderCompiler.h"
 #include "Rendering/ShaderProgram.h"
 #include "Core/SerializationStream.h"
 #include <fstream>
@@ -11,7 +11,7 @@
 #include "EngineApplication.h"
 
 
-LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
+LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderCompiler* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
 	: m_shaderCompiler(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
 {
 	m_callbackID = m_assetWatcher->RegisterCallback(

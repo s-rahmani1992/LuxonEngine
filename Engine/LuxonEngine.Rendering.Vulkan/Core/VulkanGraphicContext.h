@@ -12,7 +12,7 @@ namespace LuxonEngine {
 namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory;
 	class VulkanAssetManager;
-	class VulkanShaderRegistery;
+	class VulkanShaderCompiler;
 
 	struct TransformGPU {
 	public:
@@ -27,7 +27,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VulkanGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window);
 		~VulkanGraphicContext();
 		virtual void RegisterAssetManager(const ref<GPUAssetManager>& assetManager) override;
-		virtual void RegisterShaderRegistery(const ref<ShaderRegistery>& shaderRegistery) override;
+		virtual void RegisterShaderRegistery(const ref<ShaderCompiler>& shaderRegistery) override;
 		virtual void Flush() override;
 		virtual bool PrepareScene(const ref<Scene>& scene) = 0;
 		virtual void Render() = 0;
@@ -73,7 +73,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		UInt32 m_graphicsQueueFamilyIndex;
 
 		ref<VulkanAssetManager> m_assetManager;
-		ref<VulkanShaderRegistery> m_shaderRegistery;
+		ref<VulkanShaderCompiler> m_shaderRegistery;
 		ref<VulkanBufferFactory> m_bufferFactory;
 
 		ref<Camera> m_camera;

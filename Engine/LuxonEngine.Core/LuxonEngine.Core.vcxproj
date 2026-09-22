@@ -158,7 +158,7 @@
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderProgram.h" />
-    <ClInclude Include="Rendering\ShaderRegistery.h" />
+    <ClInclude Include="Rendering\ShaderCompiler.h" />
     <ClInclude Include="Rendering\SplineRenderer.h" />
     <ClInclude Include="StringUtilities.h" />
   </ItemGroup>

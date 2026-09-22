@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "DX12ShaderRegistery.h"
+#include "DX12ShaderCompiler.h"
 #include "DXCCompiler.h"
 #include <fstream>
 #include <filesystem>
@@ -24,14 +24,14 @@ namespace Render = LuxonEngine::Rendering;
 namespace HLSL = LuxonEngine::Rendering::DX12::Rasterization;
 namespace Compute = LuxonEngine::Rendering::DX12::Compute;
 
-LuxonEngine::Rendering::DX12::DX12ShaderRegistery::DX12ShaderRegistery()
+LuxonEngine::Rendering::DX12::DX12ShaderCompiler::DX12ShaderCompiler()
 {
 	m_compiler = std::make_unique<DXC::DXCCompiler>();
 }
 
-LuxonEngine::Rendering::DX12::DX12ShaderRegistery::~DX12ShaderRegistery() = default;
+LuxonEngine::Rendering::DX12::DX12ShaderCompiler::~DX12ShaderCompiler() = default;
 
-bool LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<ID3D12Device10>& device)
+bool LuxonEngine::Rendering::DX12::DX12ShaderCompiler::Initialize(const ComPtr<ID3D12Device10>& device)
 {
 	std::string error;
 	if (m_compiler->Initialize(error) == false) {
@@ -63,7 +63,7 @@ bool LuxonEngine::Rendering::DX12::DX12ShaderRegistery::Initialize(const ComPtr<
 	return true;
 }
 
-ref<LuxonEngine::Rendering::DX12::HLSLShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetShaderProgram(const std::string& name)
+ref<LuxonEngine::Rendering::DX12::HLSLShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderCompiler::GetShaderProgram(const std::string& name)
 {
 	auto it = m_specialShaders.find(name);
 	if (it != m_specialShaders.end())
@@ -71,7 +71,7 @@ ref<LuxonEngine::Rendering::DX12::HLSLShaderProgram> LuxonEngine::Rendering::DX1
 	return nullptr;
 }
 
-void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
+void LuxonEngine::Rendering::DX12::DX12ShaderCompiler::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
 {
 	ref<HLSLShaderProgram> hlslProgram = std::dynamic_pointer_cast<HLSLShaderProgram>(program);
 
@@ -80,7 +80,7 @@ void LuxonEngine::Rendering::DX12::DX12ShaderRegistery::RegisterShaderProgram(co
 	}
 }
 
-ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const std::wstring& hlslFile, std::string& error)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CompileProgram(const std::wstring& hlslFile, std::string& error)
 {
 	// Read file into memory
 	std::ifstream shaderFile(hlslFile, std::ios::binary | std::ios::ate);
@@ -250,7 +250,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	return finalProgram;
 }
 
-LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
+LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
 {
 	const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
 
@@ -383,7 +383,7 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderR
 	return finalProgram;
 }
 
-ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12ShaderCompiler::GetProgramByGUID(boost::uuids::uuid guid)
 {
 	auto it = m_shaders.find(guid);
 
@@ -393,7 +393,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12Sha
 	return nullptr;
 }
 
-LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CreateCompileOptions(const std::wstring& includeDir) const
+LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
 {
 	DXC::DXCCompileOptions options;
 	options.includeDirs.push_back(includeDir);
@@ -410,7 +410,7 @@ LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::DX12::DX1
 	return options;
 }
 
-ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderRegistery::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, DX12_Shader_Type shaderType, std::string& error)
+ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, DX12_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
 	ComPtr<IDxcBlob> pReflectionData;

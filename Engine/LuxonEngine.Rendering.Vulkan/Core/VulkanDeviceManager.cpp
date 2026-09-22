@@ -3,7 +3,7 @@
 #include "Platform/GraphicWindow.h"
 #include "VulkanHybridContext.h"
 #include "RayTracing/VulkanRayTracingContext.h"
-#include "VulkanShaderRegistery.h"
+#include "VulkanShaderCompiler.h"
 #include "VulkanAssetManager.h"
 #include "VulkanMaterialFactory.h"
 #include "VulkanBufferFactory.h"
@@ -261,9 +261,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	s_instance = this;
 	m_bufferFactory = std::make_shared<VulkanBufferFactory>(m_graphicDevice, m_physicalDevice);
 
-	m_shaderRegistry = std::make_shared<VulkanShaderRegistery>(m_graphicDevice);
+	m_shaderCompiler = std::make_shared<VulkanShaderCompiler>(m_graphicDevice);
 	
-	if(m_shaderRegistry->Initialize() == false)
+	if(m_shaderCompiler->Initialize() == false)
 		return false;
 
 	m_assetManager = std::make_shared<VulkanAssetManager>(m_graphicDevice, m_physicalDevice);
@@ -281,7 +281,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 		return nullptr;
 
 	context->RegisterAssetManager(m_assetManager);
-	context->RegisterShaderRegistery(m_shaderRegistry);
+	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	return context;
 }
@@ -294,7 +294,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 		return nullptr;
 
 	context->RegisterAssetManager(m_assetManager);
-	context->RegisterShaderRegistery(m_shaderRegistry);
+	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	return context;
 }
@@ -306,7 +306,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 		return nullptr;
 
 	context->RegisterAssetManager(m_assetManager);
-	context->RegisterShaderRegistery(m_shaderRegistry);
+	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	return context;
 }
@@ -316,9 +316,9 @@ ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::Vulkan::Vul
 	return m_assetManager;
 }
 
-ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateShaderRegistery()
+ref<LuxonEngine::Rendering::ShaderCompiler> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::GetShaderCompiler()
 {
-	return m_shaderRegistry;
+	return m_shaderCompiler;
 }
 
 ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateMaterialFactory()

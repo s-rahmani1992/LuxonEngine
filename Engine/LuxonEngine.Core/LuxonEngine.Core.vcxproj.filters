@@ -110,7 +110,7 @@
     <ClInclude Include="Rendering\RayTracingComponent.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShaderRegistery.h">
+    <ClInclude Include="Rendering\ShaderCompiler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Core\Vector2UInt.h">

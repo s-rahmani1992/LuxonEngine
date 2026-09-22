@@ -5,7 +5,7 @@
 #include <Platform/GraphicWindow.h>
 
 #include "DX12GPUDeviceManager.h"
-#include <Rendering/ShaderRegistery.h>
+#include <Rendering/ShaderCompiler.h>
 #include <Rendering/GPUAssetManager.h>
 #include <Rendering/GraphicContext.h>
 #include <Rendering/MaterialFactory.h>
@@ -100,7 +100,7 @@ using namespace LuxonEngine;
         return nullptr; \
     }
 
-ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& error)
+ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderCompiler>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& error)
 {
 	std::string errorStr;
 
@@ -400,7 +400,7 @@ ref<Scene> SceneBuilder::BuildSimpleLightScene(const ref<Render::GPUAssetManager
     return scene;
 }
 
-ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& error)
+ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderCompiler>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& error)
 {
     std::string errorStr;
 
@@ -700,7 +700,7 @@ ref<Scene> SceneBuilder::BuildReflectionScene(const ref<Render::GPUAssetManager>
     return scene;
 }
 
-ref<Scene> SceneBuilder::BuildShadowScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
+ref<Scene> SceneBuilder::BuildShadowScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderCompiler>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
 {
     std::string error;
 
@@ -896,7 +896,7 @@ ref<Scene> SceneBuilder::BuildShadowScene(const ref<Render::GPUAssetManager>& as
     return scene;
 }
 
-ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
+ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderCompiler>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
 {
     std::string error;
 
@@ -1115,7 +1115,7 @@ ref<Scene> SceneBuilder::BuildRefractionScene(const ref<Render::GPUAssetManager>
     return scene;
 }
 
-ref<Scene> SceneBuilder::BuildComplexScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderRegistery>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
+ref<Scene> SceneBuilder::BuildComplexScene(const ref<Render::GPUAssetManager>& assetManager, const ref<Render::ShaderCompiler>& shaderRegistery, const ref<Render::MaterialFactory>& materialFactory, ref<Platform::GraphicWindow> win, std::string& errorStr)
 {
     std::string error;
 

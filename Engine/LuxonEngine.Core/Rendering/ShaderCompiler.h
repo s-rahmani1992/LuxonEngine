@@ -37,7 +37,7 @@ namespace LuxonEngine::Rendering {
 		std::wstring folderPath;
 	};
 
-	class ShaderRegistery {
+	class ShaderCompiler {
 	public:
 
 		/// <summary>

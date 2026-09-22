@@ -189,7 +189,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Compute\HLSLComputeProgram.h" />
-    <ClInclude Include="Core\DX12ShaderRegistery.h" />
+    <ClInclude Include="Core\DX12ShaderCompiler.h" />
     <ClInclude Include="Core\HLSLReflection.h" />
     <ClInclude Include="Core\HLSLShader.h" />
     <ClInclude Include="Core\HLSLShaderProgram.h" />
@@ -219,7 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compute\HLSLComputeProgram.cpp" />
-    <ClCompile Include="Core\DX12ShaderRegistery.cpp" />
+    <ClCompile Include="Core\DX12ShaderCompiler.cpp" />
     <ClCompile Include="Core\HLSLReflection.cpp" />
     <ClCompile Include="Core\HLSLShader.cpp" />
     <ClCompile Include="Core\HLSLShaderProgram.cpp" />

@@ -96,7 +96,7 @@
     <ClInclude Include="Rasterization\DX12RasterizationMaterial.h">
       <Filter>Rasterization</Filter>
     </ClInclude>
-    <ClInclude Include="Core\DX12ShaderRegistery.h">
+    <ClInclude Include="Core\DX12ShaderCompiler.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\HLSLShader.h">
@@ -180,7 +180,7 @@
     <ClCompile Include="Rasterization\DX12RasterizationMaterial.cpp">
       <Filter>Rasterization</Filter>
     </ClCompile>
-    <ClCompile Include="Core\DX12ShaderRegistery.cpp">
+    <ClCompile Include="Core\DX12ShaderCompiler.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\HLSLShader.cpp">

@@ -1,6 +1,6 @@
 
 #include "vulkan-pch.h"
-#include "VulkanShaderRegistery.h"
+#include "VulkanShaderCompiler.h"
 #include <dxcapi.h>
 #include "DXCCompiler.h"
 
@@ -20,18 +20,18 @@
 
 using namespace Microsoft::WRL;
 
-LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::VulkanShaderRegistery(VkDevice device)
+LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::VulkanShaderCompiler(VkDevice device)
 	: m_device(device)
 {
 }
 
-LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::~VulkanShaderRegistery() = default;
+LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::~VulkanShaderCompiler() = default;
 
-void LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
+void LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::RegisterShaderProgram(const std::string& name, const ref<ShaderProgram>& program, bool isRT)
 {
 }
 
-ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const std::wstring& fileName, std::string& error)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileProgram(const std::wstring& fileName, std::string& error)
 {
 	// Read file into memory
 	std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
@@ -163,7 +163,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	return finalProgram;
 }
 
-LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
+LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
 {
 	const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
 
@@ -263,7 +263,7 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 	return finalProgram;
 }
 
-ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetProgramByGUID(boost::uuids::uuid guid)
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::GetProgramByGUID(boost::uuids::uuid guid)
 {
 	auto it = m_registeredPrograms.find(guid);
 
@@ -273,7 +273,7 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 	return nullptr;
 }
 
-ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::GetShaderPrograms(const std::string& name)
+ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::GetShaderPrograms(const std::string& name)
 {
 	auto it = m_specialPrograms.find(name);
 	if (it != m_specialPrograms.end())
@@ -281,7 +281,7 @@ ref<LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram> LuxonEngine::Rendering::
 	return nullptr;
 }
 
-bool LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
+bool LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::Initialize()
 {
 	std::string error;
 	m_compiler = std::make_unique<DXC::DXCCompiler>();
@@ -315,7 +315,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::Initialize()
 	return true;
 }
 
-LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CreateCompileOptions(const std::wstring& includeDir) const
+LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
 {
 	DXC::DXCCompileOptions options;
 	options.includeDirs.push_back(includeDir);
@@ -331,7 +331,7 @@ LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::Vulkan::V
 	return options;
 }
 
-ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderRegistery::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
+ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
 {
 	ComPtr<IDxcBlob> pshaderObjectData;
 

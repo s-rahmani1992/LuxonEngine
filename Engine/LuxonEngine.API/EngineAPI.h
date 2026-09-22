@@ -2,7 +2,7 @@
 #include <Rendering/GPUDeviceManager.h>
 #include <Rendering/GraphicContext.h>
 #include <Rendering/ShaderProgram.h>
-#include <Rendering/ShaderRegistery.h>
+#include <Rendering/ShaderCompiler.h>
 #include <Rendering/MaterialFactory.h>
 #include <Rendering/GPUAssetManager.h>
 #include <Rendering/MeshRenderer.h>

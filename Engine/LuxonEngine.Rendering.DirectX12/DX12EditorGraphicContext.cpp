@@ -6,7 +6,6 @@
 #include "DX12GameEntityPipelineModule.h"
 #include "Core/GameEntity.h"
 #include "Rendering/MeshRenderer.h"
-#include "DX12ShaderRegistery.h"
 #include "Core/Scene.h"
 #include "Rasterization/DX12RasterizationMaterial.h"
 #include "Rasterization/HLSLRasterizationProgram.h"

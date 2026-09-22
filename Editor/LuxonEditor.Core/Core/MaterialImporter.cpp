@@ -4,7 +4,6 @@
 #include <fstream>
 #include <filesystem>
 #include <Platform/Application.h>
-#include <Rendering/ShaderRegistery.h>
 #include <Rendering/MaterialFactory.h>
 #include <Rendering/Material.h>
 #include "JSONUtilities.h"

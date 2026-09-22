@@ -188,7 +188,7 @@
     <ClInclude Include="Core\VulkanHybridContext.h" />
     <ClInclude Include="Core\VulkanMaterialFactory.h" />
     <ClInclude Include="Core\VulkanMeshController.h" />
-    <ClInclude Include="Core\VulkanShaderRegistery.h" />
+    <ClInclude Include="Core\VulkanShaderCompiler.h" />
     <ClInclude Include="Core\VulkanTexture2DController.h" />
     <ClInclude Include="Core\VulkanUtilities.h" />
     <ClInclude Include="Rasterization\SPIRVRasterizationProgram.h" />
@@ -224,7 +224,7 @@
     <ClCompile Include="Core\VulkanHybridContext.cpp" />
     <ClCompile Include="Core\VulkanMaterialFactory.cpp" />
     <ClCompile Include="Core\VulkanMeshController.cpp" />
-    <ClCompile Include="Core\VulkanShaderRegistery.cpp" />
+    <ClCompile Include="Core\VulkanShaderCompiler.cpp" />
     <ClCompile Include="Core\VulkanTexture2DController.cpp" />
     <ClCompile Include="Core\VulkanUtilities.cpp" />
     <ClCompile Include="Rasterization\SPIRVRasterizationProgram.cpp" />

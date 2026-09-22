@@ -5,7 +5,7 @@
 #include "DX12RayTracingContext.h"
 #include "DX12HybridContext.h"
 #include "DX12AssetManager.h"
-#include "DX12ShaderRegistery.h"
+#include "DX12ShaderCompiler.h"
 #include "DX12MaterialFactory.h"
 #include "DX12EditorGraphicContext.h"
 
@@ -47,8 +47,8 @@ bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 	if (!adapterFound)
 		return false;
 
-	m_shaderRegistry = std::make_shared<DX12ShaderRegistery>();
-	if(m_shaderRegistry->Initialize(m_device) == false)
+	m_shaderCompiler = std::make_shared<DX12ShaderCompiler>();
+	if(m_shaderCompiler->Initialize(m_device) == false)
 		return false;
 
 	m_assetManager = std::make_shared<DX12AssetManager>();
@@ -63,7 +63,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window, m_assetManager);
-	context->RegisterShaderRegistery(m_shaderRegistry);
+	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
@@ -75,7 +75,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
 	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager);
-	context->RegisterShaderRegistery(m_shaderRegistry);
+	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
@@ -99,9 +99,9 @@ ref<LuxonEngine::Rendering::GPUAssetManager> LuxonEngine::Rendering::DX12::DX12G
 	return m_assetManager;
 }
 
-ref<LuxonEngine::Rendering::ShaderRegistery> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateShaderRegistery()
+ref<LuxonEngine::Rendering::ShaderCompiler> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::GetShaderCompiler()
 {
-	return m_shaderRegistry;
+	return m_shaderCompiler;
 }
 
 ref<LuxonEngine::Rendering::MaterialFactory> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateMaterialFactory()

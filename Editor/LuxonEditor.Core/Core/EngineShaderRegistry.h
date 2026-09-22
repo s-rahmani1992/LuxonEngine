@@ -8,7 +8,7 @@
 namespace LuxonEngine {
 	namespace Rendering {
 		struct ShaderCompileProperties;
-		class ShaderRegistery;
+		class ShaderCompiler;
 		class ShaderProgram;
 	}
 	class SerializationStream;
@@ -35,7 +35,7 @@ namespace LuxonEditor {
 		using ShaderProgramChangedCallback = std::function<void(ShaderEntry*)>;
 		using ShaderProgramDeletedCallback = std::function<void(ShaderEntry*)>;
 
-		EngineShaderRegistry(Render::ShaderRegistery* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
+		EngineShaderRegistry(Render::ShaderCompiler* shaderCompiler, AssetDirectoryWatcher* assetWatcher);
 		~EngineShaderRegistry();
 		void CompileAllShaders();
 		LuxonEngine::Rendering::ShaderProgram* GetProgram(GUID guid);
@@ -61,7 +61,7 @@ namespace LuxonEditor {
 		void InvokeShaderDeletedCallback(ShaderEntry*);
 		std::map<GUID, ShaderEntry> m_registeredPrograms;
 		size_t m_callbackID;
-		Render::ShaderRegistery* m_shaderCompiler;
+		Render::ShaderCompiler* m_shaderCompiler;
 		AssetDirectoryWatcher* m_assetWatcher;
 
 		std::map<size_t, ShaderProgramChangedCallback> m_programChangedCallbacks;

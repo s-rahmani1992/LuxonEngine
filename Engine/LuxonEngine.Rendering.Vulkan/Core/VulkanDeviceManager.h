@@ -16,7 +16,7 @@ namespace LuxonEngine {
 namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory;
 	class VulkanAssetManager;
-	class VulkanShaderRegistery;
+	class VulkanShaderCompiler;
 
 	class VulkanDeviceManager : public GPUDeviceManager
 	{
@@ -26,7 +26,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		virtual ref<GraphicContext> CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GraphicContext> CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window) override;
 		virtual ref<GPUAssetManager> CreateAssetManager() override;
-		virtual ref<ShaderRegistery> CreateShaderRegistery() override;
+		virtual ref<ShaderCompiler> GetShaderCompiler() override;
 		virtual ref<MaterialFactory> CreateMaterialFactory() override;
 		~VulkanDeviceManager();
 		ref<VulkanBufferFactory> GetBufferFactory() const { return m_bufferFactory; }
@@ -65,7 +65,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkPhysicalDeviceAccelerationStructurePropertiesKHR m_accelProps;
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_rtPipelineProps;
 		ref<VulkanBufferFactory> m_bufferFactory;
-		ref<VulkanShaderRegistery> m_shaderRegistry;
+		ref<VulkanShaderCompiler> m_shaderCompiler;
 		ref<VulkanAssetManager> m_assetManager;
 	};
 }
