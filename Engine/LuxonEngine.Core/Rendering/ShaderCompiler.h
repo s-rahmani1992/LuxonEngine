@@ -26,8 +26,16 @@ namespace LuxonEngine::Rendering {
 		char* computeMain;
 	};
 
+	enum class ShaderUsage {
+		User,	
+		Internal
+	};
+
 	struct ShaderCompileProperties {
 		ShaderProgramType type;
+		ShaderUsage usage = ShaderUsage::User;
+		std::string identifier;
+		std::string name;
 		std::string model;
 		union {
 			RasterizationProgramProperties rasterProperties;

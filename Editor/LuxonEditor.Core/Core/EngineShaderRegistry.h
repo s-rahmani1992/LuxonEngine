@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <functional>
 #include "GuidUtilities.h"
+#include <Rendering/ShaderRegistery.h>
 
 namespace LuxonEngine {
 	namespace Rendering {
@@ -28,9 +29,10 @@ namespace LuxonEditor {
 		std::string name;
 		std::string compileError;
 		LuxonEngine::Rendering::ShaderProgram* program;
+		std::string identifier;	// empty for user shaders
 	};
 	
-	class __declspec(dllexport) EngineShaderRegistry {
+	class __declspec(dllexport) EngineShaderRegistry : public Render::ShaderRegistery {
 	public:
 		using ShaderProgramChangedCallback = std::function<void(ShaderEntry*)>;
 		using ShaderProgramDeletedCallback = std::function<void(ShaderEntry*)>;
@@ -45,8 +47,7 @@ namespace LuxonEditor {
 		static void FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		static void SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream);
 		ShaderEntry* GetFalllbackShaderProgram(){
-			auto entry = m_registeredPrograms.find(GuidGenerator::GenerateGUIDFromString("2e1bfe23-51b1-42e6-ad60-bf6c351e25f8"));
-			return &entry->second; }
+			return GetShaderEntry(GuidGenerator::GenerateGUIDFromString("2e1bfe23-51b1-42e6-ad60-bf6c351e25f8")); }
 	
 		size_t RegisterShaderChangedCallback(ShaderProgramChangedCallback callback);
 		void UnregisterShaderChangedCallback(size_t callbackId);
@@ -59,9 +60,10 @@ namespace LuxonEditor {
 		void CompileAtPath(const fs::path& filePath, bool fireEvent = false);
 		void InvokeShaderChangedCallback(ShaderEntry*);
 		void InvokeShaderDeletedCallback(ShaderEntry*);
-		std::map<GUID, ShaderEntry> m_registeredPrograms;
+		void RemoveShaderProgram(const ShaderEntry& entry);
+		std::map<GUID, ShaderEntry> m_registeredPrograms;	// user shaders
+		std::map<GUID, ShaderEntry> m_internalPrograms;		// internal shaders, also registered by identifier
 		size_t m_callbackID;
-		Render::ShaderCompiler* m_shaderCompiler;
 		AssetDirectoryWatcher* m_assetWatcher;
 
 		std::map<size_t, ShaderProgramChangedCallback> m_programChangedCallbacks;

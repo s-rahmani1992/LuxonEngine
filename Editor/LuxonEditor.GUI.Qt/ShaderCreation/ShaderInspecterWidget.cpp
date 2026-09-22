@@ -15,19 +15,28 @@ LuxonEditor::GUI::QT::ShaderInspecterWidget::ShaderInspecterWidget(QWidget *pare
 	static_cast<QVBoxLayout*>(layout())->addStretch(1);
 
 	ui.propertiesContainer->layout()->setAlignment(ui.shaderTypeField, Qt::AlignTop);
+	ui.propertiesContainer->layout()->setAlignment(ui.shaderUsageField, Qt::AlignTop);
 	ui.propertiesContainer->layout()->setAlignment(ui.rasterizationContainer, Qt::AlignTop);
 	ui.propertiesContainer->layout()->setAlignment(ui.rayTracingContainer, Qt::AlignTop);
 	ui.propertiesContainer->layout()->setAlignment(ui.computeContainer, Qt::AlignTop);
 
 	ui.shaderTypeField->layout()->setAlignment(ui.label, Qt::AlignLeft);
+	ui.shaderUsageField->layout()->setAlignment(ui.usageLabel, Qt::AlignLeft);
 
 	if (stream == nullptr) {
 		return;
 	}
 	LuxonEditor::EngineShaderRegistry::FillProperties(m_currentProperties, *stream);
 	m_newType = m_currentProperties.type;
+	m_newUsage = m_currentProperties.usage;
 
 	SetOriginalValues();
+
+	ui.nameField->RegisterValidationFunction(ShaderCreationWindow::NameValidate);
+	connect(ui.nameField, &QTextField::ValueChanged, this, &ShaderInspecterWidget::OnUsageFieldChanged);
+
+	ui.identifierField->RegisterValidationFunction(ShaderCreationWindow::FunctionNameValidate);
+	connect(ui.identifierField, &QTextField::ValueChanged, this, &ShaderInspecterWidget::OnUsageFieldChanged);
 
 	ui.vertexField->RegisterValidationFunction(ShaderCreationWindow::FunctionNameValidate);
 	connect(ui.vertexField, &QTextField::ValueChanged, this, &ShaderInspecterWidget::OnRasterChanged);
@@ -51,10 +60,15 @@ LuxonEditor::GUI::QT::ShaderInspecterWidget::ShaderInspecterWidget(QWidget *pare
 	connect(ui.computeMain, &QTextField::ValueChanged, this, &ShaderInspecterWidget::OnComputeChanged);
 
 	OnShaderTypeChanged(m_newType);
+	OnShaderUsageChanged(m_newUsage);
 
 	connect(ui.shaderTypeBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
 		LuxonEngine::Rendering::ShaderProgramType type = (LuxonEngine::Rendering::ShaderProgramType)index;
 		OnShaderTypeChanged(type);
+		});
+
+	connect(ui.shaderUsageBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
+		OnShaderUsageChanged((LuxonEngine::Rendering::ShaderUsage)index);
 		});
 
 	connect(ui.revertButton, &QPushButton::clicked, this, [this]() {
@@ -63,6 +77,12 @@ LuxonEditor::GUI::QT::ShaderInspecterWidget::ShaderInspecterWidget(QWidget *pare
 
 	connect(ui.compileButton, &QPushButton::clicked, this, [this]() {
 		m_currentProperties.type = m_newType;
+		m_currentProperties.usage = m_newUsage;
+
+		bool isInternal = m_newUsage == LuxonEngine::Rendering::ShaderUsage::Internal;
+		m_currentProperties.identifier = isInternal ? ui.identifierField->GetStdString() : std::string();
+		m_currentProperties.name = isInternal ? std::string() : ui.nameField->GetStdString();
+
 		switch (m_newType) {
 		case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
 			m_currentProperties.rasterProperties.vertexMain = ui.vertexField->GetText();
@@ -98,21 +118,27 @@ void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnShaderTypeChanged(LuxonEngin
 	ui.rayTracingContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::RayTracing);
 	ui.computeContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Compute);
 
-	switch (programType) {
-	case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
-		ui.compileButton->setEnabled(ValidateRasterizationProperties());
-		break;
-	case LuxonEngine::Rendering::ShaderProgramType::RayTracing:
-		ui.compileButton->setEnabled(ValidateRayTracingProperties());
-		break;
-	case LuxonEngine::Rendering::ShaderProgramType::Compute:
-		ui.compileButton->setEnabled(ValidateComputeProperties());
-		break;
-	}
+	ui.compileButton->setEnabled(ValidateStageProperties() && ValidateUsageProperties());
 
 	bool equal = CompareProperties();
 
 	ui.revertButton->setEnabled(!equal);
+}
+
+void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnShaderUsageChanged(LuxonEngine::Rendering::ShaderUsage usage)
+{
+	m_newUsage = usage;
+
+	ui.nameField->setVisible(usage == LuxonEngine::Rendering::ShaderUsage::User);
+	ui.identifierField->setVisible(usage == LuxonEngine::Rendering::ShaderUsage::Internal);
+
+	OnUsageFieldChanged(true);
+}
+
+void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnUsageFieldChanged(bool isValid)
+{
+	ui.compileButton->setEnabled(ValidateStageProperties() && ValidateUsageProperties());
+	ui.revertButton->setEnabled(!CompareProperties());
 }
 
 void LuxonEditor::GUI::QT::ShaderInspecterWidget::SetOriginalValues()
@@ -144,6 +170,10 @@ void LuxonEditor::GUI::QT::ShaderInspecterWidget::SetOriginalValues()
 	ui.computeMain->InputText()->setText(isCompute ? QString::fromUtf8(m_currentProperties.computeProperties.computeMain) : "cs_main");
 
 	ui.shaderTypeBox->setCurrentIndex((int)m_currentProperties.type);
+
+	ui.nameField->InputText()->setText(QString::fromStdString(m_currentProperties.name));
+	ui.identifierField->InputText()->setText(QString::fromStdString(m_currentProperties.identifier));
+	ui.shaderUsageBox->setCurrentIndex((int)m_currentProperties.usage);
 }
 
 bool LuxonEditor::GUI::QT::ShaderInspecterWidget::ValidateRasterizationProperties()
@@ -161,9 +191,39 @@ bool LuxonEditor::GUI::QT::ShaderInspecterWidget::ValidateComputeProperties()
 	return ui.computeMain->HasValidValue();
 }
 
+bool LuxonEditor::GUI::QT::ShaderInspecterWidget::ValidateUsageProperties()
+{
+	if (m_newUsage == LuxonEngine::Rendering::ShaderUsage::Internal)
+		return ui.identifierField->HasValidValue();
+
+	return ui.nameField->HasValidValue();
+}
+
+bool LuxonEditor::GUI::QT::ShaderInspecterWidget::ValidateStageProperties()
+{
+	switch (m_newType) {
+	case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
+		return ValidateRasterizationProperties();
+	case LuxonEngine::Rendering::ShaderProgramType::RayTracing:
+		return ValidateRayTracingProperties();
+	case LuxonEngine::Rendering::ShaderProgramType::Compute:
+		return ValidateComputeProperties();
+	}
+	return false;
+}
+
 bool LuxonEditor::GUI::QT::ShaderInspecterWidget::CompareProperties()
 {
 	if(m_newType != m_currentProperties.type)
+		return false;
+
+	if (m_newUsage != m_currentProperties.usage)
+		return false;
+
+	if (m_newUsage == LuxonEngine::Rendering::ShaderUsage::Internal && ui.identifierField->GetStdString() != m_currentProperties.identifier)
+		return false;
+
+	if (m_newUsage == LuxonEngine::Rendering::ShaderUsage::User && ui.nameField->GetStdString() != m_currentProperties.name)
 		return false;
 
 	if(m_newType == LuxonEngine::Rendering::ShaderProgramType::Rasterization)
@@ -192,7 +252,7 @@ void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnRasterChanged(bool text)
 	if (m_newType != LuxonEngine::Rendering::ShaderProgramType::Rasterization)
 		return;
 
-	ui.compileButton->setEnabled(ValidateRasterizationProperties());
+	ui.compileButton->setEnabled(ValidateRasterizationProperties() && ValidateUsageProperties());
 	ui.revertButton->setEnabled(!CompareProperties());
 }
 
@@ -201,7 +261,7 @@ void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnRayTracingChanged(bool isVal
 	if (m_newType != LuxonEngine::Rendering::ShaderProgramType::RayTracing)
 		return;
 
-	ui.compileButton->setEnabled(ValidateRayTracingProperties());
+	ui.compileButton->setEnabled(ValidateRayTracingProperties() && ValidateUsageProperties());
 	ui.revertButton->setEnabled(!CompareProperties());
 }
 
@@ -210,6 +270,6 @@ void LuxonEditor::GUI::QT::ShaderInspecterWidget::OnComputeChanged(bool isValid)
 	if (m_newType != LuxonEngine::Rendering::ShaderProgramType::Compute)
 		return;
 
-	ui.compileButton->setEnabled(ValidateComputeProperties());
+	ui.compileButton->setEnabled(ValidateComputeProperties() && ValidateUsageProperties());
 	ui.revertButton->setEnabled(!CompareProperties());
 }

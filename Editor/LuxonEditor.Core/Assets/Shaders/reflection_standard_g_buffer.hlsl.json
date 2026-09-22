@@ -1,9 +1,11 @@
 {
-  "uuid": "f1a60d5e-aac0-e3f4-d88e-aae735ff2918",
-  "data": {
-    "type": "Rasterization",
-    "model": "6_6",
-    "vsMain": "vs_main",
-    "psMain": "ps_main"
-  }
+    "uuid" : "f1a60d5e-aac0-e3f4-d88e-aae735ff2918",
+    "data" : {
+        "model" : "6_6",
+        "usage" : "User",
+        "name" : "masked-reflection-g-buffer",
+        "type" : "Rasterization",
+        "vsMain" : "vs_main",
+        "psMain" : "ps_main"
+    }
 }

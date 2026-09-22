@@ -30,6 +30,18 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 		ui.createButton->setEnabled(isValid);
 		});
 
+	ui.nameField->InputText()->setText("new_shader_" + QString::number(i));
+	ui.nameField->RegisterValidationFunction(NameValidate);
+	connect(ui.nameField, &QTextField::ValueChanged, this, &ShaderCreationWindow::UpdateCreateButton);
+
+	ui.identifierField->RegisterValidationFunction(FunctionNameValidate);
+	connect(ui.identifierField, &QTextField::ValueChanged, this, &ShaderCreationWindow::UpdateCreateButton);
+
+	OnShaderUsageChanged(LuxonEngine::Rendering::ShaderUsage::User);
+	connect(ui.shaderUsageBox, &QComboBox::currentIndexChanged, this, [this](int index) {
+		OnShaderUsageChanged((LuxonEngine::Rendering::ShaderUsage)index);
+		});
+
 	ui.vertexField->InputText()->setText("vs_main");
 	ui.vertexField->RegisterValidationFunction(FunctionNameValidate);
 	connect(ui.vertexField, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnRasterChanged);
@@ -60,6 +72,11 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 
 	connect(ui.createButton, &QPushButton::clicked, this, [this]() {
 		m_compileProperties.model = "6_6";
+
+		bool isInternal = m_compileProperties.usage == LuxonEngine::Rendering::ShaderUsage::Internal;
+		m_compileProperties.identifier = isInternal ? ui.identifierField->GetStdString() : std::string();
+		m_compileProperties.name = isInternal ? std::string() : ui.nameField->GetStdString();
+
 		switch (m_compileProperties.type) {
 		case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
 			vertexMainStr = ui.vertexField->InputText()->text().toStdString();
@@ -97,17 +114,35 @@ void LuxonEditor::GUI::QT::ShaderCreationWindow::OnshaderTypeChanged(LuxonEngine
 	ui.rayTracingContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::RayTracing);
 	ui.computeContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Compute);
 
-	switch (programType) {
+	UpdateCreateButton();
+}
+
+void LuxonEditor::GUI::QT::ShaderCreationWindow::OnShaderUsageChanged(LuxonEngine::Rendering::ShaderUsage usage)
+{
+	m_compileProperties.usage = usage;
+	ui.nameField->setVisible(usage == LuxonEngine::Rendering::ShaderUsage::User);
+	ui.identifierField->setVisible(usage == LuxonEngine::Rendering::ShaderUsage::Internal);
+
+	UpdateCreateButton();
+}
+
+void LuxonEditor::GUI::QT::ShaderCreationWindow::UpdateCreateButton()
+{
+	bool isValid = false;
+
+	switch (m_compileProperties.type) {
 		case LuxonEngine::Rendering::ShaderProgramType::Rasterization:
-			ui.createButton->setEnabled(ValidateRasterizationProperties());
+			isValid = ValidateRasterizationProperties();
 			break;
 		case LuxonEngine::Rendering::ShaderProgramType::RayTracing:
-			ui.createButton->setEnabled(ValidateRayTracingProperties());
+			isValid = ValidateRayTracingProperties();
 			break;
 		case LuxonEngine::Rendering::ShaderProgramType::Compute:
-			ui.createButton->setEnabled(ValidateComputeProperties());
+			isValid = ValidateComputeProperties();
 			break;
 	}
+
+	ui.createButton->setEnabled(isValid && ValidateUsageProperties() && FileNameValidate(ui.shaderNameField->InputText()->text()));
 }
 
 bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateRasterizationProperties()
@@ -125,26 +160,36 @@ bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateComputeProperties()
 	return ui.computeMain->HasValidValue();
 }
 
+bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateUsageProperties()
+{
+	if (m_compileProperties.usage == LuxonEngine::Rendering::ShaderUsage::Internal)
+		return ui.identifierField->HasValidValue();
+
+	return ui.nameField->HasValidValue();
+}
+
 void LuxonEditor::GUI::QT::ShaderCreationWindow::OnRasterChanged(bool text)
 {
 	if(m_compileProperties.type != LuxonEngine::Rendering::ShaderProgramType::Rasterization)
 		return;
 
-	ui.createButton->setEnabled(ValidateRasterizationProperties() && FileNameValidate(ui.shaderNameField->InputText()->text()));
+	UpdateCreateButton();
 }
 
 void LuxonEditor::GUI::QT::ShaderCreationWindow::OnRayTracingChanged(bool isValid)
 {
 	if (m_compileProperties.type != LuxonEngine::Rendering::ShaderProgramType::RayTracing)
 		return;
-	ui.createButton->setEnabled(ValidateRayTracingProperties() && FileNameValidate(ui.shaderNameField->InputText()->text()));
+
+	UpdateCreateButton();
 }
 
 void LuxonEditor::GUI::QT::ShaderCreationWindow::OnComputeChanged(bool isValid)
 {
 	if (m_compileProperties.type != LuxonEngine::Rendering::ShaderProgramType::Compute)
 		return;
-	ui.createButton->setEnabled(ValidateComputeProperties() && FileNameValidate(ui.shaderNameField->InputText()->text()));
+
+	UpdateCreateButton();
 }
 
 bool LuxonEditor::GUI::QT::ShaderCreationWindow::FunctionNameValidate(const QString& text)
@@ -173,6 +218,11 @@ bool LuxonEditor::GUI::QT::ShaderCreationWindow::FunctionNameValidate(const QStr
 	}
 
 	return true;
+}
+
+bool LuxonEditor::GUI::QT::ShaderCreationWindow::NameValidate(const QString& text)
+{
+	return !text.trimmed().isEmpty();
 }
 
 bool LuxonEditor::GUI::QT::ShaderCreationWindow::FileNameValidate(const QString& text)

@@ -12,7 +12,7 @@
 
 
 LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderCompiler* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
-	: m_shaderCompiler(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
+	: ShaderRegistery(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
 {
 	m_callbackID = m_assetWatcher->RegisterCallback(
 		[this](const FileChangeEvent& event) { this->OnAssetChanged(event); }
@@ -22,6 +22,9 @@ LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderCompiler* 
 LuxonEditor::EngineShaderRegistry::~EngineShaderRegistry()
 {
 	for (auto& [guid, programEntry] : m_registeredPrograms)
+		delete programEntry.program;
+
+	for (auto& [guid, programEntry] : m_internalPrograms)
 		delete programEntry.program;
 }
 
@@ -51,20 +54,19 @@ void LuxonEditor::EngineShaderRegistry::CompileAllShaders()
 
 LuxonEngine::Rendering::ShaderProgram* LuxonEditor::EngineShaderRegistry::GetProgram(GUID guid)
 {
-	auto shaderIT = m_registeredPrograms.find(guid);
-
-	if (shaderIT != m_registeredPrograms.end()) {
-		return (*shaderIT).second.program;
-	}
-
-	return nullptr;
+	ShaderEntry* entry = GetShaderEntry(guid);
+	return entry ? entry->program : nullptr;
 }
 
 LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(GUID guid)
 {
 	auto shaderIT = m_registeredPrograms.find(guid);
-
 	if (shaderIT != m_registeredPrograms.end()) {
+		return &(*shaderIT).second;
+	}
+
+	shaderIT = m_internalPrograms.find(guid);
+	if (shaderIT != m_internalPrograms.end()) {
 		return &(*shaderIT).second;
 	}
 
@@ -73,10 +75,15 @@ LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(GUID
 
 LuxonEditor::ShaderEntry* LuxonEditor::EngineShaderRegistry::GetShaderEntry(const LuxonEngine::Rendering::ShaderProgram* program)
 {
-	auto shaderIT = std::find_if(m_registeredPrograms.begin(), m_registeredPrograms.end(),
-		[program](const auto& pair) { return pair.second.program == program; });
+	auto matchesProgram = [program](const auto& pair) { return pair.second.program == program; };
 
-	return (shaderIT != m_registeredPrograms.end()) ? &(*shaderIT).second : nullptr;
+	auto shaderIT = std::find_if(m_registeredPrograms.begin(), m_registeredPrograms.end(), matchesProgram);
+	if (shaderIT != m_registeredPrograms.end()) {
+		return &(*shaderIT).second;
+	}
+
+	shaderIT = std::find_if(m_internalPrograms.begin(), m_internalPrograms.end(), matchesProgram);
+	return (shaderIT != m_internalPrograms.end()) ? &(*shaderIT).second : nullptr;
 }
 
 std::vector<LuxonEditor::ShaderEntry*> LuxonEditor::EngineShaderRegistry::GetAllShaderEntries() const
@@ -105,11 +112,16 @@ void LuxonEditor::EngineShaderRegistry::OnAssetChanged(const FileChangeEvent& ev
 		}
 
 		GUID programGuid = metadataStream.GetGuid("uuid");
-		auto shaderIT = m_registeredPrograms.find(programGuid);
-		if (shaderIT != m_registeredPrograms.end()) {
+		for (auto* programs : { &m_registeredPrograms, &m_internalPrograms }) {
+			auto shaderIT = programs->find(programGuid);
+			if (shaderIT == programs->end()) {
+				continue;
+			}
+
 			InvokeShaderDeletedCallback(&(*shaderIT).second);
+			RemoveShaderProgram((*shaderIT).second);
 			delete (*shaderIT).second.program;
-			m_registeredPrograms.erase(shaderIT);
+			programs->erase(shaderIT);
 		}
 	}
 
@@ -157,6 +169,16 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath, 
 	auto propertiesObject = metadataStream.Object("data");
 	FillProperties(properties, propertiesObject);
 
+	if (properties.usage == Render::ShaderUsage::Internal && properties.identifier.empty()) {
+		LuxonEngine::Logger::LogError("Internal shader " + filePath.filename().string() + " has no identifier.");
+		return;
+	}
+
+	if (properties.usage == Render::ShaderUsage::User && properties.name.empty()) {
+		LuxonEngine::Logger::LogWarning("Shader " + filePath.filename().string() + " has no name. using the file name instead.");
+		properties.name = filePath.stem().string();
+	}
+
 	std::string error;
 	const UInt64 codeLength = hlslContent.length();
 	Render::ShaderProgram* compiledProgram = m_shaderCompiler->CompileProgram(
@@ -166,27 +188,54 @@ void LuxonEditor::EngineShaderRegistry::CompileAtPath(const fs::path& filePath, 
 		error
 	);
 
-	GUID programGuid = metadataStream.GetGuid("uuid");
-	auto shaderIT = m_registeredPrograms.find(programGuid);
+	const bool isInternal = properties.usage == Render::ShaderUsage::Internal;
+	const std::string identifier = isInternal ? properties.identifier : std::string();
+	auto& targetPrograms = isInternal ? m_internalPrograms : m_registeredPrograms;
+	auto& otherPrograms = isInternal ? m_registeredPrograms : m_internalPrograms;
 
-	if (shaderIT != m_registeredPrograms.end()) {
+	GUID programGuid = metadataStream.GetGuid("uuid");
+
+	// usage changed: move the entry to the other map. extracting the node keeps ShaderEntry pointers valid
+	if (auto node = otherPrograms.extract(programGuid))
+		targetPrograms.insert(std::move(node));
+
+	auto shaderIT = targetPrograms.find(programGuid);
+
+	if (shaderIT != targetPrograms.end()) {
+		RemoveShaderProgram((*shaderIT).second);
+
 		if((*shaderIT).second.program)
 			delete (*shaderIT).second.program;
 
 		(*shaderIT).second.name = filePath.filename().string();
 		(*shaderIT).second.program = compiledProgram;
 		(*shaderIT).second.compileError = error;
+		(*shaderIT).second.identifier = identifier;
 
 		if(fireEvent)
 			InvokeShaderChangedCallback(&(*shaderIT).second);
 	}
 	else {
-		m_registeredPrograms[programGuid] = { programGuid, filePath.filename().string(), error, compiledProgram };
+		targetPrograms[programGuid] = { programGuid, filePath.filename().string(), error, compiledProgram, identifier };
+	}
+
+	if (isInternal && compiledProgram) {
+		if (GetShaderProgram(identifier) != nullptr)
+			LuxonEngine::Logger::LogWarning("Internal shader identifier \"" + identifier + "\" is already in use. " + filePath.filename().string() + " replaces it.");
+
+		AddShaderProgram(identifier, compiledProgram);
 	}
 
 	if(compiledProgram == nullptr) {
 		LuxonEngine::Logger::LogError("Error compiling " + filePath.filename().string() + ":\n " + error);
 	}
+}
+
+void LuxonEditor::EngineShaderRegistry::RemoveShaderProgram(const ShaderEntry& entry)
+{
+	// only remove the name if it still points to this entry's program. another shader may have taken the identifier
+	if (!entry.identifier.empty() && entry.program && GetShaderProgram(entry.identifier) == entry.program)
+		m_namedPrograms.erase(entry.identifier);
 }
 
 void LuxonEditor::EngineShaderRegistry::InvokeShaderChangedCallback(ShaderEntry* entry)
@@ -199,6 +248,13 @@ void LuxonEditor::EngineShaderRegistry::InvokeShaderChangedCallback(ShaderEntry*
 void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& dataNode)
 {
 	dataNode.GetString("model", properties.model);
+
+	std::string usageStr;
+	dataNode.GetString("usage", usageStr);
+	properties.usage = usageStr == "Internal" ? Render::ShaderUsage::Internal : Render::ShaderUsage::User;
+	dataNode.GetString("identifier", properties.identifier);
+	dataNode.GetString("name", properties.name);
+
 	std::string typeStr;
 	dataNode.GetString("type", typeStr);
 
@@ -226,6 +282,15 @@ void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::R
 {
 	stream.Clear();
 	stream.SetString("model", properties.model);
+
+	if (properties.usage == Render::ShaderUsage::Internal) {
+		stream.SetString("usage", "Internal");
+		stream.SetString("identifier", properties.identifier);
+	}
+	else {
+		stream.SetString("usage", "User");
+		stream.SetString("name", properties.name);
+	}
 
 	switch(properties.type) {
 		case Render::ShaderProgramType::RayTracing:

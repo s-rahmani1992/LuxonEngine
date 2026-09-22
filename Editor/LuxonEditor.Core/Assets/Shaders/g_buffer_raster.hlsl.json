@@ -1,8 +1,10 @@
 {
     "uuid" : "c6e43e7e-cbf0-4f8e-b508-740d35b26760",
-    "data":{
-        "type" : "Rasterization",
+    "data" : {
         "model" : "6_6",
+        "usage" : "Internal",
+        "identifier" : "G_Buffer_Program",
+        "type" : "Rasterization",
         "vsMain" : "vs_main",
         "psMain" : "ps_main"
     }

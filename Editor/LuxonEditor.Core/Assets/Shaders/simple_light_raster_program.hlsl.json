@@ -1,8 +1,10 @@
 {
     "uuid" : "26cbb0f8-9829-491d-b243-4c58ec661d8b",
-    "data":{
-        "type" : "Rasterization",
+    "data" : {
         "model" : "6_6",
+        "usage" : "User",
+        "name" : "simple-program",
+        "type" : "Rasterization",
         "vsMain" : "vs_main",
         "psMain" : "ps_main"
     }

@@ -1,9 +1,11 @@
 {
     "uuid" : "2da46bfa-fc15-46c3-a9aa-4ba4e54720f3",
-    "data":{
-        "type" : "RayTracing",
+    "data" : {
         "model" : "6_6",
-        "closestHit" : "chs",
-        "miss" : "miss"
+        "usage" : "User",
+        "name" : "rt-refraction",
+        "type" : "RayTracing",
+        "miss" : "miss",
+        "closestHit" : "chs"
     }
 }

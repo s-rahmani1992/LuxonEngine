@@ -159,6 +159,7 @@
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderProgram.h" />
     <ClInclude Include="Rendering\ShaderCompiler.h" />
+    <ClInclude Include="Rendering\ShaderRegistery.h" />
     <ClInclude Include="Rendering\SplineRenderer.h" />
     <ClInclude Include="StringUtilities.h" />
   </ItemGroup>
@@ -185,6 +186,7 @@
     <ClCompile Include="Platform\Application.cpp" />
     <ClCompile Include="Platform\GraphicWindow.cpp" />
     <ClCompile Include="Rendering\MaterialImporter.cpp" />
+    <ClCompile Include="Rendering\ShaderRegistery.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

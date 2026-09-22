@@ -77,7 +77,11 @@ void LuxonEditor::ShaderCreator::CreateShader(const LuxonEngine::Rendering::Shad
 	LuxonEngine::SerializationStream metadataStream, shaderMetaStream;
 	metadataStream.SetGuid("uuid", LuxonEditor::GuidGenerator::GenerateGUID());
 
-	EngineShaderRegistry::SerializeProperties(properties, shaderMetaStream);
+	LuxonEngine::Rendering::ShaderCompileProperties metaProperties = properties;
+	if (metaProperties.usage == LuxonEngine::Rendering::ShaderUsage::User && metaProperties.name.empty())
+		metaProperties.name = shaderName;
+
+	EngineShaderRegistry::SerializeProperties(metaProperties, shaderMetaStream);
 	if (properties.type == LuxonEngine::Rendering::ShaderProgramType::Rasterization)
 	{
 		// load templete file into a string variable

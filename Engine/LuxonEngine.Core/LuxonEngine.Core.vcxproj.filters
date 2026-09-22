@@ -113,6 +113,9 @@
     <ClInclude Include="Rendering\ShaderCompiler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\ShaderRegistery.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Vector2UInt.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -207,6 +210,9 @@
     </ClCompile>
     <ClCompile Include="JSONUtilities.cpp" />
     <ClCompile Include="Rendering\MaterialImporter.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ShaderRegistery.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Core\Logger.cpp">

@@ -1,8 +1,10 @@
 {
     "uuid" : "c4cfe4a7-85ad-41c5-8193-22e1e485c3f6",
-    "data":{
-        "type" : "Compute",
+    "data" : {
         "model" : "6_6",
+        "usage" : "Internal",
+        "identifier" : "Bezier_Curve_Compute_Program",
+        "type" : "Compute",
         "csMain" : "cs_main"
     }
 }

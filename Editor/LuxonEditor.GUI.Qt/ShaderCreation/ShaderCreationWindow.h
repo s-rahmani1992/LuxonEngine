@@ -17,11 +17,15 @@ namespace LuxonEditor::GUI::QT {
 		ShaderCreationWindow(QWidget* parent = nullptr);
 		~ShaderCreationWindow();
 		static bool FunctionNameValidate(const QString& text);
+		static bool NameValidate(const QString& text);
 	private:
 		void OnshaderTypeChanged(LuxonEngine::Rendering::ShaderProgramType programType);
+		void OnShaderUsageChanged(LuxonEngine::Rendering::ShaderUsage usage);
+		void UpdateCreateButton();
 		bool ValidateRasterizationProperties();
 		bool ValidateRayTracingProperties();
 		bool ValidateComputeProperties();
+		bool ValidateUsageProperties();
 
 		void OnRasterChanged(bool isValid);
 		void OnRayTracingChanged(bool isValid);
