@@ -11,7 +11,10 @@
 #include "Rasterization/HLSLRasterizationProgram.h"
 #include "DX12MaterialFactory.h"
 #include <Rendering/GBufferRTReflectionRenderer.h>
+#include <Rendering/SpikeMeshRenderer.h>
 #include <Rendering/RayTracingComponent.h>
+#include "DX12PipelineFactory.h"
+#include <Core/Logger.h>
 
 bool LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
@@ -185,6 +188,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 {
 	m_meshRendererData.clear();
 	m_rasterizationPipelines.clear();
+	m_meshShadingPipelines.clear();
 
 	// heap slots: camera + light + one transform per entity
 	UInt32 rasterHeapSize = 2 + static_cast<UInt32>(m_entityGPUData.size());
@@ -256,6 +260,19 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 			continue;
 
 		m_rasterizationPipelines.push_back(pipeline);
+	}
+	std::string error;
+	for (auto& entityGpu : m_entityGPUData) {
+		auto spikeRenderer = std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer());
+		MeshShading::MeshPipelineProperties properties;
+		if(spikeRenderer != nullptr) {
+			ref<MeshShading::DX12MeshPipelineModule> spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(spikeRenderer->GetMaterial()->GetProgram().get(), properties, error);
+			
+			if (spikeMeshPipeline != nullptr)
+				m_meshShadingPipelines.push_back(spikeMeshPipeline);
+			else
+				Logger::Log(error);
+		}
 	}
 }
 

@@ -19,6 +19,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12GBufferPipelineModule;
 	class DX12GameEntityPipelineModule;
 	class DX12SplineRasterPipelineModule;
+	class DX12PipelineFactory;
 
 	struct DX12MeshRendererGPUData {
 	public:
@@ -45,8 +46,9 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12HybridContext : public DX12GraphicContext
 	{
 	public:
-		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager, ShaderRegistery* shaderRegistery)
-			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager), m_shaderProgramRegistery(shaderRegistery) {
+		DX12HybridContext(UInt8 bufferCount, const ref<DX12CommandExecuter>& m_commandExecuter, ref<LuxonEngine::Platform::GraphicWindow>& window, const ref<DX12AssetManager>& assetManager,
+			const ref<DX12PipelineFactory>& pipelineFactory, ShaderRegistery* shaderRegistery)
+			: DX12GraphicContext(bufferCount, m_commandExecuter, window, assetManager), m_pipelineFactory(pipelineFactory), m_shaderProgramRegistery(shaderRegistery) {
 		}
 
 		virtual bool Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory) override;
@@ -59,6 +61,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 
 	private:
+		ref<DX12PipelineFactory> m_pipelineFactory;
 		ShaderRegistery* m_shaderProgramRegistery;
 
 		// Depth Stencil

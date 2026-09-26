@@ -297,6 +297,9 @@
     <ClCompile Include="Renderer\RTComponentWidget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\SpikeMeshRendererWidget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer\SplineRendererWidget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -498,6 +501,9 @@
       <Filter>Scene</Filter>
     </QtMoc>
     <QtMoc Include="Renderer\RTComponentWidget.h">
+      <Filter>Renderer</Filter>
+    </QtMoc>
+    <QtMoc Include="Renderer\SpikeMeshRendererWidget.h">
       <Filter>Renderer</Filter>
     </QtMoc>
     <QtMoc Include="Renderer\SplineRendererWidget.h">

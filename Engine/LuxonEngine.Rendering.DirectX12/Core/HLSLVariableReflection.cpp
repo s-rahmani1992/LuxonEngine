@@ -261,6 +261,37 @@ void LuxonEngine::Rendering::DX12::AddShaderReflection(ShaderVariableReflection&
 	}
 }
 
+void LuxonEngine::Rendering::DX12::FillRenderTargetReflection(RenderTargetReflection& reflection, ID3D12ShaderReflection* shaderReflection)
+{
+	D3D12_SHADER_DESC desc;
+	shaderReflection->GetDesc(&desc);
+	
+	for(UINT i = 0; i < desc.OutputParameters; ++i) {
+		D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+		shaderReflection->GetOutputParameterDesc(i, &paramDesc);
+
+		if (paramDesc.SystemValueType == D3D_NAME_TARGET) {
+			DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+			switch (paramDesc.ComponentType) {
+				case D3D_REGISTER_COMPONENT_UINT32:
+					format = DXGI_FORMAT_R32_UINT;
+					break;
+				case D3D_REGISTER_COMPONENT_SINT32:
+					format = DXGI_FORMAT_R32_SINT;
+					break;
+				case D3D_REGISTER_COMPONENT_FLOAT16:
+					format = DXGI_FORMAT_R16_FLOAT;
+					break;
+				case D3D_REGISTER_COMPONENT_FLOAT32:
+				case D3D_REGISTER_COMPONENT_FLOAT64:
+					format = DXGI_FORMAT_R32_FLOAT;
+					break;
+			}
+			reflection.formats.push_back(format);
+		}
+	}
+}
+
 ComPtr<ID3D12RootSignature> LuxonEngine::Rendering::DX12::CreateRootSignature(const ComPtr<ID3D12Device10>& device, const ShaderVariableReflection& reflection,
 	D3D12_ROOT_SIGNATURE_FLAGS flag, RootParameterLayout& layout, std::string& errorStr)
 {

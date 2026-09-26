@@ -18,9 +18,17 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		inline IDxcBlob* GetMeshShader() const { return m_meshShader.Get(); }
 		inline IDxcBlob* GetPixelShader() const { return m_pixelShader.Get(); }
 
+		D3D12_SHADER_BYTECODE GetAmplificationShaderBytecode() const;
+		D3D12_SHADER_BYTECODE GetMeshShaderBytecode() const;
+		D3D12_SHADER_BYTECODE GetPixelShaderBytecode() const;
+
+		D3D12_RT_FORMAT_ARRAY GetRenderTargetFormats() const;
+
 	private:
-		ComPtr<IDxcBlob> m_amplificationShader;
-		ComPtr<IDxcBlob> m_meshShader;
-		ComPtr<IDxcBlob> m_pixelShader;
+		ComPtr<IDxcBlob> m_amplificationShader = nullptr;
+		ComPtr<IDxcBlob> m_meshShader = nullptr;
+		ComPtr<IDxcBlob> m_pixelShader = nullptr;
+
+		RenderTargetReflection m_renderTargetReflection;
 	};
 }

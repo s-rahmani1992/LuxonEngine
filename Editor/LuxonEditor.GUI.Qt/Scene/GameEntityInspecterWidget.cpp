@@ -6,6 +6,7 @@
 #include "../Renderer/RTComponentWidget.h"
 #include "../Renderer/SplineRendererWidget.h"
 #include "../Renderer/GBufferRendererWidget.h"
+#include "../Renderer/SpikeMeshRendererWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
 #include <QMenu>
@@ -89,6 +90,12 @@ namespace LuxonEditor::GUI::QT {
 			auto gbufferRenderer = std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(nullptr, nullptr);
 			m_entity->SetRenderer(gbufferRenderer);
 			GenerateRendererWidget(gbufferRenderer);
+			});
+
+		menu->addAction("Spike Mesh Renderer", [this]() {
+			auto spikeMeshRenderer = std::make_shared<LuxonEngine::Rendering::SpikeMeshRenderer>(nullptr, nullptr);
+			m_entity->SetRenderer(spikeMeshRenderer);
+			GenerateRendererWidget(spikeMeshRenderer);
 			});
 
 		m_addRendererButton->setMenu(menu);
@@ -233,6 +240,28 @@ namespace LuxonEditor::GUI::QT {
 			gBufferRendererPanel->layout()->addWidget(gBufferRendererWidget);
 			gBufferRendererPanel->layout()->setAlignment(gBufferRendererWidget, Qt::AlignTop);
 			m_rendererWidget = gBufferRendererPanel;
+			m_rendererPanel->layout()->addWidget(m_rendererWidget);
+			return;
+		}
+
+		auto spikeMeshRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SpikeMeshRenderer>(renderer);
+
+		if (spikeMeshRenderer != nullptr) {
+			auto spikeMeshRendererPanel = new QWidget(m_rendererPanel);
+			auto spikeMeshRendererLayout = new QVBoxLayout();
+			spikeMeshRendererPanel->setLayout(spikeMeshRendererLayout);
+			spikeMeshRendererLayout->setContentsMargins(2, 2, 2, 2);
+			auto spikeMeshRendererLabel = new QLabel("Spike Mesh Renderer", spikeMeshRendererPanel);
+			spikeMeshRendererLabel->setAlignment(Qt::AlignCenter);
+			QFont font = spikeMeshRendererLabel->font();
+			font.setPointSize(14);
+			spikeMeshRendererLabel->setFont(font);
+			spikeMeshRendererPanel->layout()->addWidget(spikeMeshRendererLabel);
+			spikeMeshRendererPanel->layout()->setAlignment(spikeMeshRendererLabel, Qt::AlignTop);
+			auto* spikeMeshRendererWidget = new SpikeMeshRendererWidget(spikeMeshRendererPanel, spikeMeshRenderer);
+			spikeMeshRendererPanel->layout()->addWidget(spikeMeshRendererWidget);
+			spikeMeshRendererPanel->layout()->setAlignment(spikeMeshRendererWidget, Qt::AlignTop);
+			m_rendererWidget = spikeMeshRendererPanel;
 			m_rendererPanel->layout()->addWidget(m_rendererWidget);
 			return;
 		}

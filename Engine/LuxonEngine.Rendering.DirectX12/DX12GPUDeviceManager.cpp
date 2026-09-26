@@ -8,6 +8,7 @@
 #include "DX12ShaderCompiler.h"
 #include "DX12MaterialFactory.h"
 #include "DX12EditorGraphicContext.h"
+#include "DX12PipelineFactory.h"
 
 bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 {
@@ -56,13 +57,15 @@ bool LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::Initialize()
 	if (m_assetManager->Initialize(m_device) == false)
 		return false;
 
+	m_pipelineFactory = std::make_shared<DX12PipelineFactory>(m_device.Get());
+
 	return true;
 }
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
-	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window, m_assetManager, m_shaderRegistery);
+	ref<DX12GraphicContext> context = std::make_shared< DX12HybridContext>(2, cmdExecuter, window, m_assetManager, m_pipelineFactory, m_shaderRegistery);
 
 	if (context->Initialize(m_device.Get(), m_factory))
 		return context;
@@ -85,7 +88,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
-	ref<DX12GraphicContext> context = std::make_shared<DX12EditorGraphicContext>(2, cmdExecuter, window, m_assetManager);
+	ref<DX12GraphicContext> context = std::make_shared<DX12EditorGraphicContext>(2, cmdExecuter, window, m_assetManager, m_pipelineFactory);
 
 	if(context->Initialize(m_device.Get(), m_factory))
 		return context;

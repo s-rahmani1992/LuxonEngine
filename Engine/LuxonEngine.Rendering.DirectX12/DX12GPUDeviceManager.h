@@ -23,6 +23,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12MeshController;
 	class DX12ShaderCompiler;
 	class DX12AssetManager;
+	class DX12PipelineFactory;
 
 	class DX12GPUDeviceManager : public GPUDeviceManager
 	{
@@ -43,6 +44,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		ref<DX12ShaderCompiler> m_shaderCompiler;
 		ref<DX12AssetManager> m_assetManager;
+		ref<DX12PipelineFactory> m_pipelineFactory;
 
 #ifdef _DEBUG
 		Microsoft::WRL::ComPtr<ID3D12Debug6> m_d3d12_dubug;

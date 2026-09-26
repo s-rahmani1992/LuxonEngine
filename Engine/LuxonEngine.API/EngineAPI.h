@@ -8,6 +8,7 @@
 #include <Rendering/MeshRenderer.h>
 #include <Rendering/SplineRenderer.h>
 #include <Rendering/GBufferRTReflectionRenderer.h>
+#include <Rendering/SpikeMeshRenderer.h>
 #include <Rendering/RayTracingComponent.h>
 #include <Core/Logger.h>
 #include <BasicTypes.h>

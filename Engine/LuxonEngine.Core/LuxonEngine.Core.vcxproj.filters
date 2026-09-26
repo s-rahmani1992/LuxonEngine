@@ -104,6 +104,9 @@
     <ClInclude Include="Rendering\Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\SpikeMeshRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\MeshRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>

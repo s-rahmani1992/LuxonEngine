@@ -115,6 +115,12 @@
     <ClInclude Include="DX12EditorGraphicContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX12PipelineFactory.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\DX12MeshPipelineModule.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -204,6 +210,12 @@
     <ClCompile Include="DX12API.cpp" />
     <ClCompile Include="DX12EditorGraphicContext.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12PipelineFactory.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\DX12MeshPipelineModule.cpp">
+      <Filter>Mesh</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

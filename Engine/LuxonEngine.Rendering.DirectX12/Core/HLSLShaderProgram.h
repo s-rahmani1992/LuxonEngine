@@ -25,6 +25,10 @@ namespace LuxonEngine::Rendering::DX12 {
         UInt32 m_rootParameterCount = 0;
     };
 
+    struct RenderTargetReflection {
+		std::vector<DXGI_FORMAT> formats;
+	};
+
     struct HLSLShaderData {
         D3D12_SHADER_VERSION_TYPE shaderType;
 		std::string entryPoint;

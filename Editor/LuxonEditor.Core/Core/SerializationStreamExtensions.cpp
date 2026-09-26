@@ -79,6 +79,15 @@ namespace LuxonEditor {
 				auto mesh = EngineApplication::GetAssetManager()->GetMesh(meshGuid);
 				return std::make_shared<LuxonEngine::Rendering::GBufferRTReflectionRenderer>(mesh, material);
 			}
+			case 3: // SpikeMeshRenderer
+			{
+				auto meshGuid = stream.GetGuid("mesh-guid");
+				auto materialGuid = stream.GetGuid("material-guid");
+				auto mesh = EngineApplication::GetAssetManager()->GetMesh(meshGuid);
+				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+				float spikeHeight = stream.GetFloat("spike-height", 1.0f);
+				return std::make_shared<LuxonEngine::Rendering::SpikeMeshRenderer>(mesh, material, spikeHeight);
+			}
 			default:
 				return nullptr;
 		}
@@ -129,6 +138,20 @@ namespace LuxonEditor {
 				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(mesh);
 				stream.SetGuid("mesh-guid", meshEntry->guid);
 			}
+		}
+		else if (auto spikeMeshRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SpikeMeshRenderer>(renderer)) {
+			stream.SetInt("renderer-type", 3);
+			auto mesh = spikeMeshRenderer->GetMesh();
+			auto material = spikeMeshRenderer->GetMaterial();
+			if (mesh) {
+				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(mesh);
+				stream.SetGuid("mesh-guid", meshEntry->guid);
+			}
+			if (material) {
+				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+				stream.SetGuid("material-guid", materialEntry->guid);
+			}
+			stream.SetFloat("spike-height", spikeMeshRenderer->GetSpikeHeight());
 		}
 		else {
 			stream.SetInt("renderer-type", -1);

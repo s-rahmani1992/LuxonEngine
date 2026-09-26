@@ -57,7 +57,7 @@ namespace LuxonEngine::Rendering {
 		/// Gets the shader program that this material is created from
 		/// </summary>
 		/// <returns></returns>
-		ref<ShaderProgram> GetProgram() { return m_program; }
+		ref<ShaderProgram> GetProgram() const { return m_program; }
 
 		void SetProgram(const ref<ShaderProgram>& program) { m_program = program; }
 
