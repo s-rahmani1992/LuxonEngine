@@ -5,12 +5,14 @@
 #include <vector>
 #include "../Core/Color.h"
 #include "../BasicTypes.h"
+#include "../export.h"
 #include <boost/uuid/uuid.hpp>
 
 namespace LuxonEngine {
 	class Texture2D;
 	namespace Rendering {
 		class ShaderProgram;
+		struct ShaderVariableReflection;
 	}
 }
 
@@ -41,66 +43,15 @@ namespace LuxonEngine::Rendering {
 		std::vector<MaterialTextureFieldInfo> textureFields;
 	};
 
-	class Material {
+	class LUXON_CORE_API Material {
 	public:
-		Material(const ref<ShaderProgram>& program) 
-			:m_program(program)
-		{
+		Material(const ref<ShaderProgram>& program);
 
-		}
-
-		Material(const ref<ShaderProgram>& program, const MaterialReflection* fields)
-			:m_program(program)
-		{
-			// Allocate Array holding Value Data
-			UInt32 totalValueSize = 0;
-			for (auto& valueField : fields->valueFields) {
-				totalValueSize += valueField.size;
-			}
-			m_valueData = new Byte[totalValueSize]();
-
-			// Initialize Value Array and Map
-			totalValueSize = 0;
-			for(auto& valueField : fields->valueFields) {
-				m_valueFields[valueField.name] = MaterialValueData{
-					.fieldIndex = valueField.fieldIndex,
-					.size = valueField.size,
-					.data = m_valueData + totalValueSize,
-				};
-
-				totalValueSize += valueField.size;
-			}
-
-			UInt32 index = 0;
-			// Initialize Texture Map
-			for (auto& textureField : fields->textureFields) {
-				m_textureFields[textureField.name] = MaterialTextureData{
-					.fieldIndex = index,
-					.texture = nullptr,
-				};
-
-				index++;
-			}
-		}
+		Material(const ref<ShaderProgram>& program, const MaterialReflection* fields);
 		
-		Material& operator=(Material& srcMaterial) {
-			delete[] m_valueData;
+		Material& operator=(Material& srcMaterial);
 
-			m_valueData = srcMaterial.m_valueData;
-			m_programGuid = srcMaterial.m_programGuid;
-			m_program = srcMaterial.m_program;
-			m_valueFields = srcMaterial.m_valueFields;
-			m_textureFields = srcMaterial.m_textureFields;
-			srcMaterial.m_valueData = nullptr;
-			m_modifiedTextures.clear();
-			m_modifiedValues.clear();
-			return *this;
-		}
-
-		virtual ~Material() {
-			if(m_valueData != nullptr)
-				delete[] m_valueData;
-		}
+		virtual ~Material();
 
 		/// <summary>
 		/// Gets the shader program that this material is created from
@@ -128,19 +79,7 @@ namespace LuxonEngine::Rendering {
 			}
 		}
 
-		void SetValue(const std::string& fieldName, void* src, UInt32 size) {
-			auto it = m_valueFields.find(fieldName);
-
-			if (it == m_valueFields.end())
-				return;
-
-			if (it->second.size != size)
-				return;
-
-			MaterialValueData& valueData = it->second;
-			memcpy(valueData.data, src, size);
-			m_modifiedValues.emplace(&valueData);
-		}
+		void SetValue(const std::string& fieldName, void* src, UInt32 size);
 
 		/// <summary>
 		/// Sets the value of a field in the material. the value type must be a simple type such as int, color, etc.
@@ -165,30 +104,14 @@ namespace LuxonEngine::Rendering {
 		/// </summary>
 		/// <param name="fieldName">name of the field</param>
 		/// <param name="texture">texture asset</param>
-		void SetTexture2D(const std::string& fieldName, const ref<Texture2D>& texture) {
-			auto it = m_textureFields.find(fieldName);
-			if (it != m_textureFields.end()) {
-				MaterialTextureData& textureData = it->second;
-				textureData.texture = texture;
-				m_modifiedTextures.emplace(&textureData);
-			}
-		}
+		void SetTexture2D(const std::string& fieldName, const ref<Texture2D>& texture);
 
 		/// <summary>
 		/// Gets the location of a value associated with field name. returns nullptr if field not found.
 		/// </summary>
 		/// <param name="fieldName">name of the field</param>
 		/// <returns></returns>
-		Byte* GetValueLocation(const std::string& fieldName) {
-			auto it = m_valueFields.find(fieldName);
-
-			if (it != m_valueFields.end()) {
-				MaterialValueData& valueData = it->second;
-				return valueData.data;
-			}
-
-			return nullptr;
-		}
+		Byte* GetValueLocation(const std::string& fieldName);
 
 		inline std::map<std::string, MaterialTextureData>* GetTextureFields() {
 			return &m_textureFields;
@@ -220,6 +143,9 @@ namespace LuxonEngine::Rendering {
 
 		const boost::uuids::uuid& GetProgramGuid() const { return m_programGuid; }
 		void SetProgramGuid(const boost::uuids::uuid& guid) { m_programGuid = guid; }
+
+	private:
+		void InitializeFields(const ShaderVariableReflection& reflection);
 
 	protected:
 		ref<ShaderProgram> m_program;

@@ -185,6 +185,7 @@
     <ClCompile Include="JSONUtilities.cpp" />
     <ClCompile Include="Platform\Application.cpp" />
     <ClCompile Include="Platform\GraphicWindow.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\ShaderRegistery.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>

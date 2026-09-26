@@ -1,18 +1,6 @@
 #include "Common/TransformStructs.hlsli"
 #include "Common/LightStructs.hlsli"
 
-// Turns every triangle of the input mesh into a pyramid: the triangle is the base and the apex sits
-// at the triangle's center, 1 unit along the triangle normal (object space).
-// Each pyramid has 4 shared vertices (3 base corners + apex) and 4 faces. Every vertex carries an
-// interpolated normal and every face carries a flat per-primitive normal; the material's
-// smoothNormals constant blends between them (0 = flat faces, 1 = interpolated vertex normals).
-//
-// Task stage: each task group launches up to MESH_GROUPS_PER_TASK mesh groups and passes the index
-// of its first mesh group through the payload.
-// Mesh stage: one thread writes one pyramid vertex and one pyramid face:
-//   thread t -> source triangle t / 4, vertex t % 4 (3 = apex), face t % 4 (3 = base)
-// Dispatch: DispatchMesh(ceil(triangleCount / (TRIANGLES_PER_GROUP * MESH_GROUPS_PER_TASK)), 1, 1)
-
 #define MESH_GROUPS_PER_TASK 32
 #define TRIANGLES_PER_GROUP 32
 #define VERTICES_PER_PYRAMID 4
@@ -67,6 +55,10 @@ OBJECT_TRANSFORM_VAR(b0)
 CAMERA_VAR(b1)
 
 LIGHT_VAR(b2)
+
+TEXTURE(mainTexture, float4, t2)
+
+SAMPLER(mainSampler, s0);
 
 CONSTANT_VARIABLES_BEGIN
     float4 color;
@@ -184,5 +176,6 @@ float4 ps_main(MS_OUTPUT input, MS_PRIMITIVE primitive) : SV_TARGET
     float3 ads = float3(ambient, diffuse, specular);
     float3 normal = lerp(primitive.faceNorm, normalize(input.norm), smoothNormals);
     float3 lightFactor = PhongLight(lightData, cameraData.position, input.worldPos, normal, ads);
-    return float4(lightFactor * color.xyz, color.w);
+    float4 texColor = mainTexture.Sample(mainSampler, input.texCoord);
+    return float4(lightFactor * color.xyz * texColor.xyz, color.w);
 }

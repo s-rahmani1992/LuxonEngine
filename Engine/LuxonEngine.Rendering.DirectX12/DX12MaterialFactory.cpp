@@ -30,5 +30,6 @@ ref<Render::Material> LuxonEngine::Rendering::DX12::DX12MaterialFactory::BuildMa
 		return std::make_shared<Render::Material>(program, &reflectionData);
 	}
 
-	return nullptr;
+	// programs using the shared reflection (e.g. mesh programs) create their fields from it
+	return std::make_shared<Render::Material>(program);
 }

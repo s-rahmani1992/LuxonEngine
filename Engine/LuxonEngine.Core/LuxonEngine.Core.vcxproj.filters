@@ -209,6 +209,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="JSONUtilities.cpp" />
+    <ClCompile Include="Rendering\Material.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="Rendering\ShaderRegistery.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
