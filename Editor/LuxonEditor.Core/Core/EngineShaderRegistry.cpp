@@ -276,6 +276,9 @@ void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::S
 		properties.type = Render::ShaderProgramType::Compute;
 		dataNode.GetString("csMain", &properties.computeProperties.computeMain);
 	}
+	else if (typeStr == "Mesh") {
+		properties.type = Render::ShaderProgramType::Mesh;
+	}
 }
 
 void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream)
@@ -316,6 +319,9 @@ void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::R
 		case Render::ShaderProgramType::Compute:
 			stream.SetString("type", "Compute");
 			stream.SetString("csMain", properties.computeProperties.computeMain);
+			break;
+		case Render::ShaderProgramType::Mesh:
+			stream.SetString("type", "Mesh");
 			break;
 	}
 }

@@ -12,6 +12,9 @@
     <Filter Include="RayTracing">
       <UniqueIdentifier>{1401dd6d-26f5-4507-8445-5ef831e696e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{3d6f1c2a-8b4e-4f7a-9c1d-5e2b7a9f4c61}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Compute">
       <UniqueIdentifier>{f9536bdf-bd4c-42cf-bb76-ab52b063bb48}</UniqueIdentifier>
     </Filter>
@@ -72,10 +75,16 @@
     <ClInclude Include="DX12SplineRasterPipelineModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\HLSLMeshProgram.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
     <ClInclude Include="Compute\HLSLComputeProgram.h">
       <Filter>Compute</Filter>
     </ClInclude>
     <ClInclude Include="Core\HLSLReflection.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HLSLVariableReflection.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="RayTracing\HLSLRayTracingProgram.h">
@@ -156,10 +165,16 @@
     <ClCompile Include="DX12SplineRasterPipelineModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\HLSLMeshProgram.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="Compute\HLSLComputeProgram.cpp">
       <Filter>Compute</Filter>
     </ClCompile>
     <ClCompile Include="Core\HLSLReflection.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\HLSLVariableReflection.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="RayTracing\HLSLRayTracingProgram.cpp">

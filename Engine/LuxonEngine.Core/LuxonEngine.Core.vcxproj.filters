@@ -116,6 +116,9 @@
     <ClInclude Include="Rendering\ShaderRegistery.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\ShaderReflection.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Vector2UInt.h">
       <Filter>Core</Filter>
     </ClInclude>

@@ -189,8 +189,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Compute\HLSLComputeProgram.h" />
+    <ClInclude Include="Mesh\HLSLMeshProgram.h" />
     <ClInclude Include="Core\DX12ShaderCompiler.h" />
     <ClInclude Include="Core\HLSLReflection.h" />
+    <ClInclude Include="Core\HLSLVariableReflection.h" />
     <ClInclude Include="Core\HLSLShader.h" />
     <ClInclude Include="Core\HLSLShaderProgram.h" />
     <ClInclude Include="DX12API.h" />
@@ -219,8 +221,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compute\HLSLComputeProgram.cpp" />
+    <ClCompile Include="Mesh\HLSLMeshProgram.cpp" />
     <ClCompile Include="Core\DX12ShaderCompiler.cpp" />
     <ClCompile Include="Core\HLSLReflection.cpp" />
+    <ClCompile Include="Core\HLSLVariableReflection.cpp" />
     <ClCompile Include="Core\HLSLShader.cpp" />
     <ClCompile Include="Core\HLSLShaderProgram.cpp" />
     <ClCompile Include="DX12AssetManager.cpp" />

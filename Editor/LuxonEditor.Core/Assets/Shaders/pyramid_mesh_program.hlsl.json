@@ -1,0 +1,9 @@
+{
+    "uuid" : "11a5b4d7-af68-4b10-b3a3-2bc3509582bc",
+    "data" : {
+        "model" : "6_6",
+        "usage" : "User",
+        "name" : "pyramid-mesh-program",
+        "type" : "Mesh"
+    }
+}

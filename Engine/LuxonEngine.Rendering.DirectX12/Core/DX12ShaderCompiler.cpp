@@ -7,6 +7,8 @@
 #include "Rasterization/HLSLRasterizationProgram.h"
 #include "RayTracing/HLSLRayTracingProgram.h"
 #include "Compute/HLSLComputeProgram.h"
+#include "Mesh/HLSLMeshProgram.h"
+#include "HLSLVariableReflection.h"
 
 #include "StringUtilities.h"
 #include <vector>
@@ -160,6 +162,74 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 		finalProgram = new Compute::HLSLComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), pShaderReflection);
 	}
 
+	else if (compileProperties.type == ShaderProgramType::Mesh) {
+		// Phase 1: compile the whole file as a library to find the entry function of each stage from its [shader("...")] attribute
+		auto libraryOptions = baseOptions;
+		libraryOptions.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
+
+		ComPtr<IDxcBlob> pLibraryObjectData;
+		ComPtr<IDxcBlob> pLibraryReflectionData;
+
+		if (m_compiler->Compile(shaderCode, codeLength, libraryOptions, pLibraryObjectData, error, &pLibraryReflectionData) == false) {
+			return nullptr;
+		}
+
+		ComPtr<ID3D12LibraryReflection> pLibraryReflection;
+		if (FAILED(m_compiler->CreateReflection(pLibraryReflectionData.Get(), IID_PPV_ARGS(&pLibraryReflection)))) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
+		D3D12_LIBRARY_DESC libraryDesc;
+		pLibraryReflection->GetDesc(&libraryDesc);
+		std::map<D3D12_SHADER_VERSION_TYPE, std::string> foundStages;
+
+		for (UINT i = 0; i < libraryDesc.FunctionCount; i++) {
+			D3D12_FUNCTION_DESC functionDesc;
+			pLibraryReflection->GetFunctionByIndex(i)->GetDesc(&functionDesc);
+
+			D3D12_SHADER_VERSION_TYPE stage = (D3D12_SHADER_VERSION_TYPE)D3D12_SHVER_GET_TYPE(functionDesc.Version);
+
+			if (stage == D3D12_SHVER_RESERVED0)
+				continue;
+
+			if(m_validMeshStages.find(stage) == m_validMeshStages.end()) {
+				error = std::string("Invalid Stage Found: ") + ShaderStageToString(stage) + " stage is not supported in Mesh shaders";
+				return nullptr;
+			}
+
+			if(foundStages.find(stage) != foundStages.end()) {
+				error = std::string("Multiple ") + ShaderStageToString(stage) + " Stage Found";
+				return nullptr;
+			}
+
+			foundStages[stage] = functionDesc.Name;
+		}
+
+		std::vector<HLSLShaderData> shaders;
+
+		for (auto& [stage, entryPoint] : foundStages) {
+			if (entryPoint.empty())
+				continue;
+
+			std::string stageError;
+			auto options = baseOptions;
+			options.entryPoint = CharToString(entryPoint.c_str());
+			options.targetProfile = m_validMeshStages[stage];
+			auto hlslShader = CompileShaderStageWithReflection(shaderCode, codeLength, options, stageError);
+
+			if (hlslShader.byteCode == nullptr) {
+				error = std::string("Error in compiling ") +  ShaderStageToString(stage) + " Stage: " + stageError;
+				return nullptr;
+			}
+			hlslShader.shaderType = stage;
+			hlslShader.entryPoint = entryPoint;
+			shaders.push_back(hlslShader);
+		}
+
+		finalProgram = new MeshShading::HLSLMeshProgram(shaders);
+	}
+
 	else {
 		error = "Unknown Shader Type";
 		return nullptr;
@@ -209,4 +279,27 @@ ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12
 	}
 
 	return std::make_shared<HLSLShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, pShaderReflection);
+}
+
+LuxonEngine::Rendering::DX12::HLSLShaderData LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CompileShaderStageWithReflection(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error)
+{
+	ComPtr<IDxcBlob> pshaderObjectData;
+	ComPtr<IDxcBlob> pReflectionData;
+
+	HLSLShaderData shaderData;
+
+	if (m_compiler->Compile(source, size, options, pshaderObjectData, error, &pReflectionData) == false) {
+		return shaderData;
+	}
+
+	ComPtr<ID3D12ShaderReflection> pShaderReflection;
+	if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pShaderReflection)))) {
+		error = "Unknown Error when Creating Reflection";
+		return shaderData;
+	}
+
+	return HLSLShaderData{
+		.byteCode = pshaderObjectData,
+		.reflection = pShaderReflection
+	};
 }
