@@ -22,11 +22,11 @@ namespace LuxonEngine::Rendering::DX12 {
 	public:
 		DX12PipelineFactory(ID3D12Device10* device);
 
-		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
+		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 
 	private:
-		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, const Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
+		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 
 		template <D3D12_PIPELINE_STATE_SUBOBJECT_TYPE Type, typename T>
 		struct alignas(void*) PsoSubobject

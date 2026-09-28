@@ -176,21 +176,29 @@ bool LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeLight(const Sce
 void LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeEntityGPUData(const std::vector<ref<GameEntity>>& gameEntities)
 {
 	auto transformResourceDesc = ResourceUtilities::GetCommonBufferResourceDesc(CONSTANT_BUFFER_ALIGHT(sizeof(TransformGPU)), D3D12_RESOURCE_FLAG_NONE);
-
 	// Create Transform Resources and Rasterization Heap 
 	for (auto& gameEntity : gameEntities) {
-		ComPtr<ID3D12Resource2> transformResource;
+		auto gpuData = DX12EntityGPUData{
+			.gameEntity = gameEntity,
+		};
 
 		if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonUploadHeapProps, D3D12_HEAP_FLAG_NONE,
-			&transformResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&transformResource))))
+			&transformResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gpuData.transformResource))))
 		{
 			continue;
 		}
 
-		m_entityGPUData.push_back(DX12EntityGPUData{
-			.gameEntity = gameEntity,
-			.transformResource = transformResource,
-			});
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = 1,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+			.NodeMask = 0,
+		};
+
+		if (FAILED(m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&gpuData.transformHeap))))
+			continue;
+
+		m_entityGPUData.push_back(gpuData);
 	}
 }
 

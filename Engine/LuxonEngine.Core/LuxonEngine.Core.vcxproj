@@ -158,6 +158,7 @@
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderProgram.h" />
     <ClInclude Include="Rendering\ShaderCompiler.h" />
+    <ClInclude Include="Rendering\ShaderInternalNames.h" />
     <ClInclude Include="Rendering\ShaderRegistery.h" />
     <ClInclude Include="Rendering\ShaderReflection.h" />
     <ClInclude Include="Rendering\SpikeMeshRenderer.h" />

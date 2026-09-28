@@ -12,7 +12,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	}
 
-	ref<MeshShading::DX12MeshPipelineModule> DX12PipelineFactory::CreateMeshPipeline(const Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error)
+	ref<MeshShading::DX12MeshPipelineModule> DX12PipelineFactory::CreateMeshPipeline(Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error)
 	{
 		if (material == nullptr) {
 			error = "Material is null";
@@ -27,7 +27,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		return CreateMeshPipeline(program, nullptr, properties, error);
 	}
 
-	ref<MeshShading::DX12MeshPipelineModule> DX12PipelineFactory::CreateMeshPipeline(const ShaderProgram* program, const Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error)
+	ref<MeshShading::DX12MeshPipelineModule> DX12PipelineFactory::CreateMeshPipeline(const ShaderProgram* program, Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error)
 	{
 		auto meshProgram = dynamic_cast<const MeshShading::HLSLMeshProgram*>(program);
 
@@ -127,6 +127,8 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
-		return std::make_shared<MeshShading::DX12MeshPipelineModule>(m_device, pipelineState, meshProgram->GetRootSignature(), material);
+		auto pipeline = std::make_shared<MeshShading::DX12MeshPipelineModule>(m_device, pipelineState, meshProgram->GetRootSignature().Get(), material);
+
+		return pipeline;
 	}
 }

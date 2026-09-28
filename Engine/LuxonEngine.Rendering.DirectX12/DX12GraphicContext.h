@@ -41,6 +41,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	public:
 		ref<GameEntity> gameEntity;
 		ComPtr<ID3D12Resource2> transformResource;
+		ComPtr<ID3D12DescriptorHeap> transformHeap;
 	};
 
 	struct DX12RayTracingGPUData {

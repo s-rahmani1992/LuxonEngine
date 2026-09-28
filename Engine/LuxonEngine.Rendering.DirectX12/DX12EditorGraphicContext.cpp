@@ -15,6 +15,12 @@
 #include <Rendering/RayTracingComponent.h>
 #include "DX12PipelineFactory.h"
 #include <Core/Logger.h>
+#include <Core/Mesh.h>
+#include <Mesh/DX12MeshPipelineModule.h>
+#include <Rendering/ShaderInternalNames.h>
+#include "DX12MeshController.h"
+
+#include "DX12LightManager.h"
 
 bool LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
@@ -262,16 +268,58 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 		m_rasterizationPipelines.push_back(pipeline);
 	}
 	std::string error;
+
+	struct SpikeData {
+		GameEntity* entity;
+		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
+		ref<DX12MeshController> meshController;
+		ref<SpikeMeshRenderer> spikeRenderer;
+	};
+
+	std::map<ref<Material>, std::vector<SpikeData>> spikeMap;
+
 	for (auto& entityGpu : m_entityGPUData) {
 		auto spikeRenderer = std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer());
+		if (spikeRenderer == nullptr)
+			continue;
+
+		auto spikeIt = spikeMap.find(spikeRenderer->GetMaterial());
+
+		if (spikeIt != spikeMap.end()) {
+			(*spikeIt).second.push_back(SpikeData{
+				.entity = entityGpu.gameEntity.get(),
+				.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+				.meshController = std::dynamic_pointer_cast<DX12MeshController>(spikeRenderer->GetMesh()->GetGPUHandle()),
+				.spikeRenderer = spikeRenderer,
+
+				});
+			continue;
+		}
+
+		spikeMap[spikeRenderer->GetMaterial()] = { SpikeData{
+				.entity = entityGpu.gameEntity.get(),
+				.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+				.meshController = std::dynamic_pointer_cast<DX12MeshController>(spikeRenderer->GetMesh()->GetGPUHandle()),
+				.spikeRenderer = spikeRenderer,
+				} };
+
 		MeshShading::MeshPipelineProperties properties;
-		if(spikeRenderer != nullptr) {
-			ref<MeshShading::DX12MeshPipelineModule> spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(spikeRenderer->GetMaterial()->GetProgram().get(), properties, error);
-			
-			if (spikeMeshPipeline != nullptr)
-				m_meshShadingPipelines.push_back(spikeMeshPipeline);
-			else
-				Logger::Log(error);
+
+		for (auto& [material, spikeList] : spikeMap) {
+			ref<MeshShading::DX12MeshPipelineModule> spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(spikeRenderer->GetMaterial().get(), properties, error);
+			if (spikeMeshPipeline->Initialize(spikeList.size()) == false)
+				continue;
+
+			spikeMeshPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+			spikeMeshPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+
+			for (auto& spikeData : spikeList) {
+				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spikeData.transformHandle);
+				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, spikeData.meshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, spikeData.meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+				spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeRenderer->GetSpikeHeight());
+			}
+			m_meshShadingPipelines.push_back(spikeMeshPipeline);
 		}
 	}
 }
@@ -302,9 +350,6 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()
 		if (existingSet.find(e) == existingSet.end())
 			added.push_back(e);
 
-	/*if (removed.empty() && added.empty())
-		return;*/
-
 	// Remove stale GPU data
 	for (auto& entity : removed) {
 		m_entityGPUData.erase(
@@ -313,11 +358,6 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()
 			m_entityGPUData.end());
 	}
 
-	// Upload and register newly added entities
-	/*if (!added.empty()) {
-		UploadTexturesAndMeshes(m_scene);
-		InitializeEntityGPUData(added);
-	}*/
 	UploadTexturesAndMeshes(m_scene);
 	InitializeEntityGPUData(added);
 	// Rebuild pipelines for the full updated entity list
