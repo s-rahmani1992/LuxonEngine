@@ -265,7 +265,7 @@ void LuxonEngine::Rendering::DX12::FillRenderTargetReflection(RenderTargetReflec
 {
 	D3D12_SHADER_DESC desc;
 	shaderReflection->GetDesc(&desc);
-	
+
 	for(UINT i = 0; i < desc.OutputParameters; ++i) {
 		D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
 		shaderReflection->GetOutputParameterDesc(i, &paramDesc);
@@ -280,16 +280,19 @@ void LuxonEngine::Rendering::DX12::FillRenderTargetReflection(RenderTargetReflec
 					format = DXGI_FORMAT_R32_SINT;
 					break;
 				case D3D_REGISTER_COMPONENT_FLOAT16:
-					format = DXGI_FORMAT_R16_FLOAT;
-					break;
 				case D3D_REGISTER_COMPONENT_FLOAT32:
 				case D3D_REGISTER_COMPONENT_FLOAT64:
-					format = DXGI_FORMAT_R32_FLOAT;
+					format = DXGI_FORMAT_R8G8B8A8_UNORM;
 					break;
 			}
 			reflection.formats.push_back(format);
 		}
 	}
+}
+
+void LuxonEngine::Rendering::DX12::FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, ID3D12ShaderReflection* shaderReflection)
+{
+	shaderReflection->GetThreadGroupSize(&reflection.xThread, &reflection.yThread, &reflection.zThread);
 }
 
 ComPtr<ID3D12RootSignature> LuxonEngine::Rendering::DX12::CreateRootSignature(const ComPtr<ID3D12Device10>& device, const ShaderVariableReflection& reflection,

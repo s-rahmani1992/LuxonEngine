@@ -179,6 +179,40 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		return true;
 	}
 
+	void DX12MeshPipelineModule::Dispatch(ID3D12GraphicsCommandList7* commandList, UInt32 x, UInt32 y, UInt32 z)
+	{
+		UpdateModifiedTextures();
+
+		commandList->SetPipelineState(m_pipelineState.Get());
+		commandList->SetGraphicsRootSignature(m_rootSignature);
+
+		ID3D12DescriptorHeap* heaps[] = { m_pipelineDescriptorHeap.Get() };
+		commandList->SetDescriptorHeaps(1, heaps);
+
+		// global and material bindings are shared by all the entities
+		for (auto& heapData : m_heapValues)
+			commandList->SetGraphicsRootDescriptorTable(heapData.rootParamIndex, heapData.gpuHandle);
+
+		for (auto& constant : m_rootConstants) {
+			if (constant.data != nullptr)
+				commandList->SetGraphicsRoot32BitConstants(m_rootConstantsParamIndex, constant.size, constant.data, constant.offset);
+		}
+
+		// every registered entity is dispatched with the same group count
+		for (auto& entityData : m_entityDataList) {
+			if (entityData.entity == nullptr)
+				continue;
+
+			for (auto& heapData : entityData.resources)
+				commandList->SetGraphicsRootDescriptorTable(heapData.rootParamIndex, heapData.gpuHandle);
+
+			for (auto& constant : entityData.constants)
+				commandList->SetGraphicsRoot32BitConstants(m_rootConstantsParamIndex, constant.size, constant.data, constant.offset);
+
+			commandList->DispatchMesh(x, y, z);
+		}
+	}
+
 	DX12MeshPipelineModule::~DX12MeshPipelineModule()
 	{
 		// the data of the dynamic constant blocks is owned by the entity data, the material blocks point to the material

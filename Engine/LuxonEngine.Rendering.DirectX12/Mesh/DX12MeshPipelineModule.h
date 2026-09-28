@@ -26,6 +26,11 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		DX12MeshPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState,
 			ID3D12RootSignature* rootSignature, Material* material);
 
+		~DX12MeshPipelineModule();
+
+		DX12MeshPipelineModule(const DX12MeshPipelineModule&) = delete;
+		DX12MeshPipelineModule& operator=(const DX12MeshPipelineModule&) = delete;
+
 		bool Initialize(UInt32 entityCount = 0);
 
 		void UpdateModifiedTextures();
@@ -34,15 +39,16 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 
 		bool SetEntityDescriptor(GameEntity* entity, const char* name, D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle);
 
+		/// <summary>
+		/// Draws every registered entity with the given amplification (or mesh) group count. the render targets, viewport and scissor must be set by the caller.
+		/// the pipeline binds its own descriptor heap, so the heap of the other pipelines must be set again after it
+		/// </summary>
+		void Dispatch(ID3D12GraphicsCommandList7* commandList, UInt32 x, UInt32 y, UInt32 z);
+
 		template<typename T>
 		bool SetEntityConstant(GameEntity* entity, const char* name, const T& value) {
 			return SetEntityConstantData(entity, name, &value, sizeof(T));
 		}
-
-		~DX12MeshPipelineModule();
-
-		DX12MeshPipelineModule(const DX12MeshPipelineModule&) = delete;
-		DX12MeshPipelineModule& operator=(const DX12MeshPipelineModule&) = delete;
 
 	private:
 		struct HeapData {
@@ -107,7 +113,7 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 
 		std::vector<HeapData> m_heapValues;
 		std::vector<UInt32> m_textureHeapIndices; // texture field index of the material -> index in m_heapValues
-		std::map<const char*, int> m_entityHeapLayout; // per entity variables. the handles are set per entity in m_entityHeapData
+		std::map<std::string_view, int> m_entityHeapLayout; // per entity variables. the handles are set per entity in m_entityHeapData
 
 		UInt32 m_rootConstantsParamIndex = ShaderVariableReflection::InvalidIndex; // root parameter shared by all the root constant blocks
 		std::vector<ConstantData> m_rootConstants; // material root constant blocks

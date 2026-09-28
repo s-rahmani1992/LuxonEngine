@@ -94,4 +94,10 @@ namespace LuxonEngine::Rendering {
 		std::vector<ShaderResourceVariable> resources;
 		std::vector<ShaderResourceVariable> samplers;
 	};
+
+	struct ShaderThreadGroupReflection {
+		UInt32 xThread;
+		UInt32 yThread;
+		UInt32 zThread;
+	};
 }

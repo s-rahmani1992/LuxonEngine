@@ -9,6 +9,7 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		for (auto& shader : shaders) {
 			if (shader.shaderType == D3D12_SHVER_AMPLIFICATION_SHADER) {
 				m_amplificationShader = shader.byteCode;
+				DX12::FillThreadGroupReflection(m_threadGroupReflection, shader.reflection.Get());
 			}
 			else if (shader.shaderType == D3D12_SHVER_MESH_SHADER) {
 				m_meshShader = shader.byteCode;

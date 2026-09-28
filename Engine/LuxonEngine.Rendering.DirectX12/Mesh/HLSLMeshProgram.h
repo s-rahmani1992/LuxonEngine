@@ -30,5 +30,6 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		ComPtr<IDxcBlob> m_pixelShader = nullptr;
 
 		RenderTargetReflection m_renderTargetReflection;
+		ShaderThreadGroupReflection m_threadGroupReflection;
 	};
 }

@@ -198,6 +198,13 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::InitializeEntityGPUData(c
 		if (FAILED(m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&gpuData.transformHeap))))
 			continue;
 
+		D3D12_CONSTANT_BUFFER_VIEW_DESC transformViewDesc{
+			.BufferLocation = gpuData.transformResource->GetGPUVirtualAddress(),
+			.SizeInBytes = (UINT)transformResourceDesc.Width,
+		};
+
+		m_device->CreateConstantBufferView(&transformViewDesc, gpuData.transformHeap->GetCPUDescriptorHandleForHeapStart());
+
 		m_entityGPUData.push_back(gpuData);
 	}
 }

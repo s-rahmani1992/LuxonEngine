@@ -100,7 +100,8 @@ void as_main(uint groupId : SV_GroupID)
 {
     uint meshGroupCount = (GetTriangleCount() + TRIANGLES_PER_GROUP - 1) / TRIANGLES_PER_GROUP;
     taskPayload.firstMeshGroup = groupId * MESH_GROUPS_PER_TASK;
-    uint taskMeshGroupCount = min(MESH_GROUPS_PER_TASK, meshGroupCount - taskPayload.firstMeshGroup);
+    // a pipeline dispatches the group count of its largest mesh, the extra groups of the smaller meshes launch nothing
+    uint taskMeshGroupCount = taskPayload.firstMeshGroup < meshGroupCount ? min(MESH_GROUPS_PER_TASK, meshGroupCount - taskPayload.firstMeshGroup) : 0;
 
     DispatchMesh(taskMeshGroupCount, 1, 1, taskPayload);
 }
@@ -118,7 +119,7 @@ void ms_main(
 {
     uint triangleCount = GetTriangleCount();
     uint firstTriangle = (payload.firstMeshGroup + groupId) * TRIANGLES_PER_GROUP;
-    uint groupTriangleCount = min(TRIANGLES_PER_GROUP, triangleCount - firstTriangle);
+    uint groupTriangleCount = firstTriangle < triangleCount ? min(TRIANGLES_PER_GROUP, triangleCount - firstTriangle) : 0;
 
     SetMeshOutputCounts(groupTriangleCount * VERTICES_PER_PYRAMID, groupTriangleCount * FACES_PER_PYRAMID);
 

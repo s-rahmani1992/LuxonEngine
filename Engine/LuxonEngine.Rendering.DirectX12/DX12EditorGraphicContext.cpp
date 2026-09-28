@@ -122,6 +122,12 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Render()
 		pipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
 	}
 
+	// the mesh pipelines bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
+	for (auto& meshShadingData : m_meshShadingPipelines) {
+		if (meshShadingData.taskGroupCount > 0)
+			meshShadingData.pipeline->Dispatch(m_commandList.Get(), meshShadingData.taskGroupCount, 1, 1);
+	}
+
 	D3D12_RESOURCE_BARRIER endBarrier
 	{
 		.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
@@ -278,49 +284,58 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 
 	std::map<ref<Material>, std::vector<SpikeData>> spikeMap;
 
+	// group the spike entities by material, one mesh pipeline is created per material
 	for (auto& entityGpu : m_entityGPUData) {
 		auto spikeRenderer = std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer());
-		if (spikeRenderer == nullptr)
+		if (spikeRenderer == nullptr || spikeRenderer->GetMaterial() == nullptr || spikeRenderer->GetMesh() == nullptr)
 			continue;
 
-		auto spikeIt = spikeMap.find(spikeRenderer->GetMaterial());
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(spikeRenderer->GetMesh()->GetGPUHandle());
+		if (meshController == nullptr) // the mesh is not uploaded to the GPU
+			continue;
 
-		if (spikeIt != spikeMap.end()) {
-			(*spikeIt).second.push_back(SpikeData{
-				.entity = entityGpu.gameEntity.get(),
-				.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
-				.meshController = std::dynamic_pointer_cast<DX12MeshController>(spikeRenderer->GetMesh()->GetGPUHandle()),
-				.spikeRenderer = spikeRenderer,
+		spikeMap[spikeRenderer->GetMaterial()].push_back(SpikeData{
+			.entity = entityGpu.gameEntity.get(),
+			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+			.meshController = meshController,
+			.spikeRenderer = spikeRenderer,
+			});
+	}
 
-				});
+	// the pyramid shader handles 32 mesh groups of 32 triangles in each task group
+	constexpr UInt32 trianglesPerTaskGroup = 32 * 32;
+	MeshShading::MeshPipelineProperties properties;
+
+	for (auto& [material, spikeList] : spikeMap) {
+		ref<MeshShading::DX12MeshPipelineModule> spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), properties, error);
+
+		if (spikeMeshPipeline == nullptr) {
+			Logger::LogError("Failed to create the spike mesh pipeline: " + error);
 			continue;
 		}
 
-		spikeMap[spikeRenderer->GetMaterial()] = { SpikeData{
-				.entity = entityGpu.gameEntity.get(),
-				.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
-				.meshController = std::dynamic_pointer_cast<DX12MeshController>(spikeRenderer->GetMesh()->GetGPUHandle()),
-				.spikeRenderer = spikeRenderer,
-				} };
+		if (spikeMeshPipeline->Initialize((UInt32)spikeList.size()) == false)
+			continue;
 
-		MeshShading::MeshPipelineProperties properties;
+		spikeMeshPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+		spikeMeshPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
 
-		for (auto& [material, spikeList] : spikeMap) {
-			ref<MeshShading::DX12MeshPipelineModule> spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(spikeRenderer->GetMaterial().get(), properties, error);
-			if (spikeMeshPipeline->Initialize(spikeList.size()) == false)
-				continue;
+		UInt32 taskGroupCount = 0;
 
-			spikeMeshPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
-			spikeMeshPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+		for (auto& spikeData : spikeList) {
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spikeData.transformHandle);
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, spikeData.meshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, spikeData.meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeData.spikeRenderer->GetSpikeHeight());
 
-			for (auto& spikeData : spikeList) {
-				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spikeData.transformHandle);
-				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, spikeData.meshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
-				spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, spikeData.meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
-				spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeRenderer->GetSpikeHeight());
-			}
-			m_meshShadingPipelines.push_back(spikeMeshPipeline);
+			UInt32 triangleCount = spikeData.spikeRenderer->GetMesh()->GetIndexCount() / 3;
+			taskGroupCount = std::max(taskGroupCount, (triangleCount + trianglesPerTaskGroup - 1) / trianglesPerTaskGroup);
 		}
+
+		m_meshShadingPipelines.push_back(MeshShadingPipelineData{
+			.pipeline = spikeMeshPipeline,
+			.taskGroupCount = taskGroupCount,
+			});
 	}
 }
 
