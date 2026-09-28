@@ -45,12 +45,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		std::vector<DX12MeshRendererGPUData> m_meshRendererData;
 		std::vector<ref<DX12GameEntityPipelineModule>> m_rasterizationPipelines;
-		struct MeshShadingPipelineData {
-			ref<MeshShading::DX12MeshPipelineModule> pipeline;
-			UInt32 taskGroupCount; // group count of the largest mesh drawn by the pipeline
-		};
-
-		std::vector<MeshShadingPipelineData> m_meshShadingPipelines;
+		std::vector<DX12MeshShadingPipelineData> m_meshShadingPipelines;
 
 		ref<Material> m_overrideMaterial;
 		ref<Scene> m_scene;

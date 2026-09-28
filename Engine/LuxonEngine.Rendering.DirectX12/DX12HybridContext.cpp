@@ -24,6 +24,7 @@
 #include "Compute/HLSLComputeProgram.h"
 #include "DX12MaterialFactory.h"
 #include "RayTracing/DX12RayTracingMaterial.h"
+#include <Rendering/SpikeMeshRenderer.h>
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
@@ -125,6 +126,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 		splinePipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
 	}
 
+	// the mesh pipelines bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
+	DispatchMeshShadingPipelines(m_meshShadingPipelines);
+
 	//draw
 
 	D3D12_RESOURCE_BARRIER endBarrier
@@ -202,6 +206,10 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	std::map<ref<Material>, ref<Rasterization::DX12RasterizationMaterial>> usedMaterials;
 
 	for (auto& entityGpu : m_entityGPUData) {
+		// spike mesh renderers use mesh shading materials, their pipelines are created separately
+		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
+			continue;
+
 		auto material = entityGpu.gameEntity->GetRenderer()->GetMaterial();
 
 		if (usedMaterials.emplace(material, nullptr).second == false)
@@ -385,6 +393,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		splinePipeline->BindDescriptorToResources(m_rasterHeap, offset);
 		offset += 1;
 	}
+
+	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
 }
 
 
