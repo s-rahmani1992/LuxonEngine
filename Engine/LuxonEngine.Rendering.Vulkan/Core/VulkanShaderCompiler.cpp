@@ -11,6 +11,7 @@
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "RayTracing/SPIRVRayTracingProgram.h"
 #include "Compute/SPIRVComputeProgram.h"
+#include "Mesh/SPIRVMeshProgram.h"
 
 #include <boost/uuid/string_generator.hpp>
 #include <boost/json.hpp>
@@ -119,6 +120,74 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 		finalProgram = new Compute::SPIRVComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
 	}
 
+	else if (compileProperties.type == ShaderProgramType::Mesh) {
+		// Phase 1: compile the whole file as a library to find the entry function of each stage from its [shader("...")] attribute
+		auto libraryOptions = baseOptions;
+		libraryOptions.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
+
+		ComPtr<IDxcBlob> pLibraryObjectData;
+
+		if (m_compiler->Compile(shaderCode, codeLength, libraryOptions, pLibraryObjectData, error) == false) {
+			return nullptr;
+		}
+
+		SpvReflectShaderModule libraryReflection;
+
+		if (spvReflectCreateShaderModule(pLibraryObjectData->GetBufferSize(), pLibraryObjectData->GetBufferPointer(), &libraryReflection) != SPV_REFLECT_RESULT_SUCCESS) {
+			error = "Unknown Error when Creating Reflection";
+			return nullptr;
+		}
+
+		std::map<SpvReflectShaderStageFlagBits, std::string> foundStages;
+
+		for (UInt32 i = 0; i < libraryReflection.entry_point_count; i++) {
+			auto& entryPoint = libraryReflection.entry_points[i];
+			SpvReflectShaderStageFlagBits stage = entryPoint.shader_stage;
+
+			if (m_validMeshStages.find(stage) == m_validMeshStages.end()) {
+				error = std::string("Invalid Stage Found: ") + SPIRVVariableReflection::ShaderStageToString(stage) + " stage is not supported in Mesh shaders";
+				spvReflectDestroyShaderModule(&libraryReflection);
+				return nullptr;
+			}
+
+			if (foundStages.find(stage) != foundStages.end()) {
+				error = std::string("Multiple ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage Found";
+				spvReflectDestroyShaderModule(&libraryReflection);
+				return nullptr;
+			}
+
+			foundStages[stage] = entryPoint.name;
+		}
+
+		spvReflectDestroyShaderModule(&libraryReflection);
+
+		// Phase 2: compile each stage separately with its entry function
+		std::vector<SPIRVShaderData> shaders;
+
+		for (auto& [stage, entryPoint] : foundStages) {
+			if (entryPoint.empty())
+				continue;
+
+			std::string stageError;
+			auto options = baseOptions;
+			options.entryPoint = CharToString(entryPoint.c_str());
+			options.targetProfile = m_validMeshStages[stage];
+			auto spirvShader = CompileShaderStageData(shaderCode, codeLength, options, stageError);
+
+			if (spirvShader.byteCode == nullptr) {
+				error = std::string("Error in compiling ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage: " + stageError;
+				return nullptr;
+			}
+
+			// the SPIR-V reflection stage bits have the same values as the Vulkan stage bits
+			spirvShader.shaderType = (VkShaderStageFlagBits)stage;
+			spirvShader.entryPoint = entryPoint;
+			shaders.push_back(spirvShader);
+		}
+
+		finalProgram = new MeshShading::SPIRVMeshProgram(shaders, m_device);
+	}
+
 	else {
 		error = "Unknown Shader Type";
 		return nullptr;
@@ -165,4 +234,15 @@ ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan:
 
 	ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, WStringToString(options.entryPoint));
 	return shader;
+}
+
+LuxonEngine::Rendering::Vulkan::SPIRVShaderData LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileShaderStageData(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error)
+{
+	SPIRVShaderData shaderData{};
+
+	if (m_compiler->Compile(source, size, options, shaderData.byteCode, error) == false) {
+		shaderData.byteCode = nullptr;
+	}
+
+	return shaderData;
 }

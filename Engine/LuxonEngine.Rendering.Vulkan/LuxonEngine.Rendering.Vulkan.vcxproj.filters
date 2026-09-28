@@ -11,6 +11,9 @@
     <ClInclude Include="Core\VulkanShaderCompiler.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\SPIRVMeshProgram.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
     <ClInclude Include="Rasterization\SPIRVRasterizationProgram.h">
       <Filter>Rasterization</Filter>
     </ClInclude>
@@ -88,6 +91,9 @@
     </ClCompile>
     <ClCompile Include="Core\VulkanShaderCompiler.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\SPIRVMeshProgram.cpp">
+      <Filter>Mesh</Filter>
     </ClCompile>
     <ClCompile Include="Rasterization\SPIRVRasterizationProgram.cpp">
       <Filter>Rasterization</Filter>
@@ -171,6 +177,9 @@
     </Filter>
     <Filter Include="RayTracing">
       <UniqueIdentifier>{f74f22ad-3533-4f6a-8d79-2ec8d07971e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{2e2594d5-1045-49ab-9968-6c3306b59f04}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,8 +1,29 @@
 #pragma once
 #include "vulkan-pch.h"
 #include <Rendering/Material.h>
+#include <Rendering/ShaderReflection.h>
 
 namespace LuxonEngine::Rendering::Vulkan {
+	class SPIRVVariableReflection {
+	public:
+		SPIRVVariableReflection() = delete;
+
+		static ShaderStageFlags ToShaderStage(SpvReflectShaderStageFlagBits stage);
+
+		static std::string ShaderStageToString(SpvReflectShaderStageFlagBits stage);
+
+		static ShaderResourceKind ToResourceKind(const SpvReflectDescriptorBinding* descriptor);
+
+		static ShaderScalarType ToScalarType(SpvReflectTypeFlags typeFlags, const SpvReflectNumericTraits& numericTraits);
+
+		static void AddShaderReflection(ShaderVariableReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
+
+		static void FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
+
+	private:
+		static void AddConstants(ShaderVariableReflection& reflection, const SpvReflectBlockVariable* pushConstant, ShaderStageFlags stage);
+	};
+
 	struct PushConstantVariableData {
 		std::string name;
 		SpvReflectBlockVariable variableDesc;

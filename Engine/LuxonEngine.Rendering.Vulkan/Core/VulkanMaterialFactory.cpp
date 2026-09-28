@@ -47,6 +47,6 @@ ref<LuxonEngine::Rendering::Material> LuxonEngine::Rendering::Vulkan::VulkanMate
 
 		return std::make_shared<Material>(program, &matReflection);
 	}
-	
+
 	return std::make_shared<Material>(program);
 }

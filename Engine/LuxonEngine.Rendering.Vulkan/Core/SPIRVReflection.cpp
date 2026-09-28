@@ -319,3 +319,207 @@ void LuxonEngine::Rendering::Vulkan::SPIRVReflection::Initializes()
 		descriptor.offsetIndex += finalOffsets[descriptor.data.set];
 	}
 }
+
+LuxonEngine::Rendering::ShaderStageFlags LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToShaderStage(SpvReflectShaderStageFlagBits stage)
+{
+	switch (stage) {
+	case SPV_REFLECT_SHADER_STAGE_VERTEX_BIT:			return ShaderStageFlags::Vertex;
+	case SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT:			return ShaderStageFlags::Geometry;
+	case SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT:			return ShaderStageFlags::Pixel;
+	case SPV_REFLECT_SHADER_STAGE_COMPUTE_BIT:			return ShaderStageFlags::Compute;
+	case SPV_REFLECT_SHADER_STAGE_RAYGEN_BIT_KHR:		return ShaderStageFlags::RayGeneration;
+	case SPV_REFLECT_SHADER_STAGE_MISS_BIT_KHR:			return ShaderStageFlags::Miss;
+	case SPV_REFLECT_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:	return ShaderStageFlags::ClosestHit;
+	case SPV_REFLECT_SHADER_STAGE_ANY_HIT_BIT_KHR:		return ShaderStageFlags::AnyHit;
+	case SPV_REFLECT_SHADER_STAGE_INTERSECTION_BIT_KHR:	return ShaderStageFlags::Intersection;
+	case SPV_REFLECT_SHADER_STAGE_CALLABLE_BIT_KHR:		return ShaderStageFlags::Callable;
+	case SPV_REFLECT_SHADER_STAGE_TASK_BIT_EXT:			return ShaderStageFlags::Amplification;
+	case SPV_REFLECT_SHADER_STAGE_MESH_BIT_EXT:			return ShaderStageFlags::Mesh;
+	default:											return ShaderStageFlags::None;
+	}
+}
+
+std::string LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ShaderStageToString(SpvReflectShaderStageFlagBits stage)
+{
+	switch (stage) {
+	case SPV_REFLECT_SHADER_STAGE_VERTEX_BIT:			return "Vertex";
+	case SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT:			return "Geometry";
+	case SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT:			return "Pixel";
+	case SPV_REFLECT_SHADER_STAGE_COMPUTE_BIT:			return "Compute";
+	case SPV_REFLECT_SHADER_STAGE_RAYGEN_BIT_KHR:		return "RayGeneration";
+	case SPV_REFLECT_SHADER_STAGE_MISS_BIT_KHR:			return "Miss";
+	case SPV_REFLECT_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:	return "ClosestHit";
+	case SPV_REFLECT_SHADER_STAGE_ANY_HIT_BIT_KHR:		return "AnyHit";
+	case SPV_REFLECT_SHADER_STAGE_INTERSECTION_BIT_KHR:	return "Intersection";
+	case SPV_REFLECT_SHADER_STAGE_CALLABLE_BIT_KHR:		return "Callable";
+	case SPV_REFLECT_SHADER_STAGE_TASK_BIT_EXT:			return "Amplification";
+	case SPV_REFLECT_SHADER_STAGE_MESH_BIT_EXT:			return "Mesh";
+	default:											return "Unknown";
+	}
+}
+
+LuxonEngine::Rendering::ShaderResourceKind LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToResourceKind(const SpvReflectDescriptorBinding* descriptor)
+{
+	// HLSL read only and read write buffers map to the same descriptor type, the resource type keeps the HLSL register class
+	bool isReadWrite = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
+
+	switch (descriptor->descriptor_type) {
+	case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:
+		return ShaderResourceKind::Sampler;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+		return ShaderResourceKind::ConstantBuffer;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		return ShaderResourceKind::Texture;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		return ShaderResourceKind::RWTexture;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR:
+		return ShaderResourceKind::AccelerationStructure;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+		return ShaderResourceKind::StructuredBuffer;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+		return ShaderResourceKind::RWStructuredBuffer;
+	case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+	case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+		return isReadWrite ? ShaderResourceKind::RWStructuredBuffer : ShaderResourceKind::StructuredBuffer;
+	default:
+		return ShaderResourceKind::StructuredBuffer;
+	}
+}
+
+LuxonEngine::Rendering::ShaderScalarType LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToScalarType(SpvReflectTypeFlags typeFlags, const SpvReflectNumericTraits& numericTraits)
+{
+	if ((typeFlags & SPV_REFLECT_TYPE_FLAG_BOOL) != 0)
+		return ShaderScalarType::Bool;
+
+	if ((typeFlags & SPV_REFLECT_TYPE_FLAG_INT) != 0)
+		return numericTraits.scalar.signedness == 0 ? ShaderScalarType::UInt : ShaderScalarType::Int;
+
+	if ((typeFlags & SPV_REFLECT_TYPE_FLAG_FLOAT) != 0) {
+		switch (numericTraits.scalar.width) {
+		case 16: return ShaderScalarType::Half;
+		case 64: return ShaderScalarType::Double;
+		default: return ShaderScalarType::Float;
+		}
+	}
+
+	return ShaderScalarType::Unknown;
+}
+
+void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::AddConstants(ShaderVariableReflection& reflection, const SpvReflectBlockVariable* pushConstant, ShaderStageFlags stage)
+{
+	auto& constants = reflection.constants;
+
+	constants.name = pushConstant->name == nullptr ? "" : pushConstant->name;
+	constants.size = pushConstant->size;
+	constants.stages |= stage;
+
+	UInt32 index = 0;
+
+	while (index < pushConstant->member_count) {
+		bool internalBlock = ShaderVariableReflection::IsInternalName(pushConstant->members[index].name);
+
+		auto& blockItem = constants.blocks.emplace_back(ShaderConstantBlock{
+			.offset = pushConstant->members[index].offset,
+			.size = 0,
+			.isInternal = internalBlock,
+			});
+
+		while (index < pushConstant->member_count && internalBlock == ShaderVariableReflection::IsInternalName(pushConstant->members[index].name)) {
+			auto& member = pushConstant->members[index];
+			SpvReflectTypeFlags typeFlags = member.type_description == nullptr ? 0 : member.type_description->type_flags;
+
+			UInt32 rows = 1;
+			UInt32 columns = 1;
+
+			if ((typeFlags & SPV_REFLECT_TYPE_FLAG_MATRIX) != 0) {
+				rows = member.numeric.matrix.row_count;
+				columns = member.numeric.matrix.column_count;
+			}
+			else if ((typeFlags & SPV_REFLECT_TYPE_FLAG_VECTOR) != 0) {
+				columns = member.numeric.vector.component_count;
+			}
+
+			blockItem.variables.push_back(ShaderConstantVariable{
+				.name = member.name,
+				.index = index,
+				.offset = member.offset,
+				.size = member.size,
+				.type = ToScalarType(typeFlags, member.numeric),
+				.rows = rows,
+				.columns = columns,
+				});
+			blockItem.size += member.size;
+
+			index++;
+		}
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::AddShaderReflection(ShaderVariableReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule)
+{
+	ShaderStageFlags stage = ToShaderStage(shaderReflectionModule->shader_stage);
+
+	// Extract the push constants
+	UInt32 pushConstantCount = 0;
+	spvReflectEnumeratePushConstantBlocks(shaderReflectionModule, &pushConstantCount, nullptr);
+
+	std::vector<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
+	spvReflectEnumeratePushConstantBlocks(shaderReflectionModule, &pushConstantCount, pushConstants.data());
+
+	for (auto& pushConstant : pushConstants) {
+		if (reflection.constants.blocks.empty() == false) {
+			reflection.constants.stages |= stage;
+			continue; //the constant data can exist in multiple shaders of the program
+		}
+
+		AddConstants(reflection, pushConstant, stage);
+	}
+
+	// Extract the descriptors
+	UInt32 bindingCount = 0;
+	spvReflectEnumerateDescriptorBindings(shaderReflectionModule, &bindingCount, nullptr);
+
+	std::vector<SpvReflectDescriptorBinding*> descriptorBindings(bindingCount);
+	spvReflectEnumerateDescriptorBindings(shaderReflectionModule, &bindingCount, descriptorBindings.data());
+
+	for (auto& descriptor : descriptorBindings) {
+		std::string name(descriptor->name == nullptr ? "" : descriptor->name);
+		ShaderResourceKind kind = ToResourceKind(descriptor);
+
+		auto& list = kind == ShaderResourceKind::Sampler ? reflection.samplers : reflection.resources;
+
+		auto it = std::find_if(list.begin(), list.end(), [descriptor](const ShaderResourceVariable& item) {
+			return item.binding == descriptor->binding && item.space == descriptor->set;
+			});
+
+		if (it != list.end()) {
+			it->stages |= stage; //the resource can exist in multiple shaders of the program
+			continue;
+		}
+
+		list.push_back(ShaderResourceVariable{
+			.name = name,
+			.kind = kind,
+			.binding = descriptor->binding,
+			.space = descriptor->set,
+			.count = descriptor->count,
+			.isUnbounded = (descriptor->array.dims_count > 0) && (descriptor->array.dims[0] == 0), // runtime arrays are reported with a size of 0
+			.isInternal = ShaderVariableReflection::IsInternalName(name),
+			.stages = stage,
+			});
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule)
+{
+	if (shaderReflectionModule->entry_point_count == 0)
+		return;
+
+	auto& localSize = shaderReflectionModule->entry_points[0].local_size;
+
+	reflection.xThread = localSize.x;
+	reflection.yThread = localSize.y;
+	reflection.zThread = localSize.z;
+}
