@@ -19,6 +19,7 @@ private:
 	void UpdateContext();
 	void UpdateContextUI();
 	void UpdateDataFields();
+	void OnMaterialFieldChanged();
 
 	Ui::MaterialInspecterWidgetClass ui;
 

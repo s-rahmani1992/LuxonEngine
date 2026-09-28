@@ -235,8 +235,7 @@ void MaterialInspecterWidget::UpdateDataFields()
 				ui.dataFields->layout()->setAlignment(floatfield, Qt::AlignTop);
 				connect(floatfield, &QFloatField::ValueChanged, this, [this, fieldName](float newValue) {
 					m_material->SetValue(fieldName, newValue);
-					if (m_context)
-						m_context->Render();
+					OnMaterialFieldChanged();
 					});
 				break;
 			}
@@ -248,8 +247,7 @@ void MaterialInspecterWidget::UpdateDataFields()
 				ui.dataFields->layout()->setAlignment(colorField, Qt::AlignTop);
 				connect(colorField, &QColorField::ValueChanged, this, [this, fieldName](Color newColor) {
 					m_material->SetValue(fieldName, newColor);
-					if (m_context)
-						m_context->Render();
+					OnMaterialFieldChanged();
 					});
 				break;
 			}
@@ -271,11 +269,18 @@ void MaterialInspecterWidget::UpdateDataFields()
 		textureField->SetTexture(textureData.texture);
 		connect(textureField, &QTextureField::ValueChanged, this, [this, fieldName](ref<Texture2D> newTexture) {
 			m_material->SetTexture2D(fieldName, newTexture);
-			if (m_context)
-				m_context->Render();
+			OnMaterialFieldChanged();
 			});
 	}
 
 	ui.saveButton->setEnabled(true);
 }
 
+void MaterialInspecterWidget::OnMaterialFieldChanged()
+{
+	if (m_context)
+		m_context->Render();
+
+	// the material can be used by the entities of the editor scene
+	LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
+}
