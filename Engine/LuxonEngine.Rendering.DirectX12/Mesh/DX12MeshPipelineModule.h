@@ -40,10 +40,12 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		bool SetEntityDescriptor(GameEntity* entity, const char* name, D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle);
 
 		/// <summary>
-		/// Draws every registered entity with the given amplification (or mesh) group count. the render targets, viewport and scissor must be set by the caller.
+		/// Draws every registered entity with its own amplification (or mesh) group count. the render targets, viewport and scissor must be set by the caller.
 		/// the pipeline binds its own descriptor heap, so the heap of the other pipelines must be set again after it
 		/// </summary>
-		void Dispatch(ID3D12GraphicsCommandList7* commandList, UInt32 x, UInt32 y, UInt32 z);
+		void Dispatch(ID3D12GraphicsCommandList7* commandList);
+
+		bool SetEntityThreadGroupCount(GameEntity* entity, UInt32 x, UInt32 y = 1, UInt32 z = 1);
 
 		template<typename T>
 		bool SetEntityConstant(GameEntity* entity, const char* name, const T& value) {
@@ -79,6 +81,7 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 			GameEntity* entity = nullptr;
 			std::vector<HeapData> resources;
 			std::vector<ConstantData> constants;
+			UInt32 threadGroupCount[3] = { 0, 0, 0 }; // group count of the first stage (amplification or mesh), the entity is not drawn while it is zero
 		};
 
 		bool ResizeDescriptorHeap();

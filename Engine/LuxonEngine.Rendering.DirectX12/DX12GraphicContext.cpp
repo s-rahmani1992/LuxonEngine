@@ -261,9 +261,9 @@ void LuxonEngine::Rendering::DX12::DX12GraphicContext::UpdateDataHeaps()
 	}
 }
 
-std::vector<LuxonEngine::Rendering::DX12::DX12MeshShadingPipelineData> LuxonEngine::Rendering::DX12::DX12GraphicContext::CreateSpikeMeshPipelines(DX12PipelineFactory& pipelineFactory)
+std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModule>> LuxonEngine::Rendering::DX12::DX12GraphicContext::CreateSpikeMeshPipelines(DX12PipelineFactory& pipelineFactory)
 {
-	std::vector<DX12MeshShadingPipelineData> pipelines;
+	std::vector<ref<MeshShading::DX12MeshPipelineModule>> pipelines;
 	std::string error;
 
 	struct SpikeData {
@@ -311,31 +311,25 @@ std::vector<LuxonEngine::Rendering::DX12::DX12MeshShadingPipelineData> LuxonEngi
 		spikeMeshPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
 		spikeMeshPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
 
-		UInt32 taskGroupCount = 0;
-
 		for (auto& spikeData : spikeList) {
 			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spikeData.transformHandle);
 			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, spikeData.meshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
 			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, spikeData.meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
 			spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeData.spikeRenderer->GetSpikeHeight());
 
+			// every entity launches only the task groups its own mesh needs
 			UInt32 triangleCount = spikeData.spikeRenderer->GetMesh()->GetIndexCount() / 3;
-			taskGroupCount = std::max(taskGroupCount, (triangleCount + trianglesPerTaskGroup - 1) / trianglesPerTaskGroup);
+			spikeMeshPipeline->SetEntityThreadGroupCount(spikeData.entity, (triangleCount + trianglesPerTaskGroup - 1) / trianglesPerTaskGroup);
 		}
 
-		pipelines.push_back(DX12MeshShadingPipelineData{
-			.pipeline = spikeMeshPipeline,
-			.taskGroupCount = taskGroupCount,
-			});
+		pipelines.push_back(spikeMeshPipeline);
 	}
 
 	return pipelines;
 }
 
-void LuxonEngine::Rendering::DX12::DX12GraphicContext::DispatchMeshShadingPipelines(const std::vector<DX12MeshShadingPipelineData>& pipelines)
+void LuxonEngine::Rendering::DX12::DX12GraphicContext::DispatchMeshShadingPipelines(const std::vector<ref<MeshShading::DX12MeshPipelineModule>>& pipelines)
 {
-	for (auto& meshShadingData : pipelines) {
-		if (meshShadingData.taskGroupCount > 0)
-			meshShadingData.pipeline->Dispatch(m_commandList.Get(), meshShadingData.taskGroupCount, 1, 1);
-	}
+	for (auto& meshShadingPipeline : pipelines)
+		meshShadingPipeline->Dispatch(m_commandList.Get());
 }

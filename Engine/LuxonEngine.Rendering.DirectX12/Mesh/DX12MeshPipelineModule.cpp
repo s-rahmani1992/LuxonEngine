@@ -179,7 +179,7 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 		return true;
 	}
 
-	void DX12MeshPipelineModule::Dispatch(ID3D12GraphicsCommandList7* commandList, UInt32 x, UInt32 y, UInt32 z)
+	void DX12MeshPipelineModule::Dispatch(ID3D12GraphicsCommandList7* commandList)
 	{
 		UpdateModifiedTextures();
 
@@ -198,9 +198,11 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 				commandList->SetGraphicsRoot32BitConstants(m_rootConstantsParamIndex, constant.size, constant.data, constant.offset);
 		}
 
-		// every registered entity is dispatched with the same group count
+		// every registered entity is dispatched with its own group count
 		for (auto& entityData : m_entityDataList) {
-			if (entityData.entity == nullptr)
+			auto& groupCount = entityData.threadGroupCount;
+
+			if (entityData.entity == nullptr || groupCount[0] == 0 || groupCount[1] == 0 || groupCount[2] == 0)
 				continue;
 
 			for (auto& heapData : entityData.resources)
@@ -209,8 +211,24 @@ namespace LuxonEngine::Rendering::DX12::MeshShading {
 			for (auto& constant : entityData.constants)
 				commandList->SetGraphicsRoot32BitConstants(m_rootConstantsParamIndex, constant.size, constant.data, constant.offset);
 
-			commandList->DispatchMesh(x, y, z);
+			commandList->DispatchMesh(groupCount[0], groupCount[1], groupCount[2]);
 		}
+	}
+
+	bool DX12MeshPipelineModule::SetEntityThreadGroupCount(GameEntity* entity, UInt32 x, UInt32 y, UInt32 z)
+	{
+		if (entity == nullptr)
+			return false;
+
+		EntityDynamicData* entityData = GetOrRegisterEntity(entity);
+
+		if (entityData == nullptr)
+			return false;
+
+		entityData->threadGroupCount[0] = x;
+		entityData->threadGroupCount[1] = y;
+		entityData->threadGroupCount[2] = z;
+		return true;
 	}
 
 	DX12MeshPipelineModule::~DX12MeshPipelineModule()

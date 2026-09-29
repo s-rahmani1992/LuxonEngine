@@ -45,7 +45,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		std::vector<DX12MeshRendererGPUData> m_meshRendererData;
 		std::vector<ref<DX12GameEntityPipelineModule>> m_rasterizationPipelines;
-		std::vector<DX12MeshShadingPipelineData> m_meshShadingPipelines;
+		std::vector<ref<MeshShading::DX12MeshPipelineModule>> m_meshShadingPipelines;
 
 		ref<Material> m_overrideMaterial;
 		ref<Scene> m_scene;

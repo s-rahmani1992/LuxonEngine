@@ -42,11 +42,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		class DX12MeshPipelineModule;
 	}
 
-	struct DX12MeshShadingPipelineData {
-		ref<MeshShading::DX12MeshPipelineModule> pipeline;
-		UInt32 taskGroupCount; // group count of the largest mesh drawn by the pipeline
-	};
-
 	struct DX12EntityGPUData {
 	public:
 		ref<GameEntity> gameEntity;
@@ -91,12 +86,12 @@ namespace LuxonEngine::Rendering::DX12 {
 		/// Creates one mesh pipeline per material of the spike mesh renderers of the entities and fills their descriptors and constants.
 		/// the entity GPU data, camera and light must be initialized before
 		/// </summary>
-		std::vector<DX12MeshShadingPipelineData> CreateSpikeMeshPipelines(DX12PipelineFactory& pipelineFactory);
+		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSpikeMeshPipelines(DX12PipelineFactory& pipelineFactory);
 
 		/// <summary>
 		/// Draws the mesh pipelines. they bind their own descriptor heaps, so the heap of the other pipelines must be set again after them
 		/// </summary>
-		void DispatchMeshShadingPipelines(const std::vector<DX12MeshShadingPipelineData>& pipelines);
+		void DispatchMeshShadingPipelines(const std::vector<ref<MeshShading::DX12MeshPipelineModule>>& pipelines);
 
 		ref<LuxonEngine::Platform::GraphicWindow> m_window;
 		ComPtr<ID3D12Device10> m_device;
