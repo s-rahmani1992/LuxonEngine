@@ -145,6 +145,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	requiredDeviceExtensions.push_back(VK_KHR_SPIRV_1_4_EXTENSION_NAME);
 	requiredDeviceExtensions.push_back(VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
 	requiredDeviceExtensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+	requiredDeviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
 	for (auto& devicePtr : devices) {
 		vkGetPhysicalDeviceProperties(devicePtr, &deviceProperties);
@@ -212,9 +213,16 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	rayQueryFeature.pNext = &rtPipelineFeature;
 	rayQueryFeature.rayQuery = VK_TRUE;
 
+	// mesh shader feature (required when SPIR-V uses MeshShadingEXT capability)
+	VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeature{};
+	meshShaderFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
+	meshShaderFeature.pNext = &rayQueryFeature;
+	meshShaderFeature.taskShader = VK_TRUE;
+	meshShaderFeature.meshShader = VK_TRUE;
+
 	VkPhysicalDeviceVulkan12Features enabled12{};
 	enabled12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-	enabled12.pNext = &rayQueryFeature;
+	enabled12.pNext = &meshShaderFeature;
 	enabled12.descriptorIndexing = VK_TRUE;
 	enabled12.runtimeDescriptorArray = VK_TRUE;
 	enabled12.bufferDeviceAddress = VK_TRUE;

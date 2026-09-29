@@ -7,6 +7,11 @@
 namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 	class SPIRVMeshProgram : public SPIRVShaderProgram {
 	public:
+		// descriptor set of the material and global variables, bound once per pipeline
+		static constexpr UInt32 GlobalSetIndex = 0;
+		// descriptor set of the per entity internal variables, bound for every entity
+		static constexpr UInt32 EntitySetIndex = 1;
+
 		SPIRVMeshProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device);
 		virtual ~SPIRVMeshProgram() override;
 
@@ -24,6 +29,8 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 	private:
 		VkShaderModule CreateStage(const SPIRVShaderData& shader, std::string& entryPoint);
+
+		static bool RemapDescriptorSets(SpvReflectShaderModule& reflectionModule);
 
 		VkShaderModule m_taskShader = VK_NULL_HANDLE;
 		VkShaderModule m_meshShader = VK_NULL_HANDLE;
