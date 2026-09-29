@@ -11,6 +11,8 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 		static constexpr UInt32 GlobalSetIndex = 0;
 		// descriptor set of the per entity internal variables, bound for every entity
 		static constexpr UInt32 EntitySetIndex = 1;
+		// all the descriptors and push constants are visible to every stage of the program
+		static constexpr VkShaderStageFlags StageFlags = VK_SHADER_STAGE_TASK_BIT_EXT | VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
 		SPIRVMeshProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device);
 		virtual ~SPIRVMeshProgram() override;
@@ -19,6 +21,12 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 		SPIRVMeshProgram& operator=(const SPIRVMeshProgram&) = delete;
 
 		virtual ShaderProgramType GetType() override { return ShaderProgramType::Mesh; }
+
+		bool InitializePipelineLayout(std::string& error);
+
+		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
+		inline const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+		inline UInt32 GetRenderTargetCount() const { return m_renderTargetCount; }
 
 		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_stageInfos; }
 		inline const ShaderThreadGroupReflection& GetThreadGroupReflection() const { return m_threadGroupReflection; }
@@ -43,5 +51,9 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 		std::vector<VkPipelineShaderStageCreateInfo> m_stageInfos;
 		ShaderThreadGroupReflection m_threadGroupReflection{};
+		UInt32 m_renderTargetCount = 0;
+
+		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts; // indexed by the set number
 	};
 }

@@ -4,6 +4,7 @@
 #include "VulkanHybridContext.h"
 #include "RayTracing/VulkanRayTracingContext.h"
 #include "VulkanShaderCompiler.h"
+#include "VulkanPipelineFactory.h"
 #include "VulkanAssetManager.h"
 #include "VulkanMaterialFactory.h"
 #include "VulkanBufferFactory.h"
@@ -279,6 +280,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 	if (m_assetManager->Initializes(m_graphicsQueueFamilyIndex) == false)
 		return false;
 
+	m_pipelineFactory = std::make_shared<VulkanPipelineFactory>(m_graphicDevice);
+
 	return true;
 }
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
@@ -308,7 +311,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
-	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window);
+	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_pipelineFactory);
 	if (context->Initialize() == false)
 		return nullptr;
 

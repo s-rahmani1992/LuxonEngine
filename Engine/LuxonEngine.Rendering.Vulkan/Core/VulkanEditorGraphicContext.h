@@ -18,10 +18,17 @@ namespace LuxonEngine::Rendering::Vulkan {
 		class VulkanRasterizationMaterial;
 	}
 
+	namespace MeshShading {
+		class VulkanMeshPipelineModule;
+	}
+
+	class VulkanPipelineFactory;
+
 	class VulkanEditorGraphicContext : public VulkanGraphicContext
 	{
 	public:
-		VulkanEditorGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window);
+		VulkanEditorGraphicContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window,
+			const ref<VulkanPipelineFactory>& pipelineFactory);
 		~VulkanEditorGraphicContext();
 
 		bool Initialize();
@@ -36,6 +43,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void UpdateEntityTransforms();
 		void InitializePipelines(const ref<Material>& overrideMaterial);
 		void SyncEntities(const ref<Scene>& scene);
+		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSpikeMeshPipelines();
 
 		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
 
@@ -61,5 +69,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<Scene> m_scene;
 
 		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
+		ref<VulkanPipelineFactory> m_pipelineFactory;
+		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;
 	};
 }

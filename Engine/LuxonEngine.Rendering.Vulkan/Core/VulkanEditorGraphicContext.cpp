@@ -13,14 +13,21 @@
 #include "Rasterization/VulkanRasterizationMaterial.h"
 #include "Rasterization/VulkanRasterizationPipelineModule.h"
 #include "Core/VulkanMaterialFactory.h"
+#include "Core/VulkanPipelineFactory.h"
+#include "Mesh/VulkanMeshPipelineModule.h"
+#include "Rendering/SpikeMeshRenderer.h"
+#include "Core/Logger.h"
+#include <map>
 #include <set>
 #include <algorithm>
 #include <Rendering/RayTracingComponent.h>
 #include <Rendering/GBufferRTReflectionRenderer.h>
 
 LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::VulkanEditorGraphicContext(
-	const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
+	const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window,
+	const ref<VulkanPipelineFactory>& pipelineFactory)
 	: VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window)
+	, m_pipelineFactory(pipelineFactory)
 	, m_transformStride(0)
 	, m_transformBuffer(VK_NULL_HANDLE)
 	, m_transformBufferMemory(VK_NULL_HANDLE)
@@ -388,11 +395,15 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializePipel
 {
 	m_rasterizationModules.clear();
 	m_sharedRasterMaterial.reset();
+	m_meshShadingPipelines.clear();
 
 	if (m_descriptorPool != VK_NULL_HANDLE) {
 		vkDestroyDescriptorPool(m_logicDevice, m_descriptorPool, nullptr);
 		m_descriptorPool = VK_NULL_HANDLE;
 	}
+
+	// spike entities use their own material, so they do not depend on the override material
+	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
 	if (m_entityGPUList.empty() || overrideMaterial == nullptr)
 		return;
@@ -536,4 +547,40 @@ ref<LuxonEngine::Mesh> LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContex
 		return rtComponent->GetMesh();
 
 	return nullptr;
+}
+
+std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineModule>> LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::CreateSpikeMeshPipelines()
+{
+	std::vector<ref<MeshShading::VulkanMeshPipelineModule>> pipelines;
+
+	if (m_pipelineFactory == nullptr)
+		return pipelines;
+
+	// group the spike entities by material, one mesh pipeline is created per material
+	std::map<ref<Material>, std::vector<GameEntity*>> spikeMap;
+
+	for (auto& entityGPU : m_entityGPUList) {
+		auto spikeRenderer = std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGPU.gameEntity->GetRenderer());
+		if (spikeRenderer == nullptr || spikeRenderer->GetMaterial() == nullptr || spikeRenderer->GetMesh() == nullptr)
+			continue;
+
+		spikeMap[spikeRenderer->GetMaterial()].push_back(entityGPU.gameEntity.get());
+	}
+
+	std::string error;
+	MeshShading::MeshPipelineProperties properties;
+
+	for (auto& [material, entities] : spikeMap) {
+		auto spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_renderPass, properties, error);
+
+		if (spikeMeshPipeline == nullptr) {
+			Logger::LogError("Failed to create the spike mesh pipeline: " + error);
+			continue;
+		}
+
+		// TODO: descriptors, entity registration and the group count are added with the descriptor management
+		pipelines.push_back(spikeMeshPipeline);
+	}
+
+	return pipelines;
 }

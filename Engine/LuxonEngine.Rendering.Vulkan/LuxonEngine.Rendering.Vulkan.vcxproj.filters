@@ -11,6 +11,12 @@
     <ClInclude Include="Core\VulkanShaderCompiler.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\VulkanMeshPipelineModule.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VulkanPipelineFactory.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh\SPIRVMeshProgram.h">
       <Filter>Mesh</Filter>
     </ClInclude>
@@ -90,6 +96,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanShaderCompiler.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\VulkanMeshPipelineModule.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanPipelineFactory.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Mesh\SPIRVMeshProgram.cpp">

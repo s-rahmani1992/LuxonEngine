@@ -523,3 +523,111 @@ void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::FillThreadGroupRef
 	reflection.yThread = localSize.y;
 	reflection.zThread = localSize.z;
 }
+
+VkDescriptorType LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToDescriptorType(ShaderResourceKind kind)
+{
+	switch (kind) {
+	case ShaderResourceKind::ConstantBuffer:		return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	case ShaderResourceKind::StructuredBuffer:
+	case ShaderResourceKind::RWStructuredBuffer:	return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	case ShaderResourceKind::Texture:				return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+	case ShaderResourceKind::RWTexture:				return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	case ShaderResourceKind::Sampler:				return VK_DESCRIPTOR_TYPE_SAMPLER;
+	case ShaderResourceKind::AccelerationStructure:	return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+	default:										return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	}
+}
+
+bool LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::CreatePipelineLayout(VkDevice device, const ShaderVariableReflection& reflection, UInt32 setCount,
+	VkShaderStageFlags stageFlags, VkSampler sampler, std::vector<VkDescriptorSetLayout>& setLayouts, VkPipelineLayout& pipelineLayout, std::string& error)
+{
+	std::vector<std::vector<VkDescriptorSetLayoutBinding>> setBindings(setCount);
+
+	auto addBinding = [&setBindings, &error, stageFlags, &sampler](const ShaderResourceVariable& variable) {
+		if (variable.space >= setBindings.size()) {
+			error = "Invalid descriptor set " + std::to_string(variable.space) + " for variable " + variable.name;
+			return false;
+		}
+
+		if (variable.isUnbounded) {
+			error = "Unbounded arrays are not supported: " + variable.name;
+			return false;
+		}
+
+		bool isSampler = variable.kind == ShaderResourceKind::Sampler;
+
+		// the immutable sampler is copied into the layout when it is created, so pointing to the parameter is enough
+		setBindings[variable.space].push_back(VkDescriptorSetLayoutBinding{
+			.binding = variable.binding,
+			.descriptorType = ToDescriptorType(variable.kind),
+			.descriptorCount = isSampler ? 1 : variable.count,
+			.stageFlags = stageFlags,
+			.pImmutableSamplers = isSampler ? &sampler : nullptr,
+			});
+
+		return true;
+	};
+
+	for (auto& resource : reflection.resources) {
+		if (addBinding(resource) == false)
+			return false;
+	}
+
+	for (auto& samplerVariable : reflection.samplers) {
+		if (addBinding(samplerVariable) == false)
+			return false;
+	}
+
+	auto destroySetLayouts = [device, &setLayouts]() {
+		for (auto& setLayout : setLayouts) {
+			if (setLayout != VK_NULL_HANDLE)
+				vkDestroyDescriptorSetLayout(device, setLayout, nullptr);
+		}
+		setLayouts.clear();
+	};
+
+	setLayouts.assign(setBindings.size(), VK_NULL_HANDLE);
+
+	for (UInt32 i = 0; i < setBindings.size(); i++) {
+		VkDescriptorSetLayoutCreateInfo setLayoutInfo{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.bindingCount = (UInt32)setBindings[i].size(),
+			.pBindings = setBindings[i].empty() ? nullptr : setBindings[i].data(),
+		};
+
+		if (vkCreateDescriptorSetLayout(device, &setLayoutInfo, nullptr, &setLayouts[i]) != VK_SUCCESS) {
+			error = "Failed to create descriptor set layout " + std::to_string(i);
+			destroySetLayouts();
+			return false;
+		}
+	}
+
+	// all the constant blocks belong to one push constant block, material and dynamic ones
+	VkPushConstantRange pushConstantRange{
+		.stageFlags = stageFlags,
+		.offset = 0,
+		.size = reflection.constants.size,
+	};
+
+	bool hasPushConstants = reflection.constants.blocks.empty() == false;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.setLayoutCount = (UInt32)setLayouts.size(),
+		.pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data(),
+		.pushConstantRangeCount = hasPushConstants ? 1u : 0u,
+		.pPushConstantRanges = hasPushConstants ? &pushConstantRange : nullptr,
+	};
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		error = "Failed to create pipeline layout";
+		destroySetLayouts();
+		return false;
+	}
+
+	return true;
+}

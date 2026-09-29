@@ -45,6 +45,15 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 	SPIRVMeshProgram::~SPIRVMeshProgram()
 	{
+		if (m_pipelineLayout != VK_NULL_HANDLE)
+			vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+
+		for (auto& setLayout : m_descriptorSetLayouts)
+			vkDestroyDescriptorSetLayout(m_device, setLayout, nullptr);
+
+		if (m_sampler != VK_NULL_HANDLE)
+			vkDestroySampler(m_device, m_sampler, nullptr);
+
 		if (m_taskShader != VK_NULL_HANDLE)
 			vkDestroyShaderModule(m_device, m_taskShader, nullptr);
 
@@ -84,6 +93,14 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 			if (shader.shaderType == VK_SHADER_STAGE_TASK_BIT_EXT)
 				SPIRVVariableReflection::FillThreadGroupReflection(m_threadGroupReflection, &reflectionModule);
 
+			// every output of the fragment stage that is not a built-in writes to a color attachment
+			if (shader.shaderType == VK_SHADER_STAGE_FRAGMENT_BIT) {
+				for (UInt32 i = 0; i < reflectionModule.output_variable_count; i++) {
+					if ((reflectionModule.output_variables[i]->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) == 0)
+						m_renderTargetCount++;
+				}
+			}
+
 			SPIRVVariableReflection::AddShaderReflection(m_variableReflection, &reflectionModule);
 		}
 
@@ -110,5 +127,20 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 		}
 
 		return true;
+	}
+
+	bool SPIRVMeshProgram::InitializePipelineLayout(std::string& error)
+	{
+		if (m_meshShader == VK_NULL_HANDLE) {
+			error = "Mesh stage is missing or failed to create";
+			return false;
+		}
+
+		// samplers are immutable samplers of the layout for now, same as the other programs
+		InitializeSampler();
+
+		// both sets always exist so the entity set keeps its index even if the program has no global variables
+		return SPIRVVariableReflection::CreatePipelineLayout(m_device, m_variableReflection, EntitySetIndex + 1, StageFlags, m_sampler,
+			m_descriptorSetLayouts, m_pipelineLayout, error);
 	}
 }

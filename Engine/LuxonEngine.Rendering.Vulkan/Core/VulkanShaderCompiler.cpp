@@ -185,7 +185,16 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 			shaders.push_back(spirvShader);
 		}
 
-		finalProgram = new MeshShading::SPIRVMeshProgram(shaders, m_device);
+		auto meshProgram = new MeshShading::SPIRVMeshProgram(shaders, m_device);
+		std::string layoutError;
+
+		if (meshProgram->InitializePipelineLayout(layoutError) == false) {
+			error = "Error in Creating Pipeline Layout: " + layoutError;
+			delete meshProgram;
+			return nullptr;
+		}
+
+		finalProgram = meshProgram;
 	}
 
 	else {

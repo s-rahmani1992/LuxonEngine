@@ -17,6 +17,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory;
 	class VulkanAssetManager;
 	class VulkanShaderCompiler;
+	class VulkanPipelineFactory;
 
 	class VulkanDeviceManager : public GPUDeviceManager
 	{
@@ -67,5 +68,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<VulkanBufferFactory> m_bufferFactory;
 		ref<VulkanShaderCompiler> m_shaderCompiler;
 		ref<VulkanAssetManager> m_assetManager;
+		ref<VulkanPipelineFactory> m_pipelineFactory;
 	};
 }

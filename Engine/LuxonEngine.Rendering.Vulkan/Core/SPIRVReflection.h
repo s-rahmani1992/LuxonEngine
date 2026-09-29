@@ -20,6 +20,11 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		static void FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
 
+		static VkDescriptorType ToDescriptorType(ShaderResourceKind kind);
+
+		static bool CreatePipelineLayout(VkDevice device, const ShaderVariableReflection& reflection, UInt32 setCount, VkShaderStageFlags stageFlags,
+			VkSampler sampler, std::vector<VkDescriptorSetLayout>& setLayouts, VkPipelineLayout& pipelineLayout, std::string& error);
+
 	private:
 		static void AddConstants(ShaderVariableReflection& reflection, const SpvReflectBlockVariable* pushConstant, ShaderStageFlags stage);
 	};
