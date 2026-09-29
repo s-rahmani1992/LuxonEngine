@@ -22,15 +22,27 @@
 #include "RayTracing/VulkanRayTracingPipelineModule.h"
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanMaterialFactory.h"
+#include "Core/Logger.h"
+#include "Core/VulkanPipelineFactory.h"
+#include "Core/VulkanMeshController.h"
+#include "Mesh/VulkanMeshPipelineModule.h"
+#include "Rendering/SpikeMeshRenderer.h"
+#include "Rendering/ShaderInternalNames.h"
+#include <map>
 
-LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window, ShaderRegistery* shaderRegistery)
-	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window), m_shaderProgramRegistery(shaderRegistery)
+LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window,
+	const ref<VulkanPipelineFactory>& pipelineFactory, ShaderRegistery* shaderRegistery)
+	:VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window), m_shaderProgramRegistery(shaderRegistery), m_pipelineFactory(pipelineFactory)
 {
 	m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
 
 LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 {
+	// the mesh pipelines are destroyed before the storage buffers they use
+	m_meshShadingPipelines.clear();
+	DestroyMeshStorageBuffers();
+
 	vkDestroyBuffer(m_logicDevice, m_transformBuffer, nullptr);
 	vkFreeMemory(m_logicDevice, m_transformBufferMemory, nullptr);
 
@@ -119,6 +131,11 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 	for (auto& entity : scene->entities) {
 		m_entityGPUList.push_back({ entity, index });
+		index++;
+
+		// spike entities use mesh programs, they are drawn by the mesh pipelines instead of a rasterization material
+		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entity->GetRenderer()) != nullptr)
+			continue;
 
 		auto material = entity->GetRenderer()->GetMaterial();
 		auto matIT = usedMaterials.find(material);
@@ -126,8 +143,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		if (matIT == usedMaterials.end()) {
 			usedMaterials.emplace(material, std::make_shared<Rasterization::VulkanRasterizationMaterial>(material, m_logicDevice)).first;
 		}
-
-		index++;
 	}
 
 	std::vector<VkDescriptorPoolSize> poolSizes;
@@ -242,6 +257,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		matPair.second->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
 		matPair.second->WriteBuffer(HLSL_LIGHT_DATA_NAME, m_lightBuffer, m_lightStride);
 	}
+
+	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
 	if (m_gBufferEntityGPUList.size() > 0) {
 		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
@@ -443,6 +460,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	for(auto& module : m_gBufferRasterizationModules) {
 		module->RenderCommand(m_commandBuffer);
 	}
+
+	for (auto& meshShadingPipeline : m_meshShadingPipelines)
+		meshShadingPipeline->Dispatch(m_commandBuffer);
 
 	vkCmdEndRenderPass(m_commandBuffer);
 	vkEndCommandBuffer(m_commandBuffer);
@@ -720,4 +740,95 @@ ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::Vulka
 
 	// the registery owns the program. the empty deleter keeps the ref from deleting it
 	return ref<ShaderProgram>(program, [](ShaderProgram*) {});
+}
+
+std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineModule>> LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSpikeMeshPipelines()
+{
+	std::vector<ref<MeshShading::VulkanMeshPipelineModule>> pipelines;
+
+	if (m_pipelineFactory == nullptr)
+		return pipelines;
+
+	struct SpikeData {
+		GameEntity* entity;
+		UInt32 index; // index of the entity in the transform buffer
+		ref<VulkanMeshController> meshController;
+		ref<SpikeMeshRenderer> spikeRenderer;
+	};
+
+	// group the spike entities by material, one mesh pipeline is created per material
+	std::map<ref<Material>, std::vector<SpikeData>> spikeMap;
+
+	for (auto& entityGPU : m_entityGPUList) {
+		auto spikeRenderer = std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGPU.gameEntity->GetRenderer());
+		if (spikeRenderer == nullptr || spikeRenderer->GetMaterial() == nullptr || spikeRenderer->GetMesh() == nullptr)
+			continue;
+
+		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(spikeRenderer->GetMesh()->GetGPUHandle());
+		if (meshController == nullptr) // the mesh is not uploaded to the GPU
+			continue;
+
+		spikeMap[spikeRenderer->GetMaterial()].push_back(SpikeData{
+			.entity = entityGPU.gameEntity.get(),
+			.index = entityGPU.index,
+			.meshController = meshController,
+			.spikeRenderer = spikeRenderer,
+			});
+	}
+
+	// the pyramid shader handles 32 mesh groups of 32 triangles in each task group
+	constexpr UInt32 trianglesPerTaskGroup = 32 * 32;
+
+	std::string error;
+	MeshShading::MeshPipelineProperties properties;
+
+	for (auto& [material, spikeList] : spikeMap) {
+		auto spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_renderPass, properties, error);
+
+		if (spikeMeshPipeline == nullptr) {
+			Logger::LogError("Failed to create the spike mesh pipeline: " + error);
+			continue;
+		}
+
+		if (spikeMeshPipeline->Initialize((UInt32)spikeList.size()) == false) {
+			Logger::LogError("Failed to create the descriptors of the spike mesh pipeline");
+			continue;
+		}
+
+		spikeMeshPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+		spikeMeshPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer, 0, m_lightStride);
+
+		for (auto& spikeData : spikeList) {
+			// every entity points to its own range of the shared transform buffer, no dynamic offset is needed
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
+				(VkDeviceSize)spikeData.index * m_transformStride, m_transformStride);
+
+			// the mesh buffers are not created with the storage usage, so storage buffers sharing their memory are bound instead
+			VkBuffer vertexStorageBuffer = spikeData.meshController->CreateVertexStorageBuffer();
+			VkBuffer indexStorageBuffer = spikeData.meshController->CreateIndexStorageBuffer();
+			m_meshStorageBuffers.push_back(vertexStorageBuffer);
+			m_meshStorageBuffers.push_back(indexStorageBuffer);
+
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, vertexStorageBuffer);
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, indexStorageBuffer);
+			spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeData.spikeRenderer->GetSpikeHeight());
+
+			// every entity launches only the task groups its own mesh needs
+			UInt32 triangleCount = spikeData.spikeRenderer->GetMesh()->GetIndexCount() / 3;
+			spikeMeshPipeline->SetEntityThreadGroupCount(spikeData.entity, (triangleCount + trianglesPerTaskGroup - 1) / trianglesPerTaskGroup);
+		}
+
+		pipelines.push_back(spikeMeshPipeline);
+	}
+
+	return pipelines;
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroyMeshStorageBuffers()
+{
+	// the buffers only share the memory of the mesh buffers, the memory is released with the mesh
+	for (auto& storageBuffer : m_meshStorageBuffers)
+		vkDestroyBuffer(m_logicDevice, storageBuffer, nullptr);
+
+	m_meshStorageBuffers.clear();
 }

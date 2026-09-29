@@ -286,7 +286,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::Initialize()
 }
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateHybridContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
-	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_shaderRegistery);
+	ref<VulkanHybridContext> context = std::make_shared<VulkanHybridContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_pipelineFactory, m_shaderRegistery);
 
 	if(context->Initialize() == false)
 		return nullptr;

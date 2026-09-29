@@ -24,6 +24,12 @@ namespace LuxonEngine::Rendering::Vulkan {
 		class VulkanRayTracingPipelineModule;
 	}
 
+	namespace MeshShading {
+		class VulkanMeshPipelineModule;
+	}
+
+	class VulkanPipelineFactory;
+
 	struct VKEntityGPUData {
 	public:
 		ref<GameEntity> gameEntity;
@@ -32,15 +38,14 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	class VulkanHybridContext : public VulkanGraphicContext {
 	public:
-		VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window, ShaderRegistery* shaderRegistery);
+		VulkanHybridContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window,
+			const ref<VulkanPipelineFactory>& pipelineFactory, ShaderRegistery* shaderRegistery);
 		~VulkanHybridContext();
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
 		virtual void Render() override;		
 		virtual void Resize(UInt32 width, UInt32 height) override;
 	private:
-
-		
 
 		void UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities);
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
@@ -52,6 +57,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool InitializeRenderPass();
 		void UpdateEntityTransforms();
 
+		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSpikeMeshPipelines();
+		void DestroyMeshStorageBuffers();
 		UInt32 m_transformStride;
 		VkBuffer m_transformBuffer;
 		VkDeviceMemory m_transformBufferMemory;
@@ -81,5 +88,9 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkDescriptorPool m_descriptorPool;
 
 		VkClearValue m_clearValues[2];
+
+		ref<VulkanPipelineFactory> m_pipelineFactory;
+		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;
+		std::vector<VkBuffer> m_meshStorageBuffers; // storage buffer views of the spike meshes, they share the memory of the mesh buffers
 	};
 }
