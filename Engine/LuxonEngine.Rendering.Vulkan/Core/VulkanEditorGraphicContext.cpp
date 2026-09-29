@@ -188,6 +188,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Render()
 	for (auto& module : m_rasterizationModules)
 		module->RenderCommand(m_commandBuffer);
 
+	for (auto& meshShadingPipeline : m_meshShadingPipelines)
+		meshShadingPipeline->Dispatch(m_commandBuffer);
+
 	vkCmdEndRenderPass(m_commandBuffer);
 	vkEndCommandBuffer(m_commandBuffer);
 
@@ -589,6 +592,9 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 			});
 	}
 
+	// the pyramid shader handles 32 mesh groups of 32 triangles in each task group
+	constexpr UInt32 trianglesPerTaskGroup = 32 * 32;
+
 	std::string error;
 	MeshShading::MeshPipelineProperties properties;
 
@@ -622,9 +628,12 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_VERTEX_BUFFER_NAME, vertexStorageBuffer);
 			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_INDEX_BUFFER_NAME, indexStorageBuffer);
 			spikeMeshPipeline->SetEntityConstant(spikeData.entity, "_height", spikeData.spikeRenderer->GetSpikeHeight());
+
+			// every entity launches only the task groups its own mesh needs
+			UInt32 triangleCount = spikeData.spikeRenderer->GetMesh()->GetIndexCount() / 3;
+			spikeMeshPipeline->SetEntityThreadGroupCount(spikeData.entity, (triangleCount + trianglesPerTaskGroup - 1) / trianglesPerTaskGroup);
 		}
 
-		// TODO: the group count and the dispatch are added in the next phase
 		pipelines.push_back(spikeMeshPipeline);
 	}
 

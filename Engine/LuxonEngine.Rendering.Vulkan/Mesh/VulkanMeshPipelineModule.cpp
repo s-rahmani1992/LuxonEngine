@@ -11,6 +11,7 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 	VulkanMeshPipelineModule::VulkanMeshPipelineModule(VkDevice device, VkPipeline pipeline, const SPIRVMeshProgram* program, Material* material)
 		:m_device(device), m_pipeline(pipeline), m_meshProgram(program), m_material(material)
 	{
+		m_cmdDrawMeshTasks = (PFN_vkCmdDrawMeshTasksEXT)vkGetDeviceProcAddr(m_device, "vkCmdDrawMeshTasksEXT");
 	}
 
 	VulkanMeshPipelineModule::~VulkanMeshPipelineModule()
@@ -234,6 +235,75 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 		m_entityDataList.push_back(entityData);
 		return &m_entityDataList.back();
+	}
+
+	void VulkanMeshPipelineModule::UpdateModifiedTextures()
+	{
+		if (m_material == nullptr || m_materialDescriptorSet == VK_NULL_HANDLE)
+			return;
+
+		for (auto* textureData : m_material->GetModifiedTextures())
+			WriteTextureDescriptor(*textureData);
+
+		// only the textures are cleared, the modified values are read directly from the material data
+		m_material->ClearTextures();
+	}
+
+	void VulkanMeshPipelineModule::Dispatch(VkCommandBuffer commandBuffer)
+	{
+		if (m_pipeline == VK_NULL_HANDLE || m_cmdDrawMeshTasks == nullptr)
+			return;
+
+		UpdateModifiedTextures();
+
+		VkPipelineLayout pipelineLayout = m_meshProgram->GetPipelineLayout();
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+		// global and material bindings are shared by all the entities. binding the entity set later keeps this set bound
+		if (m_materialDescriptorSet != VK_NULL_HANDLE) {
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+				SPIRVMeshProgram::GlobalSetIndex, 1, &m_materialDescriptorSet, 0, nullptr);
+		}
+
+		for (auto& constant : m_pushConstants) {
+			if (constant.data != nullptr)
+				vkCmdPushConstants(commandBuffer, pipelineLayout, SPIRVMeshProgram::StageFlags, constant.offset, constant.size, constant.data);
+		}
+
+		// every registered entity is dispatched with its own group count
+		for (auto& entityData : m_entityDataList) {
+			auto& groupCount = entityData.threadGroupCount;
+
+			if (entityData.entity == nullptr || groupCount[0] == 0 || groupCount[1] == 0 || groupCount[2] == 0)
+				continue;
+
+			if (entityData.descriptorSet != VK_NULL_HANDLE) {
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+					SPIRVMeshProgram::EntitySetIndex, 1, &entityData.descriptorSet, 0, nullptr);
+			}
+
+			for (auto& constant : entityData.constants)
+				vkCmdPushConstants(commandBuffer, pipelineLayout, SPIRVMeshProgram::StageFlags, constant.offset, constant.size, constant.data);
+
+			m_cmdDrawMeshTasks(commandBuffer, groupCount[0], groupCount[1], groupCount[2]);
+		}
+	}
+
+	bool VulkanMeshPipelineModule::SetEntityThreadGroupCount(GameEntity* entity, UInt32 x, UInt32 y, UInt32 z)
+	{
+		if (entity == nullptr)
+			return false;
+
+		EntityDynamicData* entityData = GetOrRegisterEntity(entity);
+
+		if (entityData == nullptr)
+			return false;
+
+		entityData->threadGroupCount[0] = x;
+		entityData->threadGroupCount[1] = y;
+		entityData->threadGroupCount[2] = z;
+		return true;
 	}
 
 	void VulkanMeshPipelineModule::CopyMaterialTextures()

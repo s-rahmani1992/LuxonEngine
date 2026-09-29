@@ -29,6 +29,12 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 		bool Initialize(UInt32 entityCount = 0);
 
+		void UpdateModifiedTextures();
+
+		void Dispatch(VkCommandBuffer commandBuffer);
+
+		bool SetEntityThreadGroupCount(GameEntity* entity, UInt32 x, UInt32 y = 1, UInt32 z = 1);
+
 		bool SetDescriptor(const char* name, VkBuffer buffer, VkDeviceSize offset = 0, VkDeviceSize range = VK_WHOLE_SIZE);
 
 		bool SetDescriptor(const char* name, VkImageView imageView, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -75,6 +81,7 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 			VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 			VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 			std::vector<ConstantData> constants;
+			UInt32 threadGroupCount[3] = { 0, 0, 0 }; // group count of the first stage (task or mesh), the entity is not drawn while it is zero
 		};
 
 		void InitializeDescriptorMapping();
@@ -101,6 +108,7 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 		VkDevice m_device;
 		VkPipeline m_pipeline;
+		PFN_vkCmdDrawMeshTasksEXT m_cmdDrawMeshTasks = nullptr; // extension function, loaded from the device
 		const SPIRVMeshProgram* m_meshProgram;
 		Material* m_material;
 
