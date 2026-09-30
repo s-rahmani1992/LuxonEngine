@@ -208,6 +208,8 @@ bool LuxonEditor::GUI::QT::ShaderInspecterWidget::ValidateStageProperties()
 		return ValidateRayTracingProperties();
 	case LuxonEngine::Rendering::ShaderProgramType::Compute:
 		return ValidateComputeProperties();
+	case LuxonEngine::Rendering::ShaderProgramType::Mesh:
+		return true;	// mesh stages are found from the [shader("...")] attributes, the meta file has none
 	}
 	return false;
 }
@@ -244,6 +246,10 @@ bool LuxonEditor::GUI::QT::ShaderInspecterWidget::CompareProperties()
 	{
 		return EQUAL_CHAR(m_currentProperties.computeProperties.computeMain, ui.computeMain->GetText());
 	}
+
+	if (m_newType == LuxonEngine::Rendering::ShaderProgramType::Mesh)
+		return true;
+
 	return false;
 }
 

@@ -45,3 +45,8 @@ LUXON_ENGINE_API void CreateShader(const LuxonEngine::Rendering::ShaderCompilePr
 {
 	LuxonEditor::ShaderCreator::CreateShader(properties, shaderName);
 }
+
+LUXON_ENGINE_API void CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain)
+{
+	LuxonEditor::ShaderCreator::CreateMeshShader(properties, shaderName, meshMain, pixelMain, taskMain);
+}

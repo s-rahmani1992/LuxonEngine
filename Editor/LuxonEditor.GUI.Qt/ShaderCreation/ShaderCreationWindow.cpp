@@ -70,6 +70,18 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 	ui.computeMain->RegisterValidationFunction(FunctionNameValidate);
 	connect(ui.computeMain, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnComputeChanged);
 
+	ui.taskField->InputText()->setText("as_main");
+	ui.taskField->RegisterValidationFunction(FunctionNameValidate);
+	connect(ui.taskField, &QNullableTextField::ValueChanged, this, &ShaderCreationWindow::OnMeshChanged);
+
+	ui.meshField->InputText()->setText("ms_main");
+	ui.meshField->RegisterValidationFunction(FunctionNameValidate);
+	connect(ui.meshField, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnMeshChanged);
+
+	ui.meshPixelField->InputText()->setText("ps_main");
+	ui.meshPixelField->RegisterValidationFunction(FunctionNameValidate);
+	connect(ui.meshPixelField, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnMeshChanged);
+
 	connect(ui.createButton, &QPushButton::clicked, this, [this]() {
 		m_compileProperties.model = "6_6";
 
@@ -94,6 +106,12 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 			computeMainStr = ui.computeMain->InputText()->text().toStdString();
 			m_compileProperties.computeProperties.computeMain = computeMainStr.data();
 			break;
+		case LuxonEngine::Rendering::ShaderProgramType::Mesh:
+			meshMainStr = ui.meshField->InputText()->text().toStdString();
+			pixelMainStr = ui.meshPixelField->InputText()->text().toStdString();
+			CreateMeshShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString(), meshMainStr.data(), pixelMainStr.data(), ui.taskField->GetText());
+			accept();
+			return;
 		}
 		CreateShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString());
 		accept();
@@ -113,6 +131,7 @@ void LuxonEditor::GUI::QT::ShaderCreationWindow::OnshaderTypeChanged(LuxonEngine
 	ui.rasterizationContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Rasterization);
 	ui.rayTracingContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::RayTracing);
 	ui.computeContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Compute);
+	ui.meshContainer->setVisible(programType == LuxonEngine::Rendering::ShaderProgramType::Mesh);
 
 	UpdateCreateButton();
 }
@@ -140,6 +159,9 @@ void LuxonEditor::GUI::QT::ShaderCreationWindow::UpdateCreateButton()
 		case LuxonEngine::Rendering::ShaderProgramType::Compute:
 			isValid = ValidateComputeProperties();
 			break;
+		case LuxonEngine::Rendering::ShaderProgramType::Mesh:
+			isValid = ValidateMeshProperties();
+			break;
 	}
 
 	ui.createButton->setEnabled(isValid && ValidateUsageProperties() && FileNameValidate(ui.shaderNameField->InputText()->text()));
@@ -158,6 +180,11 @@ bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateRayTracingProperties()
 bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateComputeProperties()
 {
 	return ui.computeMain->HasValidValue();
+}
+
+bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateMeshProperties()
+{
+	return ui.taskField->HasValidValue() && ui.meshField->HasValidValue() && ui.meshPixelField->HasValidValue();
 }
 
 bool LuxonEditor::GUI::QT::ShaderCreationWindow::ValidateUsageProperties()
@@ -187,6 +214,14 @@ void LuxonEditor::GUI::QT::ShaderCreationWindow::OnRayTracingChanged(bool isVali
 void LuxonEditor::GUI::QT::ShaderCreationWindow::OnComputeChanged(bool isValid)
 {
 	if (m_compileProperties.type != LuxonEngine::Rendering::ShaderProgramType::Compute)
+		return;
+
+	UpdateCreateButton();
+}
+
+void LuxonEditor::GUI::QT::ShaderCreationWindow::OnMeshChanged(bool isValid)
+{
+	if (m_compileProperties.type != LuxonEngine::Rendering::ShaderProgramType::Mesh)
 		return;
 
 	UpdateCreateButton();

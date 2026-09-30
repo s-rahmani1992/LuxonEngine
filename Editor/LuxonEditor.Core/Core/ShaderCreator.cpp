@@ -73,15 +73,7 @@ void LuxonEditor::ShaderCreator::CreateShader(const LuxonEngine::Rendering::Shad
 {
 	std::string templatePath = EngineApplication::GetProjectPath() + "/Data/ShaderTemplates/";
 	std::string shaderCode;
-	std::string metaString;
-	LuxonEngine::SerializationStream metadataStream, shaderMetaStream;
-	metadataStream.SetGuid("uuid", LuxonEditor::GuidGenerator::GenerateGUID());
 
-	LuxonEngine::Rendering::ShaderCompileProperties metaProperties = properties;
-	if (metaProperties.usage == LuxonEngine::Rendering::ShaderUsage::User && metaProperties.name.empty())
-		metaProperties.name = shaderName;
-
-	EngineShaderRegistry::SerializeProperties(metaProperties, shaderMetaStream);
 	if (properties.type == LuxonEngine::Rendering::ShaderProgramType::Rasterization)
 	{
 		// load templete file into a string variable
@@ -136,6 +128,45 @@ void LuxonEditor::ShaderCreator::CreateShader(const LuxonEngine::Rendering::Shad
 	}
 	else
 		return;
+
+	WriteShaderFiles(properties, shaderName, shaderCode);
+}
+
+void LuxonEditor::ShaderCreator::CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain)
+{
+	std::string templatePath = EngineApplication::GetProjectPath() + "/Data/ShaderTemplates/";
+
+	// load templete file into a string variable
+	std::ifstream templateFile(templatePath + (taskMain == nullptr ? "mesh_simple_template.hlsl" : "mesh_task_template.hlsl"));
+	std::string templateContent((std::istreambuf_iterator<char>(templateFile)),
+		std::istreambuf_iterator<char>());
+
+	std::string shaderCode = templateContent.replace(templateContent.find("$(MESH_MAIN)"), std::string("$(MESH_MAIN)").length(), meshMain);
+	shaderCode = shaderCode.replace(shaderCode.find("$(PIXEL_MAIN)"), std::string("$(PIXEL_MAIN)").length(), pixelMain);
+
+	if (taskMain != nullptr)
+	{
+		shaderCode = shaderCode.replace(shaderCode.find("$(TASK_MAIN)"), std::string("$(TASK_MAIN)").length(), taskMain);
+	}
+
+	// the stage entry points are found from the [shader("...")] attributes at compile time, so only the type goes to the meta file
+	LuxonEngine::Rendering::ShaderCompileProperties meshProperties = properties;
+	meshProperties.type = LuxonEngine::Rendering::ShaderProgramType::Mesh;
+
+	WriteShaderFiles(meshProperties, shaderName, shaderCode);
+}
+
+void LuxonEditor::ShaderCreator::WriteShaderFiles(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const std::string& shaderCode)
+{
+	std::string metaString;
+	LuxonEngine::SerializationStream metadataStream, shaderMetaStream;
+	metadataStream.SetGuid("uuid", LuxonEditor::GuidGenerator::GenerateGUID());
+
+	LuxonEngine::Rendering::ShaderCompileProperties metaProperties = properties;
+	if (metaProperties.usage == LuxonEngine::Rendering::ShaderUsage::User && metaProperties.name.empty())
+		metaProperties.name = shaderName;
+
+	EngineShaderRegistry::SerializeProperties(metaProperties, shaderMetaStream);
 
 	metadataStream.SetObject("data", shaderMetaStream);
 	metaString = metadataStream.ToString();

@@ -25,15 +25,18 @@ namespace LuxonEditor::GUI::QT {
 		bool ValidateRasterizationProperties();
 		bool ValidateRayTracingProperties();
 		bool ValidateComputeProperties();
+		bool ValidateMeshProperties();
 		bool ValidateUsageProperties();
 
 		void OnRasterChanged(bool isValid);
 		void OnRayTracingChanged(bool isValid);
 		void OnComputeChanged(bool isValid);
+		void OnMeshChanged(bool isValid);
 
 		std::string computeMainStr;
 		std::string vertexMainStr;
 		std::string pixelMainStr;
+		std::string meshMainStr;
 
 		Ui::ShaderCreationWindowClass ui;
 
