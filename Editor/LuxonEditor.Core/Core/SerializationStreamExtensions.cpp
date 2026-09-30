@@ -88,6 +88,18 @@ namespace LuxonEditor {
 				float spikeHeight = stream.GetFloat("spike-height", 1.0f);
 				return std::make_shared<LuxonEngine::Rendering::SpikeMeshRenderer>(mesh, material, spikeHeight);
 			}
+			case 4: // SurfaceInstanceRenderer
+			{
+				auto instanceMeshGuid = stream.GetGuid("instance-mesh-guid");
+				auto materialGuid = stream.GetGuid("material-guid");
+				auto maskTextureGuid = stream.GetGuid("mask-texture-guid");
+				auto instanceMesh = EngineApplication::GetAssetManager()->GetMesh(instanceMeshGuid);
+				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
+				auto maskTexture = EngineApplication::GetAssetManager()->GetTexture(maskTextureGuid);
+				float instanceScale = stream.GetFloat("instance-scale", 1.0f);
+				float density = stream.GetFloat("density", 1.0f);
+				return std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(instanceMesh, material, maskTexture, instanceScale, density);
+			}
 			default:
 				return nullptr;
 		}
@@ -152,6 +164,26 @@ namespace LuxonEditor {
 				stream.SetGuid("material-guid", materialEntry->guid);
 			}
 			stream.SetFloat("spike-height", spikeMeshRenderer->GetSpikeHeight());
+		}
+		else if (auto surfaceInstanceRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SurfaceInstanceRenderer>(renderer)) {
+			stream.SetInt("renderer-type", 4);
+			auto instanceMesh = surfaceInstanceRenderer->GetInstanceMesh();
+			auto material = surfaceInstanceRenderer->GetMaterial();
+			auto maskTexture = surfaceInstanceRenderer->GetMaskTexture();
+			if (instanceMesh) {
+				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(instanceMesh);
+				stream.SetGuid("instance-mesh-guid", meshEntry->guid);
+			}
+			if (material) {
+				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
+				stream.SetGuid("material-guid", materialEntry->guid);
+			}
+			if (maskTexture) {
+				auto textureEntry = EngineApplication::GetAssetManager()->GetTextureEntry(maskTexture);
+				stream.SetGuid("mask-texture-guid", textureEntry->guid);
+			}
+			stream.SetFloat("instance-scale", surfaceInstanceRenderer->GetInstanceScale());
+			stream.SetFloat("density", surfaceInstanceRenderer->GetDensity());
 		}
 		else {
 			stream.SetInt("renderer-type", -1);

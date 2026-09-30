@@ -7,6 +7,7 @@
 #include "../Renderer/SplineRendererWidget.h"
 #include "../Renderer/GBufferRendererWidget.h"
 #include "../Renderer/SpikeMeshRendererWidget.h"
+#include "../Renderer/SurfaceInstanceRendererWidget.h"
 #include <qline.h>
 #include <LuxonEditorAPI.h>
 #include <QMenu>
@@ -96,6 +97,12 @@ namespace LuxonEditor::GUI::QT {
 			auto spikeMeshRenderer = std::make_shared<LuxonEngine::Rendering::SpikeMeshRenderer>(nullptr, nullptr);
 			m_entity->SetRenderer(spikeMeshRenderer);
 			GenerateRendererWidget(spikeMeshRenderer);
+			});
+
+		menu->addAction("Surface Instance Renderer", [this]() {
+			auto surfaceInstanceRenderer = std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(nullptr, nullptr);
+			m_entity->SetRenderer(surfaceInstanceRenderer);
+			GenerateRendererWidget(surfaceInstanceRenderer);
 			});
 
 		m_addRendererButton->setMenu(menu);
@@ -262,6 +269,28 @@ namespace LuxonEditor::GUI::QT {
 			spikeMeshRendererPanel->layout()->addWidget(spikeMeshRendererWidget);
 			spikeMeshRendererPanel->layout()->setAlignment(spikeMeshRendererWidget, Qt::AlignTop);
 			m_rendererWidget = spikeMeshRendererPanel;
+			m_rendererPanel->layout()->addWidget(m_rendererWidget);
+			return;
+		}
+
+		auto surfaceInstanceRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SurfaceInstanceRenderer>(renderer);
+
+		if (surfaceInstanceRenderer != nullptr) {
+			auto surfaceInstanceRendererPanel = new QWidget(m_rendererPanel);
+			auto surfaceInstanceRendererLayout = new QVBoxLayout();
+			surfaceInstanceRendererPanel->setLayout(surfaceInstanceRendererLayout);
+			surfaceInstanceRendererLayout->setContentsMargins(2, 2, 2, 2);
+			auto surfaceInstanceRendererLabel = new QLabel("Surface Instance Renderer", surfaceInstanceRendererPanel);
+			surfaceInstanceRendererLabel->setAlignment(Qt::AlignCenter);
+			QFont font = surfaceInstanceRendererLabel->font();
+			font.setPointSize(14);
+			surfaceInstanceRendererLabel->setFont(font);
+			surfaceInstanceRendererPanel->layout()->addWidget(surfaceInstanceRendererLabel);
+			surfaceInstanceRendererPanel->layout()->setAlignment(surfaceInstanceRendererLabel, Qt::AlignTop);
+			auto* surfaceInstanceRendererWidget = new SurfaceInstanceRendererWidget(surfaceInstanceRendererPanel, surfaceInstanceRenderer);
+			surfaceInstanceRendererPanel->layout()->addWidget(surfaceInstanceRendererWidget);
+			surfaceInstanceRendererPanel->layout()->setAlignment(surfaceInstanceRendererWidget, Qt::AlignTop);
+			m_rendererWidget = surfaceInstanceRendererPanel;
 			m_rendererPanel->layout()->addWidget(m_rendererWidget);
 			return;
 		}

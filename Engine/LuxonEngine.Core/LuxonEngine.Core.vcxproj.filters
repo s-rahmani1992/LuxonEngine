@@ -107,6 +107,9 @@
     <ClInclude Include="Rendering\SpikeMeshRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\SurfaceInstanceRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\ShaderInternalNames.h">
       <Filter>Rendering</Filter>
     </ClInclude>

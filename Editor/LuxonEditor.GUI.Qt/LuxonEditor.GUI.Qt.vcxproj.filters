@@ -300,6 +300,9 @@
     <ClCompile Include="Renderer\SpikeMeshRendererWidget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\SurfaceInstanceRendererWidget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer\SplineRendererWidget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -504,6 +507,9 @@
       <Filter>Renderer</Filter>
     </QtMoc>
     <QtMoc Include="Renderer\SpikeMeshRendererWidget.h">
+      <Filter>Renderer</Filter>
+    </QtMoc>
+    <QtMoc Include="Renderer\SurfaceInstanceRendererWidget.h">
       <Filter>Renderer</Filter>
     </QtMoc>
     <QtMoc Include="Renderer\SplineRendererWidget.h">

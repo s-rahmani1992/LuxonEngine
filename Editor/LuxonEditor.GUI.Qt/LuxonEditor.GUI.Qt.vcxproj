@@ -180,6 +180,7 @@
     <ClCompile Include="Renderer\RTComponentWidget.cpp" />
     <ClCompile Include="Renderer\SplineRendererWidget.cpp" />
     <ClCompile Include="Renderer\SpikeMeshRendererWidget.cpp" />
+    <ClCompile Include="Renderer\SurfaceInstanceRendererWidget.cpp" />
     <ClCompile Include="Scene\CreateSceneWindow.cpp" />
     <ClCompile Include="Scene\GameEntityInspecterWidget.cpp" />
     <ClCompile Include="Scene\GameEntityItemDelegate.cpp" />
@@ -249,6 +250,7 @@
     <QtMoc Include="Renderer\GBufferRendererWidget.h" />
     <QtMoc Include="Renderer\SplineRendererWidget.h" />
     <QtMoc Include="Renderer\SpikeMeshRendererWidget.h" />
+    <QtMoc Include="Renderer\SurfaceInstanceRendererWidget.h" />
     <QtMoc Include="Renderer\RTComponentWidget.h" />
     <QtMoc Include="Scene\CreateSceneWindow.h" />
     <QtMoc Include="Windows\GameWindow.h" />

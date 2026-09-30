@@ -162,6 +162,7 @@
     <ClInclude Include="Rendering\ShaderRegistery.h" />
     <ClInclude Include="Rendering\ShaderReflection.h" />
     <ClInclude Include="Rendering\SpikeMeshRenderer.h" />
+    <ClInclude Include="Rendering\SurfaceInstanceRenderer.h" />
     <ClInclude Include="Rendering\SplineRenderer.h" />
     <ClInclude Include="StringUtilities.h" />
   </ItemGroup>
