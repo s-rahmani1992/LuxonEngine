@@ -1,0 +1,9 @@
+{
+    "uuid" : "a75395f5-2150-4eed-9f6c-a1bda69c53f8",
+    "data" : {
+        "model" : "6_6",
+        "usage" : "User",
+        "name" : "mask-mesh-field",
+        "type" : "Mesh"
+    }
+}

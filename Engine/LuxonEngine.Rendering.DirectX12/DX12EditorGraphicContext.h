@@ -31,6 +31,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		void InitializePipelines(const ref<Material>& overrideMaterial);
 		void SyncEntities();
 
+		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
+
 		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
 
 	private:
