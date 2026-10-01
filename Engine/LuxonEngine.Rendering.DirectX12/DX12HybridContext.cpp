@@ -25,6 +25,15 @@
 #include "DX12MaterialFactory.h"
 #include "RayTracing/DX12RayTracingMaterial.h"
 #include <Rendering/SpikeMeshRenderer.h>
+#include <Rendering/SurfaceInstanceRenderer.h>
+#include <Rendering/ShaderInternalNames.h>
+#include "DX12Texture2DController.h"
+#include "DX12AssetManager.h"
+#include "DX12PipelineFactory.h"
+#include <Mesh/DX12MeshPipelineModule.h>
+#include <Core/Texture2D.h>
+#include <Core/Transform.h>
+#include <Core/Logger.h>
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
@@ -206,8 +215,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	std::map<ref<Material>, ref<Rasterization::DX12RasterizationMaterial>> usedMaterials;
 
 	for (auto& entityGpu : m_entityGPUData) {
-		// spike mesh renderers use mesh shading materials, their pipelines are created separately
-		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
+		// spike and surface instance renderers use mesh shading materials, their pipelines are created separately
+		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr ||
+			std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
 			continue;
 
 		auto material = entityGpu.gameEntity->GetRenderer()->GetMaterial();
@@ -395,6 +405,111 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	}
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
+
+	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
+	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
+}
+
+std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSurfaceInstancePipelines()
+{
+	std::vector<ref<MeshShading::DX12MeshPipelineModule>> pipelines;
+	std::string error;
+
+	struct SurfaceInstanceData {
+		GameEntity* entity;
+		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
+		ref<DX12Texture2DController> maskTexture;
+		ref<SurfaceInstanceRenderer> surfaceInstanceRenderer;
+	};
+
+	std::map<ref<Material>, std::vector<SurfaceInstanceData>> surfaceInstanceMap;
+	std::vector<ref<Mesh>> instanceMeshes;
+
+	// group the surface instance entities by material, one mesh pipeline is created per material
+	for (auto& entityGpu : m_entityGPUData) {
+		auto surfaceInstanceRenderer = std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entityGpu.gameEntity->GetRenderer());
+		if (surfaceInstanceRenderer == nullptr || surfaceInstanceRenderer->GetMaterial() == nullptr || 
+			surfaceInstanceRenderer->GetMaskTexture() == nullptr || surfaceInstanceRenderer->GetDensity() <= 0.0f)
+			continue;
+
+		// outside the editor the textures are not uploaded on import. already uploaded textures are skipped
+		m_assetManager->UploadTextureToGPU(surfaceInstanceRenderer->GetMaskTexture());
+
+		auto maskTexture = std::dynamic_pointer_cast<DX12Texture2DController>(surfaceInstanceRenderer->GetMaskTexture()->GetGPUHandle());
+		if (maskTexture == nullptr) // the mask is not uploaded to the GPU
+			continue;
+
+		if (surfaceInstanceRenderer->GetInstanceMesh() != nullptr)
+			instanceMeshes.push_back(surfaceInstanceRenderer->GetInstanceMesh());
+
+		surfaceInstanceMap[surfaceInstanceRenderer->GetMaterial()].push_back(SurfaceInstanceData{
+			.entity = entityGpu.gameEntity.get(),
+			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+			.maskTexture = maskTexture,
+			.surfaceInstanceRenderer = surfaceInstanceRenderer,
+			});
+	}
+
+	// the base mesh of the renderer is null, so the instance meshes are not uploaded with the other meshes. already uploaded meshes are skipped
+	if (instanceMeshes.empty() == false)
+		m_assetManager->UploadMeshesToGPU(instanceMeshes);
+
+	// one task group per cell, every dimension of a DispatchMesh is limited to 65535 groups
+	constexpr UInt32 maxGroupsPerDimension = 65535;
+	MeshShading::MeshPipelineProperties properties;
+
+	for (auto& [material, surfaceInstanceList] : surfaceInstanceMap) {
+		ref<MeshShading::DX12MeshPipelineModule> surfaceInstancePipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), properties, error);
+
+		if (surfaceInstancePipeline == nullptr) {
+			Logger::LogError("Failed to create the surface instance pipeline: " + error);
+			continue;
+		}
+
+		if (surfaceInstancePipeline->Initialize((UInt32)surfaceInstanceList.size()) == false)
+			continue;
+
+		surfaceInstancePipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+		surfaceInstancePipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+
+		for (auto& surfaceInstanceData : surfaceInstanceList) {
+			auto& renderer = surfaceInstanceData.surfaceInstanceRenderer;
+
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, surfaceInstanceData.transformHandle);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_MASK_TEXTURE_NAME, surfaceInstanceData.maskTexture->GetShaderView()->GetCPUDescriptorHandleForHeapStart());
+
+			auto instanceMesh = renderer->GetInstanceMesh();
+			auto instanceMeshController = instanceMesh ? std::dynamic_pointer_cast<DX12MeshController>(instanceMesh->GetGPUHandle()) : nullptr;
+
+			if (instanceMeshController != nullptr) {
+				surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_VERTEX_BUFFER_NAME, instanceMeshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+				surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_INDEX_BUFFER_NAME, instanceMeshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			}
+
+			// the plane size comes from the x and z scale of the transform, density is the number of cells per unit length
+			Vector3 planeSize = surfaceInstanceData.entity->GetTransform()->Scale();
+			float density = renderer->GetDensity();
+			UInt32 cellCount[2] = {
+				std::max(1u, (UInt32)std::ceil(std::abs(planeSize.x) * density)),
+				std::max(1u, (UInt32)std::ceil(std::abs(planeSize.z) * density)),
+			};
+
+			if (cellCount[0] > maxGroupsPerDimension || cellCount[1] > maxGroupsPerDimension) {
+				Logger::LogWarning("The surface instance grid of " + surfaceInstanceData.entity->GetName() + " is clamped to 65535 cells per axis");
+				cellCount[0] = std::min(cellCount[0], maxGroupsPerDimension);
+				cellCount[1] = std::min(cellCount[1], maxGroupsPerDimension);
+			}
+
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_step", 1.0f / density);
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_totalIndices", cellCount);
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_entityScale", renderer->GetInstanceScale());
+			surfaceInstancePipeline->SetEntityThreadGroupCount(surfaceInstanceData.entity, cellCount[0], cellCount[1]);
+		}
+
+		pipelines.push_back(surfaceInstancePipeline);
+	}
+
+	return pipelines;
 }
 
 

@@ -58,6 +58,8 @@ namespace LuxonEngine::Rendering::DX12 {
 	private:
 		bool InitializeDepthBuffer();
 		void InitializePipelines();
+
+		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 
 	private:
