@@ -8,10 +8,21 @@ SurfaceInstanceRendererWidget::SurfaceInstanceRendererWidget(QWidget* parent, re
 	QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, this);
 	setLayout(layout);
 
-	m_instanceMeshField = new QMeshField(this, "Instance Mesh");
-	m_instanceMeshField->SetMesh(surfaceInstanceRenderer->GetInstanceMesh());
-	layout->addWidget(m_instanceMeshField);
-	layout->setAlignment(m_instanceMeshField, Qt::AlignTop | Qt::AlignLeft);
+	m_nearMeshField = new QMeshField(this, "Near Mesh");
+	m_nearMeshField->SetMesh(surfaceInstanceRenderer->GetNearMesh());
+	layout->addWidget(m_nearMeshField);
+	layout->setAlignment(m_nearMeshField, Qt::AlignTop | Qt::AlignLeft);
+
+	m_farMeshField = new QMeshField(this, "Far Mesh");
+	m_farMeshField->SetMesh(surfaceInstanceRenderer->GetFarMesh());
+	layout->addWidget(m_farMeshField);
+	layout->setAlignment(m_farMeshField, Qt::AlignTop | Qt::AlignLeft);
+
+	m_nearDistanceField = new QFloatField(this);
+	m_nearDistanceField->setLabelText("Near Distance");
+	m_nearDistanceField->setValue(surfaceInstanceRenderer->GetNearDistance());
+	layout->addWidget(m_nearDistanceField);
+	layout->setAlignment(m_nearDistanceField, Qt::AlignTop | Qt::AlignLeft);
 
 	// Material field with Mesh shading filter
 	m_materialField = new QMaterialField(this, "Material", LuxonEngine::Rendering::ShaderProgramType::Mesh);
@@ -38,8 +49,18 @@ SurfaceInstanceRendererWidget::SurfaceInstanceRendererWidget(QWidget* parent, re
 
 	// --- Connect signals ---
 
-	connect(m_instanceMeshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {
-		m_surfaceInstanceRenderer->SetInstanceMesh(mesh);
+	connect(m_nearMeshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {
+		m_surfaceInstanceRenderer->SetNearMesh(mesh);
+		LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
+		});
+
+	connect(m_farMeshField, &QMeshField::ValueChanged, this, [this](ref<LuxonEngine::Mesh> mesh) {
+		m_surfaceInstanceRenderer->SetFarMesh(mesh);
+		LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
+		});
+
+	connect(m_nearDistanceField, &QFloatField::ValueChanged, this, [this](float value) {
+		m_surfaceInstanceRenderer->SetNearDistance(value);
 		LuxonEditor::EngineApplication::GetSceneManager()->RequestRender();
 		});
 

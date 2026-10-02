@@ -16,7 +16,9 @@ public:
 	~SurfaceInstanceRendererWidget();
 
 private:
-	QMeshField* m_instanceMeshField;
+	QMeshField* m_nearMeshField;
+	QMeshField* m_farMeshField;
+	QFloatField* m_nearDistanceField;
 	QMaterialField* m_materialField;
 	QTextureField* m_maskTextureField;
 	QFloatField* m_instanceScaleField;

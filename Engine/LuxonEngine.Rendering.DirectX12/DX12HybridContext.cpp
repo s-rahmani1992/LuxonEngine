@@ -428,7 +428,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 	// group the surface instance entities by material, one mesh pipeline is created per material
 	for (auto& entityGpu : m_entityGPUData) {
 		auto surfaceInstanceRenderer = std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entityGpu.gameEntity->GetRenderer());
-		if (surfaceInstanceRenderer == nullptr || surfaceInstanceRenderer->GetMaterial() == nullptr || 
+		if (surfaceInstanceRenderer == nullptr || surfaceInstanceRenderer->GetMaterial() == nullptr || surfaceInstanceRenderer->GetNearMesh() == nullptr ||
 			surfaceInstanceRenderer->GetMaskTexture() == nullptr || surfaceInstanceRenderer->GetDensity() <= 0.0f)
 			continue;
 
@@ -439,8 +439,10 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 		if (maskTexture == nullptr) // the mask is not uploaded to the GPU
 			continue;
 
-		if (surfaceInstanceRenderer->GetInstanceMesh() != nullptr)
-			instanceMeshes.push_back(surfaceInstanceRenderer->GetInstanceMesh());
+		instanceMeshes.push_back(surfaceInstanceRenderer->GetNearMesh());
+
+		if (surfaceInstanceRenderer->GetFarMesh() != nullptr)
+			instanceMeshes.push_back(surfaceInstanceRenderer->GetFarMesh());
 
 		surfaceInstanceMap[surfaceInstanceRenderer->GetMaterial()].push_back(SurfaceInstanceData{
 			.entity = entityGpu.gameEntity.get(),
@@ -450,7 +452,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 			});
 	}
 
-	// the base mesh of the renderer is null, so the instance meshes are not uploaded with the other meshes. already uploaded meshes are skipped
+	// the base mesh of the renderer is null, so the near and far meshes are not uploaded with the other meshes. already uploaded meshes are skipped
 	if (instanceMeshes.empty() == false)
 		m_assetManager->UploadMeshesToGPU(instanceMeshes);
 
@@ -475,16 +477,20 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 		for (auto& surfaceInstanceData : surfaceInstanceList) {
 			auto& renderer = surfaceInstanceData.surfaceInstanceRenderer;
 
+			// without a far mesh, the near mesh is bound to both levels
+			auto farMesh = renderer->GetFarMesh() != nullptr ? renderer->GetFarMesh() : renderer->GetNearMesh();
+			auto nearMeshController = std::dynamic_pointer_cast<DX12MeshController>(renderer->GetNearMesh()->GetGPUHandle());
+			auto farMeshController = std::dynamic_pointer_cast<DX12MeshController>(farMesh->GetGPUHandle());
+
+			if (nearMeshController == nullptr || farMeshController == nullptr) // the meshes are not uploaded to the GPU, the entity is not drawn
+				continue;
+
 			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, surfaceInstanceData.transformHandle);
 			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_MASK_TEXTURE_NAME, surfaceInstanceData.maskTexture->GetShaderView()->GetCPUDescriptorHandleForHeapStart());
-
-			auto instanceMesh = renderer->GetInstanceMesh();
-			auto instanceMeshController = instanceMesh ? std::dynamic_pointer_cast<DX12MeshController>(instanceMesh->GetGPUHandle()) : nullptr;
-
-			if (instanceMeshController != nullptr) {
-				surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_VERTEX_BUFFER_NAME, instanceMeshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
-				surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_INDEX_BUFFER_NAME, instanceMeshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
-			}
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_VERTEX_BUFFER_NAME, nearMeshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_INDEX_BUFFER_NAME, nearMeshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_FAR_VERTEX_BUFFER_NAME, farMeshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_FAR_INDEX_BUFFER_NAME, farMeshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
 
 			// the plane size comes from the x and z scale of the transform, density is the number of cells per unit length
 			Vector3 planeSize = surfaceInstanceData.entity->GetTransform()->Scale();
@@ -503,6 +509,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_step", 1.0f / density);
 			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_totalIndices", cellCount);
 			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_entityScale", renderer->GetInstanceScale());
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_distance", renderer->GetNearDistance());
 			surfaceInstancePipeline->SetEntityThreadGroupCount(surfaceInstanceData.entity, cellCount[0], cellCount[1]);
 		}
 

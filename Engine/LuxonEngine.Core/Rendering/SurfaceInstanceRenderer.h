@@ -13,12 +13,21 @@ namespace LuxonEngine::Rendering {
 	class SurfaceInstanceRenderer : public Renderer
 	{
 	public:
-		SurfaceInstanceRenderer(const ref<Mesh>& instanceMesh, const ref<Material>& material, const ref<Texture2D>& maskTexture = nullptr, float instanceScale = 1.0f, float density = 1.0f)
-			: Renderer(material), m_instanceMesh(instanceMesh), m_maskTexture(maskTexture), m_instanceScale(instanceScale), m_density(density) { }
+		SurfaceInstanceRenderer(const ref<Mesh>& nearMesh, const ref<Mesh>& farMesh, const ref<Material>& material, const ref<Texture2D>& maskTexture = nullptr,
+			float instanceScale = 1.0f, float density = 1.0f, float nearDistance = 5.0f)
+			: Renderer(material), m_nearMesh(nearMesh), m_farMesh(farMesh), m_nearDistance(nearDistance), m_maskTexture(maskTexture), m_instanceScale(instanceScale), m_density(density) { }
 
-		inline ref<Mesh> GetInstanceMesh() const { return m_instanceMesh; }
+		inline ref<Mesh> GetNearMesh() const { return m_nearMesh; }
 
-		inline void SetInstanceMesh(const ref<Mesh>& instanceMesh) { m_instanceMesh = instanceMesh; }
+		inline void SetNearMesh(const ref<Mesh>& nearMesh) { m_nearMesh = nearMesh; }
+
+		inline ref<Mesh> GetFarMesh() const { return m_farMesh; }
+
+		inline void SetFarMesh(const ref<Mesh>& farMesh) { m_farMesh = farMesh; }
+
+		inline float GetNearDistance() const { return m_nearDistance; }
+
+		inline void SetNearDistance(float nearDistance) { m_nearDistance = nearDistance; }
 
 		inline ref<Texture2D> GetMaskTexture() const { return m_maskTexture; }
 
@@ -33,7 +42,9 @@ namespace LuxonEngine::Rendering {
 		inline void SetDensity(float density) { m_density = density; }
 
 	private:
-		ref<Mesh> m_instanceMesh;
+		ref<Mesh> m_nearMesh;
+		ref<Mesh> m_farMesh;
+		float m_nearDistance = 5.0f;
 		ref<Texture2D> m_maskTexture;
 		float m_instanceScale = 1.0f;
 		float m_density = 1.0f;

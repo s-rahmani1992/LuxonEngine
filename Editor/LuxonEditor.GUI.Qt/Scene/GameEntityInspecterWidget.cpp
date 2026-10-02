@@ -100,7 +100,7 @@ namespace LuxonEditor::GUI::QT {
 			});
 
 		menu->addAction("Surface Instance Renderer", [this]() {
-			auto surfaceInstanceRenderer = std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(nullptr, nullptr);
+			auto surfaceInstanceRenderer = std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(nullptr, nullptr, nullptr);
 			m_entity->SetRenderer(surfaceInstanceRenderer);
 			GenerateRendererWidget(surfaceInstanceRenderer);
 			});

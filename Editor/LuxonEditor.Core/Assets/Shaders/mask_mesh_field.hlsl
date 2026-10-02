@@ -16,6 +16,7 @@ struct MeshVertex
 struct TaskPayload
 {
     float2 planePos;
+    uint meshIndex;
 };
 
 struct MS_OUTPUT
@@ -40,6 +41,7 @@ CONSTANT_VARIABLES_BEGIN
     float _step;
     uint2 _totalIndices;
     float _entityScale;
+    float _distance;
 CONSTANT_VARIABLES_END(constantVars, b3)
 
 #define color constantVars.color
@@ -49,13 +51,19 @@ CONSTANT_VARIABLES_END(constantVars, b3)
 #define step constantVars._step
 #define totalIndices constantVars._totalIndices
 #define instanceScale constantVars._entityScale
+#define _distance constantVars._distance
 
+// level 0 is the near mesh, level 1 the far mesh.
 #if defined(_VULKAN)
-    StructuredBuffer<MeshVertex> _vertexBuffer;
-    StructuredBuffer<uint> _indexBuffer;
+    StructuredBuffer<MeshVertex> _nearVertexBuffer;
+    StructuredBuffer<uint> _nearIndexBuffer;
+    StructuredBuffer<MeshVertex> _farVertexBuffer;
+    StructuredBuffer<uint> _farIndexBuffer;
 #else
-StructuredBuffer<MeshVertex> _vertexBuffer : DX12_REGISTER_SPACE(t0);
-StructuredBuffer<uint> _indexBuffer : DX12_REGISTER_SPACE(t1);
+    StructuredBuffer<MeshVertex> _nearVertexBuffer : DX12_REGISTER_SPACE(t0);
+    StructuredBuffer<uint> _nearIndexBuffer : DX12_REGISTER_SPACE(t1);
+    StructuredBuffer<MeshVertex> _farVertexBuffer : DX12_REGISTER_SPACE(t4);
+    StructuredBuffer<uint> _farIndexBuffer : DX12_REGISTER_SPACE(t5);
 #endif
 
 TEXTURE(_maskTexture, float4, t2)
@@ -64,12 +72,25 @@ TEXTURE(mainTexture, float4, t3)
 
 SAMPLER(mainSampler, s0);
 
-uint GetTriangleCount()
+uint GetTriangleCount(uint meshIndex)
 {
     uint indexCount;
     uint indexStride;
-    _indexBuffer.GetDimensions(indexCount, indexStride);
+
+    if (meshIndex == 0)
+        _nearIndexBuffer.GetDimensions(indexCount, indexStride);
+    else
+        _farIndexBuffer.GetDimensions(indexCount, indexStride);
+
     return indexCount / 3;
+}
+
+MeshVertex LoadVertex(uint meshIndex, uint index)
+{
+    if (meshIndex == 0)
+        return _nearVertexBuffer[_nearIndexBuffer[index]];
+
+    return _farVertexBuffer[_farIndexBuffer[index]];
 }
 
 // instance mesh vertex -> world. the instance is scaled, moved to its cell on the plane, then rotated and
@@ -97,10 +118,17 @@ void as_main(uint3 groupId : SV_GroupID)
     // sample at the cell center. task shaders have no derivatives, so the mip level is given explicitly
     float2 uv = (float2(groupId.xy) + 0.5f) / float2(totalIndices);
     float4 texColor = _maskTexture.SampleLevel(mainSampler, uv, 0);
-    uint triangleCount = GetTriangleCount();
+    taskPayload.planePos = (uv - 0.5f) * step * totalIndices;
+
+    // the level is chosen from the world position of the instance, the plane is rotated and moved with the entity
+    float3 entityPosition = mul(float4(0.0f, 0.0f, 0.0f, 1.0f), transformData.modelMatrix).xyz;
+    float3 instancePosition = mul(float4(taskPayload.planePos.x, 0.0f, taskPayload.planePos.y, 0.0f), transformData.rotationMatrix).xyz + entityPosition;
+    taskPayload.meshIndex = distance(cameraData.position, instancePosition) < _distance ? 0 : 1;
+
+    // the near and far meshes launch different group counts, every task group picks its own
+    uint triangleCount = GetTriangleCount(taskPayload.meshIndex);
     uint meshGroupCount = texColor.r < 0.1f ? 0 : (triangleCount + TRIANGLES_PER_GROUP - 1) / TRIANGLES_PER_GROUP;
 
-    taskPayload.planePos = (uv - 0.5f) * step * totalIndices;
     // DispatchMesh must be reached on every path, a masked out cell launches 0 mesh groups
     DispatchMesh(meshGroupCount, 1, 1, taskPayload);
 }
@@ -118,7 +146,7 @@ void ms_main(
     out indices uint3 outTriangles[MAX_PRIMITIVES])
 {
     // the last group of the mesh usually has fewer triangles
-    uint triangleCount = GetTriangleCount();
+    uint triangleCount = GetTriangleCount(payload.meshIndex);
     uint firstTriangle = groupId * TRIANGLES_PER_GROUP;
     uint groupTriangleCount = firstTriangle < triangleCount ? min(TRIANGLES_PER_GROUP, triangleCount - firstTriangle) : 0;
 
@@ -135,7 +163,7 @@ void ms_main(
 
     for (uint corner = 0; corner < 3; corner++)
     {
-        MeshVertex vertex = _vertexBuffer[_indexBuffer[baseIndex + corner]];
+        MeshVertex vertex = LoadVertex(payload.meshIndex, baseIndex + corner);
         outVertices[firstVertex + corner] = TransformInstanceVertex(vertex, payload.planePos, entityPosition, viewProjection);
     }
 

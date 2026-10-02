@@ -90,15 +90,21 @@ namespace LuxonEditor {
 			}
 			case 4: // SurfaceInstanceRenderer
 			{
-				auto instanceMeshGuid = stream.GetGuid("instance-mesh-guid");
+				auto nearMeshGuid = stream.GetGuid("near-mesh-guid");
+				if (nearMeshGuid.is_nil()) // scenes saved before the LOD have a single instance mesh
+					nearMeshGuid = stream.GetGuid("instance-mesh-guid");
+
+				auto farMeshGuid = stream.GetGuid("far-mesh-guid");
 				auto materialGuid = stream.GetGuid("material-guid");
 				auto maskTextureGuid = stream.GetGuid("mask-texture-guid");
-				auto instanceMesh = EngineApplication::GetAssetManager()->GetMesh(instanceMeshGuid);
+				auto nearMesh = EngineApplication::GetAssetManager()->GetMesh(nearMeshGuid);
+				auto farMesh = EngineApplication::GetAssetManager()->GetMesh(farMeshGuid);
 				auto material = EngineApplication::GetAssetManager()->GetMaterial(materialGuid);
 				auto maskTexture = EngineApplication::GetAssetManager()->GetTexture(maskTextureGuid);
 				float instanceScale = stream.GetFloat("instance-scale", 1.0f);
 				float density = stream.GetFloat("density", 1.0f);
-				return std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(instanceMesh, material, maskTexture, instanceScale, density);
+				float nearDistance = stream.GetFloat("near-distance", 5.0f);
+				return std::make_shared<LuxonEngine::Rendering::SurfaceInstanceRenderer>(nearMesh, farMesh, material, maskTexture, instanceScale, density, nearDistance);
 			}
 			default:
 				return nullptr;
@@ -167,12 +173,17 @@ namespace LuxonEditor {
 		}
 		else if (auto surfaceInstanceRenderer = std::dynamic_pointer_cast<LuxonEngine::Rendering::SurfaceInstanceRenderer>(renderer)) {
 			stream.SetInt("renderer-type", 4);
-			auto instanceMesh = surfaceInstanceRenderer->GetInstanceMesh();
+			auto nearMesh = surfaceInstanceRenderer->GetNearMesh();
+			auto farMesh = surfaceInstanceRenderer->GetFarMesh();
 			auto material = surfaceInstanceRenderer->GetMaterial();
 			auto maskTexture = surfaceInstanceRenderer->GetMaskTexture();
-			if (instanceMesh) {
-				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(instanceMesh);
-				stream.SetGuid("instance-mesh-guid", meshEntry->guid);
+			if (nearMesh) {
+				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(nearMesh);
+				stream.SetGuid("near-mesh-guid", meshEntry->guid);
+			}
+			if (farMesh) {
+				auto meshEntry = EngineApplication::GetAssetManager()->GetMeshEntry(farMesh);
+				stream.SetGuid("far-mesh-guid", meshEntry->guid);
 			}
 			if (material) {
 				auto materialEntry = EngineApplication::GetAssetManager()->GetMaterialEntry(material);
@@ -184,6 +195,7 @@ namespace LuxonEditor {
 			}
 			stream.SetFloat("instance-scale", surfaceInstanceRenderer->GetInstanceScale());
 			stream.SetFloat("density", surfaceInstanceRenderer->GetDensity());
+			stream.SetFloat("near-distance", surfaceInstanceRenderer->GetNearDistance());
 		}
 		else {
 			stream.SetInt("renderer-type", -1);
