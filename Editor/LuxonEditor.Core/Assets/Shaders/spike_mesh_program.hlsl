@@ -100,8 +100,7 @@ void as_main(uint groupId : SV_GroupID)
 {
     uint meshGroupCount = (GetTriangleCount() + TRIANGLES_PER_GROUP - 1) / TRIANGLES_PER_GROUP;
     taskPayload.firstMeshGroup = groupId * MESH_GROUPS_PER_TASK;
-    // a pipeline dispatches the group count of its largest mesh, the extra groups of the smaller meshes launch nothing
-    uint taskMeshGroupCount = taskPayload.firstMeshGroup < meshGroupCount ? min(MESH_GROUPS_PER_TASK, meshGroupCount - taskPayload.firstMeshGroup) : 0;
+    uint taskMeshGroupCount = min(MESH_GROUPS_PER_TASK, meshGroupCount - taskPayload.firstMeshGroup);
 
     DispatchMesh(taskMeshGroupCount, 1, 1, taskPayload);
 }
@@ -119,7 +118,7 @@ void ms_main(
 {
     uint triangleCount = GetTriangleCount();
     uint firstTriangle = (payload.firstMeshGroup + groupId) * TRIANGLES_PER_GROUP;
-    uint groupTriangleCount = firstTriangle < triangleCount ? min(TRIANGLES_PER_GROUP, triangleCount - firstTriangle) : 0;
+    uint groupTriangleCount = min(TRIANGLES_PER_GROUP, triangleCount - firstTriangle);
 
     SetMeshOutputCounts(groupTriangleCount * VERTICES_PER_PYRAMID, groupTriangleCount * FACES_PER_PYRAMID);
 
@@ -132,9 +131,6 @@ void ms_main(
     MeshVertex v1 = _vertexBuffer[_indexBuffer[baseIndex + 1]];
     MeshVertex v2 = _vertexBuffer[_indexBuffer[baseIndex + 2]];
 
-    // Winding normal, flipped to agree with the mesh's vertex normals so the apex goes outward
-    // whatever winding convention the mesh uses. PyramidFaces keeps the mesh's winding convention
-    // for all 4 faces either way.
     float3 triangleNormal = normalize(cross(v1.pos - v0.pos, v2.pos - v0.pos));
     float windingSign = dot(triangleNormal, v0.norm + v1.norm + v2.norm) < 0.0f ? -1.0f : 1.0f;
 

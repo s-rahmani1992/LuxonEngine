@@ -3,7 +3,7 @@
     "data" : {
         "model" : "6_6",
         "usage" : "User",
-        "name" : "pyramid-mesh-program",
+        "name" : "spike-mesh-program",
         "type" : "Mesh"
     }
 }

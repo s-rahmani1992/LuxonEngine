@@ -1,0 +1,106 @@
+{
+    "transform" : {
+        "position" : {
+            "x" : 0.0000000000000000,
+            "y" : 0.0000000000000000,
+            "z" : 0.0000000000000000
+        },
+        "axis" : {
+            "x" : 1.0000000000000000,
+            "y" : 0.0000000000000000,
+            "z" : 0.0000000000000000
+        },
+        "angle" : 0.0000000000000000,
+        "scale" : {
+            "x" : 0.0099999997764825821,
+            "y" : 0.0099999997764825821,
+            "z" : 0.0099999997764825821
+        }
+    },
+    "meshes" : [
+        {
+            "index" : 0,
+            "name" : "Plane.124",
+            "uuid" : "c306d091-701d-4cbc-8a7b-71bb525edd8f",
+            "imported_name" : "Wheat_Single"
+        },
+        {
+            "index" : 1,
+            "name" : "Cylinder.003",
+            "uuid" : "3597bf31-72c0-4a12-81b6-b36443482f7e",
+            "imported_name" : "Carrot_Single"
+        },
+        {
+            "index" : 2,
+            "name" : "Circle.051",
+            "uuid" : "2d948355-4d02-437a-b1aa-3b57795db33d",
+            "imported_name" : "Peas_Single"
+        },
+        {
+            "index" : 3,
+            "name" : "Plane.141",
+            "uuid" : "8cfc6485-b860-4a01-ac5e-d0226386533f",
+            "imported_name" : "Corn_Single"
+        },
+        {
+            "index" : 4,
+            "name" : "Circle.054",
+            "uuid" : "5086d963-dbea-42c4-a6ca-39231454cfbc",
+            "imported_name" : "Onion_Single"
+        },
+        {
+            "index" : 5,
+            "name" : "Plane.162",
+            "uuid" : "ed99cb31-238a-479b-a2c4-18a4f0cad4a9",
+            "imported_name" : "Tomato_Single"
+        },
+        {
+            "index" : 6,
+            "name" : "Circle.062",
+            "uuid" : "bbc2ea45-d8a3-4ab8-a7c1-91388c416c52",
+            "imported_name" : "Potato_Single"
+        },
+        {
+            "index" : 7,
+            "name" : "Plane.104",
+            "uuid" : "446c2da5-14a4-444d-b881-c7c1bfa7c9a2",
+            "imported_name" : "Wheat_Multiple"
+        },
+        {
+            "index" : 8,
+            "name" : "Cylinder.004",
+            "uuid" : "f15721b3-3fd0-4b88-aa65-7842a01f1d73",
+            "imported_name" : "Carrot_Multiple"
+        },
+        {
+            "index" : 9,
+            "name" : "Circle.050",
+            "uuid" : "b42fa415-f421-4591-9f9b-78c389a1dbf5",
+            "imported_name" : "Peas_Multiple"
+        },
+        {
+            "index" : 10,
+            "name" : "Plane.147",
+            "uuid" : "25dc00cd-70b2-42a0-b459-47b298d76e10",
+            "imported_name" : "Corn_Multiple"
+        },
+        {
+            "index" : 11,
+            "name" : "Circle.053",
+            "uuid" : "e2252165-c5c7-486a-8801-9599f18f4b65",
+            "imported_name" : "Onion_Multiple"
+        },
+        {
+            "index" : 12,
+            "name" : "Plane.164",
+            "uuid" : "70400445-e5dc-40bd-a64d-2cd7eb57f76f",
+            "imported_name" : "Tomato_Multiple"
+        },
+        {
+            "index" : 13,
+            "name" : "Circle.061",
+            "uuid" : "71aa7b38-5e52-4444-b72b-10d303856d94",
+            "imported_name" : "Potato_Multiple"
+        }
+    ]
+}
