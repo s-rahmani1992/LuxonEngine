@@ -20,6 +20,21 @@
 
 using namespace LuxonEngine;
 
+namespace {
+    void CollectMeshNodeTransforms(const aiNode* node, const aiMatrix4x4& parentTransform, std::map<unsigned int, aiMatrix4x4>& meshTransforms)
+    {
+        aiMatrix4x4 globalTransform = parentTransform * node->mTransformation;
+
+        for (unsigned int m = 0; m < node->mNumMeshes; m++) {
+            meshTransforms.emplace(node->mMeshes[m], globalTransform);
+        }
+
+        for (unsigned int c = 0; c < node->mNumChildren; c++) {
+            CollectMeshNodeTransforms(node->mChildren[c], globalTransform, meshTransforms);
+        }
+    }
+}
+
 ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, long size, SerializationStream& stream, AssetRegistry* assetRegistry, std::string& error)
 {
     Assimp::Importer importer;
@@ -53,6 +68,11 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
         }
     }
 
+    std::map<unsigned int, aiMatrix4x4> meshNodeTransforms;
+    if (pScene->mRootNode != nullptr) {
+        CollectMeshNodeTransforms(pScene->mRootNode, aiMatrix4x4(), meshNodeTransforms);
+    }
+
     boost::uuids::random_generator randomGen;
 
     std::vector<std::pair<std::string, ref<Mesh>>> meshes;
@@ -61,20 +81,29 @@ ref<Model3DAsset> LuxonEditor::AssimpModel3DImporter::Import(const Byte* data, l
     for (unsigned int i = 0; i < pScene->mNumMeshes; i++) {
         const aiMesh* paiMesh = pScene->mMeshes[i];
 
+        aiMatrix4x4 nodeTransform;
+        auto nodeIt = meshNodeTransforms.find(i);
+        if (nodeIt != meshNodeTransforms.end()) {
+            nodeTransform = nodeIt->second;
+        }
+        nodeTransform.a4 = nodeTransform.b4 = nodeTransform.c4 = 0.0f;
+        aiMatrix3x3 normalTransform = aiMatrix3x3(nodeTransform).Inverse().Transpose();
+
         std::vector<Vertex> vertices;
         std::vector<UInt32> indices;
 
         const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
         for (UInt32 v = 0; v < paiMesh->mNumVertices; v++) {
-            const aiVector3D* pPos = &(paiMesh->mVertices[v]);
-            const aiVector3D* pNormal = &(paiMesh->mNormals[v]);
+            const aiVector3D pPos = nodeTransform * paiMesh->mVertices[v];
+            aiVector3D pNormal = normalTransform * paiMesh->mNormals[v];
+            pNormal.NormalizeSafe();
             const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][v]) : &Zero3D;
 
             Vertex vert(
-                transformMatrix * Vector3(pPos->x, pPos->y, pPos->z),
+                transformMatrix * Vector3(pPos.x, pPos.y, pPos.z),
                 Vector2(pTexCoord->x, pTexCoord->y),
-                rotationMatrix * Vector3(pNormal->x, pNormal->y, pNormal->z)
+                rotationMatrix * Vector3(pNormal.x, pNormal.y, pNormal.z)
             );
             vertices.push_back(vert);
         }
