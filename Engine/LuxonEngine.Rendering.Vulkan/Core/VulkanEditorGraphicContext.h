@@ -44,6 +44,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void InitializePipelines(const ref<Material>& overrideMaterial);
 		void SyncEntities(const ref<Scene>& scene);
 		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSpikeMeshPipelines();
+
+		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSurfaceInstancePipelines();
 		void DestroyMeshStorageBuffers();
 
 		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
@@ -73,6 +75,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		ref<VulkanPipelineFactory> m_pipelineFactory;
 		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;
-		std::vector<VkBuffer> m_meshStorageBuffers; // storage buffer views of the spike meshes, they share the memory of the mesh buffers
+		std::vector<VkBuffer> m_meshStorageBuffers; // storage buffer views of the spike and surface instance meshes, they share the memory of the mesh buffers
 	};
 }

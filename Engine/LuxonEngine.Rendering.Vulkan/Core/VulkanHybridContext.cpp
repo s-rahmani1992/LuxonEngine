@@ -27,6 +27,9 @@
 #include "Core/VulkanMeshController.h"
 #include "Mesh/VulkanMeshPipelineModule.h"
 #include "Rendering/SpikeMeshRenderer.h"
+#include "Rendering/SurfaceInstanceRenderer.h"
+#include "Core/VulkanTexture2DController.h"
+#include "Core/Texture2D.h"
 #include "Rendering/ShaderInternalNames.h"
 #include <map>
 
@@ -133,8 +136,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		m_entityGPUList.push_back({ entity, index });
 		index++;
 
-		// spike entities use mesh programs, they are drawn by the mesh pipelines instead of a rasterization material
-		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entity->GetRenderer()) != nullptr)
+		// spike and surface instance entities use mesh programs, they are drawn by the mesh pipelines instead of a rasterization material
+		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entity->GetRenderer()) != nullptr ||
+			std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entity->GetRenderer()) != nullptr)
 			continue;
 
 		auto material = entity->GetRenderer()->GetMaterial();
@@ -259,6 +263,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	}
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
+
+	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
+	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
 
 	if (m_gBufferEntityGPUList.size() > 0) {
 		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
@@ -819,6 +826,130 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 		}
 
 		pipelines.push_back(spikeMeshPipeline);
+	}
+
+	return pipelines;
+}
+
+std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineModule>> LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSurfaceInstancePipelines()
+{
+	std::vector<ref<MeshShading::VulkanMeshPipelineModule>> pipelines;
+
+	if (m_pipelineFactory == nullptr)
+		return pipelines;
+
+	struct SurfaceInstanceData {
+		GameEntity* entity;
+		UInt32 index; // index of the entity in the transform buffer
+		ref<VulkanTexture2DController> maskTexture;
+		ref<SurfaceInstanceRenderer> surfaceInstanceRenderer;
+	};
+
+	std::map<ref<Material>, std::vector<SurfaceInstanceData>> surfaceInstanceMap;
+	std::vector<ref<Mesh>> instanceMeshes;
+
+	// group the surface instance entities by material, one mesh pipeline is created per material
+	for (auto& entityGPU : m_entityGPUList) {
+		auto surfaceInstanceRenderer = std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entityGPU.gameEntity->GetRenderer());
+		if (surfaceInstanceRenderer == nullptr || surfaceInstanceRenderer->GetMaterial() == nullptr || surfaceInstanceRenderer->GetNearMesh() == nullptr ||
+			surfaceInstanceRenderer->GetMaskTexture() == nullptr || surfaceInstanceRenderer->GetDensity() <= 0.0f)
+			continue;
+
+		// outside the editor the textures are not uploaded on import. already uploaded textures are skipped
+		m_assetManager->UploadTextureToGPU(surfaceInstanceRenderer->GetMaskTexture());
+
+		auto maskTexture = std::dynamic_pointer_cast<VulkanTexture2DController>(surfaceInstanceRenderer->GetMaskTexture()->GetGPUHandle());
+		if (maskTexture == nullptr) // the mask is not uploaded to the GPU
+			continue;
+
+		instanceMeshes.push_back(surfaceInstanceRenderer->GetNearMesh());
+
+		if (surfaceInstanceRenderer->GetFarMesh() != nullptr)
+			instanceMeshes.push_back(surfaceInstanceRenderer->GetFarMesh());
+
+		surfaceInstanceMap[surfaceInstanceRenderer->GetMaterial()].push_back(SurfaceInstanceData{
+			.entity = entityGPU.gameEntity.get(),
+			.index = entityGPU.index,
+			.maskTexture = maskTexture,
+			.surfaceInstanceRenderer = surfaceInstanceRenderer,
+			});
+	}
+
+	// the base mesh of the renderer is null, so these meshes are not uploaded with the other meshes. already uploaded meshes are skipped
+	if (instanceMeshes.empty() == false)
+		m_assetManager->UploadMeshesToGPU(instanceMeshes);
+
+	// one task group per cell, the task group count of every dimension is limited to 65535 groups
+	constexpr UInt32 maxGroupsPerDimension = 65535;
+
+	std::string error;
+	MeshShading::MeshPipelineProperties properties;
+
+	for (auto& [material, surfaceInstanceList] : surfaceInstanceMap) {
+		auto surfaceInstancePipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_renderPass, properties, error);
+
+		if (surfaceInstancePipeline == nullptr) {
+			Logger::LogError("Failed to create the surface instance pipeline: " + error);
+			continue;
+		}
+
+		if (surfaceInstancePipeline->Initialize((UInt32)surfaceInstanceList.size()) == false) {
+			Logger::LogError("Failed to create the descriptors of the surface instance pipeline");
+			continue;
+		}
+
+		surfaceInstancePipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+		surfaceInstancePipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer, 0, m_lightStride);
+
+		for (auto& surfaceInstanceData : surfaceInstanceList) {
+			auto& renderer = surfaceInstanceData.surfaceInstanceRenderer;
+
+			// without a far mesh, the near mesh is bound to both levels
+			auto farMesh = renderer->GetFarMesh() != nullptr ? renderer->GetFarMesh() : renderer->GetNearMesh();
+			auto nearMeshController = std::dynamic_pointer_cast<VulkanMeshController>(renderer->GetNearMesh()->GetGPUHandle());
+			auto farMeshController = std::dynamic_pointer_cast<VulkanMeshController>(farMesh->GetGPUHandle());
+
+			if (nearMeshController == nullptr || farMeshController == nullptr) // the meshes are not uploaded to the GPU, the entity is not drawn
+				continue;
+
+			// the mesh buffers are not created with the storage usage, so storage buffers sharing their memory are bound instead
+			VkBuffer nearVertexBuffer = nearMeshController->CreateVertexStorageBuffer();
+			VkBuffer nearIndexBuffer = nearMeshController->CreateIndexStorageBuffer();
+			VkBuffer farVertexBuffer = farMeshController->CreateVertexStorageBuffer();
+			VkBuffer farIndexBuffer = farMeshController->CreateIndexStorageBuffer();
+			m_meshStorageBuffers.insert(m_meshStorageBuffers.end(), { nearVertexBuffer, nearIndexBuffer, farVertexBuffer, farIndexBuffer });
+
+			// every entity points to its own range of the shared transform buffer, no dynamic offset is needed
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
+				(VkDeviceSize)surfaceInstanceData.index * m_transformStride, m_transformStride);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_MASK_TEXTURE_NAME, surfaceInstanceData.maskTexture->GetImageView());
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_VERTEX_BUFFER_NAME, nearVertexBuffer);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_INDEX_BUFFER_NAME, nearIndexBuffer);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_FAR_VERTEX_BUFFER_NAME, farVertexBuffer);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_FAR_INDEX_BUFFER_NAME, farIndexBuffer);
+
+			// the plane size comes from the x and z scale of the transform, density is the number of cells per unit length
+			Vector3 planeSize = surfaceInstanceData.entity->GetTransform()->Scale();
+			float density = renderer->GetDensity();
+			UInt32 cellCount[2] = {
+				(std::max)(1u, (UInt32)std::ceil(std::abs(planeSize.x) * density)),
+				(std::max)(1u, (UInt32)std::ceil(std::abs(planeSize.z) * density)),
+			};
+
+			if (cellCount[0] > maxGroupsPerDimension || cellCount[1] > maxGroupsPerDimension) {
+				Logger::LogWarning("The surface instance grid of " + surfaceInstanceData.entity->GetName() + " is clamped to 65535 cells per axis");
+				cellCount[0] = (std::min)(cellCount[0], maxGroupsPerDimension);
+				cellCount[1] = (std::min)(cellCount[1], maxGroupsPerDimension);
+			}
+
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_step", 1.0f / density);
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_totalIndices", cellCount);
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_entityScale", renderer->GetInstanceScale());
+			surfaceInstancePipeline->SetEntityConstant(surfaceInstanceData.entity, "_distance", renderer->GetNearDistance());
+			surfaceInstancePipeline->SetEntityThreadGroupCount(surfaceInstanceData.entity, cellCount[0], cellCount[1]);
+		}
+
+		pipelines.push_back(surfaceInstancePipeline);
 	}
 
 	return pipelines;
