@@ -51,6 +51,10 @@ namespace LuxonEngine::Rendering::DX12 {
 			{ D3D12_SHVER_PIXEL_SHADER, L"ps_6_6" },
 		};
 
+		const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> m_validComputeStages = {
+			{ D3D12_SHVER_COMPUTE_SHADER, L"cs_6_6" },
+		};
+
 		std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> m_validMeshStages = {
 			{ D3D12_SHVER_PIXEL_SHADER, L"ps_6_6" },
 			{ D3D12_SHVER_AMPLIFICATION_SHADER, L"as_6_6" },

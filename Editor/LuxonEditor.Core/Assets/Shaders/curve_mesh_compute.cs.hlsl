@@ -50,6 +50,7 @@ CONSTANT_VARIABLES_END(CurveProps, b1)
 
 RWStructuredBuffer<SplineVertex> _vertexBuffer : register(u0);
 
+[shader("compute")]
 [numthreads(32, 1, 1)]
 void cs_main( uint3 DTid : SV_DispatchThreadID )
 {

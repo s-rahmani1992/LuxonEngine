@@ -117,24 +117,26 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 	}
 
 	else if (compileProperties.type == ShaderProgramType::Compute) {
+		std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> foundStages;
+
+		if (DiscoverStages(shaderCode, codeLength, baseOptions, m_validComputeStages, foundStages, error) == false) {
+			return nullptr;
+		}
+
+		const auto& [stage, entryPoint] = *foundStages.begin();
+
+		std::string stageError;
 		auto options = baseOptions;
-		options.entryPoint = CharToString(compileProperties.computeProperties.computeMain);
-		options.targetProfile = CharToString(("cs_" + compileProperties.model).c_str());
+		options.entryPoint = entryPoint;
+		options.targetProfile = m_validComputeStages.at(stage);
+		auto shader = CompileShaderStageWithReflection(shaderCode, codeLength, options, stageError);
 
-		ComPtr<IDxcBlob> pshaderObjectData;
-		ComPtr<IDxcBlob> pReflectionData;
-
-		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error, &pReflectionData) == false) {
+		if (shader.byteCode == nullptr) {
+			error = std::string("Error in compiling ") + ShaderStageToString(stage) + " Stage: " + stageError;
 			return nullptr;
 		}
 
-		ComPtr<ID3D12ShaderReflection> pShaderReflection;
-		if (FAILED(m_compiler->CreateReflection(pReflectionData.Get(), IID_PPV_ARGS(&pShaderReflection)))) {
-			error = "Unknown Error when Creating Reflection";
-			return nullptr;
-		}
-
-		finalProgram = new Compute::HLSLComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), pShaderReflection);
+		finalProgram = new Compute::HLSLComputeProgram(shader.byteCode, shader.reflection);
 	}
 
 	else if (compileProperties.type == ShaderProgramType::Mesh) {

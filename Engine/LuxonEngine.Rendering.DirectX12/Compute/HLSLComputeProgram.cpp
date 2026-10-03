@@ -1,12 +1,9 @@
 #include "pch.h"
 #include "HLSLComputeProgram.h"
 
-LuxonEngine::Rendering::DX12::Compute::HLSLComputeProgram::HLSLComputeProgram(Byte* byteCode, UInt64 codeLength, ComPtr<ID3D12ShaderReflection>& shaderReflection)
-    :m_codeLength(codeLength)
+LuxonEngine::Rendering::DX12::Compute::HLSLComputeProgram::HLSLComputeProgram(ComPtr<IDxcBlob>& computeShader, ComPtr<ID3D12ShaderReflection>& shaderReflection)
+    :m_computeShader(computeShader)
 {
-    m_byteCode = new Byte[codeLength];
-    std::memcpy(m_byteCode, byteCode, codeLength);
-
 	m_reflection.AddShaderReflection(shaderReflection.Get());
 }
 

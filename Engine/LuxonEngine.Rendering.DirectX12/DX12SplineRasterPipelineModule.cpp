@@ -93,8 +93,8 @@ bool LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(co
 	// Compute Pipeline to generate spline vertices
 	D3D12_COMPUTE_PIPELINE_STATE_DESC computePipelineDesc = {};
 	computePipelineDesc.pRootSignature = m_computeProgram->GetRootSignature().Get();
-	computePipelineDesc.CS.BytecodeLength = m_computeProgram->GetCodeLength();
-	computePipelineDesc.CS.pShaderBytecode = m_computeProgram->GetByteCode();
+	computePipelineDesc.CS.BytecodeLength = m_computeProgram->GetShader()->GetBufferSize();
+	computePipelineDesc.CS.pShaderBytecode = m_computeProgram->GetShader()->GetBufferPointer();
 	computePipelineDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	if (FAILED(device->CreateComputePipelineState(&computePipelineDesc, IID_PPV_ARGS(&m_computePipeline))))

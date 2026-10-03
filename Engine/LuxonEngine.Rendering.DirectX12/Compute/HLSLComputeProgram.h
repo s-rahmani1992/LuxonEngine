@@ -8,7 +8,7 @@ namespace LuxonEngine::Rendering::DX12::Compute {
 	class HLSLComputeProgram : public HLSLShaderProgram
 	{
 	public:
-		HLSLComputeProgram(Byte* byteCode, UInt64 codeLength, ComPtr<ID3D12ShaderReflection>& shaderReflection);
+		HLSLComputeProgram(ComPtr<IDxcBlob>& computeShader, ComPtr<ID3D12ShaderReflection>& shaderReflection);
 		
 		virtual ShaderProgramType GetType() override { return ShaderProgramType::Compute; }
 
@@ -20,19 +20,12 @@ namespace LuxonEngine::Rendering::DX12::Compute {
 		virtual bool InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error) override;
 
 		/// <summary>
-		/// Gets pointer to byte code
-		/// </summary>
-		/// <returns></returns>
-		inline Byte* GetByteCode() const { return m_byteCode; }
-
-		/// <summary>
 		/// Gets length of byte code
 		/// </summary>
 		/// <returns></returns>
-		inline UInt64 GetCodeLength() const { return m_codeLength; }
+		inline IDxcBlob* GetShader() const { return m_computeShader.Get(); }
 
 	private:
-		Byte* m_byteCode;
-		UInt64 m_codeLength;
+		ComPtr<IDxcBlob> m_computeShader;
 	};
 }
