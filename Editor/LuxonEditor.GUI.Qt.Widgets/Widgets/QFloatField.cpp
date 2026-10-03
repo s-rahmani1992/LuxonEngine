@@ -14,7 +14,7 @@ QFloatField::QFloatField(QWidget* parent, bool draggable)
 	m_validator->setNotation(QDoubleValidator::StandardNotation);
 	ui.inputText->setValidator(m_validator);
 
-	connect(ui.inputText, &QLineEdit::textChanged, this, [this](const QString& text) {
+	connect(ui.inputText, &QLineEdit::textEdited, this, [this](const QString& text) {
 		OnTextChanged(text);
 		});
 
