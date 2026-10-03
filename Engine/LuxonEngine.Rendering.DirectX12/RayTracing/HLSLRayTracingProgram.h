@@ -16,7 +16,7 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 
 	class HLSLRayTracingProgram : public HLSLShaderProgram {
 	public:
-		HLSLRayTracingProgram(Byte* byteCode, UInt64 codeLength, const HLSLRayTracingProgramProperties& properties, ComPtr<ID3D12LibraryReflection>& shaderReflection);
+		HLSLRayTracingProgram(const ComPtr<IDxcBlob>& byteCode, const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& stages, ID3D12LibraryReflection* shaderReflection);
 		
 		virtual ShaderProgramType GetType() override { return ShaderProgramType::RayTracing; }
 
@@ -75,8 +75,7 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 
 	private:
 		static UInt32 m_programCounter;
-		Byte* m_byteCode;
-		UInt64 m_codeLength;
+		ComPtr<IDxcBlob> m_shaderCode;
 
 		std::wstring m_rayGenOriginalName;
 		std::wstring m_rayGenExportName;

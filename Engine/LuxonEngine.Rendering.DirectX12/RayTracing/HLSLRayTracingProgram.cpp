@@ -4,39 +4,32 @@
 
 UInt32 LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::m_programCounter = 0;
 
-LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingProgram(Byte* byteCode, UInt64 codeLength, const HLSLRayTracingProgramProperties& properties, ComPtr<ID3D12LibraryReflection>& libraryReflection)
-	:m_codeLength(codeLength)
+LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingProgram(const ComPtr<IDxcBlob>& byteCode, const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& stages, ID3D12LibraryReflection* libraryReflection)
+	:m_shaderCode(byteCode)
 {
 	m_programCounter++;
 	m_hitDesc.AnyHitShaderImport = nullptr;
 	m_hitDesc.ClosestHitShaderImport = nullptr;
 	m_hitDesc.IntersectionShaderImport = nullptr;
 
-	m_byteCode = new Byte[codeLength];
-	std::memcpy(m_byteCode, byteCode, codeLength);
-
     D3D12_LIBRARY_DESC libDesc;
     libraryReflection->GetDesc(&libDesc);
 
-    for (int i = 0; i < libDesc.FunctionCount; i++) {
-        ID3D12FunctionReflection* funcReflection = libraryReflection->GetFunctionByIndex(i);
-        D3D12_FUNCTION_DESC funcDesc;
-        funcReflection->GetDesc(&funcDesc);
-        std::string name(funcDesc.Name);
-
-        if (properties.rayGenerationFunction.empty() == false && name.find(properties.rayGenerationFunction) != std::string::npos) { //check if ray generation function exists
-			m_rayGenOriginalName = CharToString(properties.rayGenerationFunction.c_str());
+	for (auto& [stage, entry] : stages) {
+		if(stage == D3D12_SHVER_RAY_GENERATION_SHADER) {
+			m_rayGenOriginalName = entry;
 			m_rayGenExportName = L"shader_stage_" + m_rayGenOriginalName + L"_" + std::to_wstring(m_programCounter);
-        
+
 			m_exportDescs.push_back(D3D12_EXPORT_DESC{
 				.Name = m_rayGenExportName.c_str(),
 				.ExportToRename = m_rayGenOriginalName.c_str(),
 				.Flags = D3D12_EXPORT_FLAG_NONE,
 				});
-		}
 
-        if (properties.intersectionFunction.empty() == false && name.find(properties.intersectionFunction) != std::string::npos) { //check if intersection function exists
-			m_intersectionOriginalName = CharToString(properties.intersectionFunction.c_str());
+			continue;
+		}
+		if(stage == D3D12_SHVER_INTERSECTION_SHADER) {
+			m_intersectionOriginalName = entry;
 			m_intersectionExportName = L"shader_stage_" + m_intersectionOriginalName + L"_" + std::to_wstring(m_programCounter);
 			m_hitDesc.IntersectionShaderImport = m_intersectionExportName.c_str();
 
@@ -45,11 +38,11 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 				.ExportToRename = m_intersectionOriginalName.c_str(),
 				.Flags = D3D12_EXPORT_FLAG_NONE,
 				});
+			continue;
 		}
-
-		if (properties.anyHitFunction.empty() == false && name.find(properties.anyHitFunction) != std::string::npos) { //check if any-hit function exists
-			m_anyHitOriginalName = CharToString(properties.anyHitFunction.c_str());
-            m_anyHitExportName = L"shader_stage_" + m_anyHitOriginalName + L"_" + std::to_wstring(m_programCounter);
+		if(stage == D3D12_SHVER_ANY_HIT_SHADER) {
+			m_anyHitOriginalName = entry;
+			m_anyHitExportName = L"shader_stage_" + m_anyHitOriginalName + L"_" + std::to_wstring(m_programCounter);
 			m_hitDesc.AnyHitShaderImport = m_anyHitExportName.c_str();
 
 			m_exportDescs.push_back(D3D12_EXPORT_DESC{
@@ -57,10 +50,10 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 				.ExportToRename = m_anyHitOriginalName.c_str(),
 				.Flags = D3D12_EXPORT_FLAG_NONE,
 				});
+			continue;
 		}
-
-		if (properties.closestHitFunction.empty() == false && name.find(properties.closestHitFunction) != std::string::npos) { //check if closest-hit function exists
-            m_closestHitOriginalName = CharToString(properties.closestHitFunction.c_str());
+		if(stage == D3D12_SHVER_CLOSEST_HIT_SHADER) {
+			m_closestHitOriginalName = entry;
 			m_closestHitExportName = L"shader_stage_" + m_closestHitOriginalName + L"_" + std::to_wstring(m_programCounter);
 			m_hitDesc.ClosestHitShaderImport = m_closestHitExportName.c_str();
 
@@ -69,19 +62,22 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 				.ExportToRename = m_closestHitOriginalName.c_str(),
 				.Flags = D3D12_EXPORT_FLAG_NONE,
 				});
+			continue;
 		}
-
-		if (properties.missFunction.empty() == false && name.find(properties.missFunction) != std::string::npos) { //check if miss function exists
-			m_missOriginalName = CharToString(properties.missFunction.c_str());
+		if(stage == D3D12_SHVER_MISS_SHADER) {
+			m_missOriginalName = entry;
 			m_missExportName = L"shader_stage_" + m_missOriginalName + L"_" + std::to_wstring(m_programCounter);
-
+			
 			m_exportDescs.push_back(D3D12_EXPORT_DESC{
 				.Name = m_missExportName.c_str(),
 				.ExportToRename = m_missOriginalName.c_str(),
 				.Flags = D3D12_EXPORT_FLAG_NONE,
 				});
 		}
+	}
 
+    for (int i = 0; i < libDesc.FunctionCount; i++) {
+        ID3D12FunctionReflection* funcReflection = libraryReflection->GetFunctionByIndex(i);
 		m_reflection.AddShaderReflection(funcReflection);
     }
 
@@ -90,8 +86,8 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 	m_hitDesc.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
 
 	m_dxilData.DXILLibrary = D3D12_SHADER_BYTECODE{
-		.pShaderBytecode = m_byteCode,
-		.BytecodeLength = m_codeLength,
+		.pShaderBytecode = m_shaderCode->GetBufferPointer(),
+		.BytecodeLength = m_shaderCode->GetBufferSize(),
 	};
 	m_dxilData.NumExports = m_exportDescs.size();
 	m_dxilData.pExports = m_exportDescs.data();

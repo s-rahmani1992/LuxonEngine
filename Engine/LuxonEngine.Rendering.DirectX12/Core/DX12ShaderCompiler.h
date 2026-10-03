@@ -35,31 +35,14 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		DXC::DXCCompileOptions CreateCompileOptions(const std::wstring& includeDir) const;
 
-		bool DiscoverStages(const void* source, size_t size, const DXC::DXCCompileOptions& baseOptions,
-			const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& validStages,
+		bool DiscoverStages(const void* source, size_t size, 
+			const DXC::DXCCompileOptions& baseOptions, ShaderProgramType shaderType,
 			std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& outStages, std::string& error);
-		ref<HLSLShader> CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, DX12_Shader_Type shaderType, std::string& error);
 		HLSLShaderData CompileShaderStageWithReflection(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error);
 	private:
 		ComPtr<ID3D12Device10> m_device;
 
 		std::unique_ptr<DXC::DXCCompiler> m_compiler;
-
-		const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> m_validRasterStages = {
-			{ D3D12_SHVER_VERTEX_SHADER, L"vs_6_6" },
-			{ D3D12_SHVER_GEOMETRY_SHADER, L"gs_6_6" },
-			{ D3D12_SHVER_PIXEL_SHADER, L"ps_6_6" },
-		};
-
-		const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> m_validComputeStages = {
-			{ D3D12_SHVER_COMPUTE_SHADER, L"cs_6_6" },
-		};
-
-		std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> m_validMeshStages = {
-			{ D3D12_SHVER_PIXEL_SHADER, L"ps_6_6" },
-			{ D3D12_SHVER_AMPLIFICATION_SHADER, L"as_6_6" },
-			{ D3D12_SHVER_MESH_SHADER, L"ms_6_6" }
-		};
 	};
 }
 
