@@ -52,55 +52,30 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 	HLSLShaderProgram* finalProgram;
 
 	if (compileProperties.type == ShaderProgramType::Rasterization) {
+		std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> foundStages;
 
-		std::vector<ref<HLSLShader>> shaders;
-
-		if (compileProperties.rasterProperties.vertexMain != nullptr) {
-			std::string stageError;
-			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.vertexMain);
-			options.targetProfile = CharToString(("vs_" + compileProperties.model).c_str());
-			options.defines.push_back(L"_DX12_VERTEX_STAGE");
-			auto vertexShader = CompileShaderStage(shaderCode, codeLength, options, DX12::VERTEX_SHADER, stageError);
-
-			if (vertexShader == nullptr) {
-				error = "Error in compiling Vertex Stage: " + stageError;
-				return nullptr;
-			}
-
-			shaders.push_back(vertexShader);
+		if (DiscoverStages(shaderCode, codeLength, baseOptions, m_validRasterStages, foundStages, error) == false) {
+			return nullptr;
 		}
 
-		if (compileProperties.rasterProperties.geometryMain != nullptr) {
+		std::vector<HLSLShaderData> shaders;
+
+		for (auto& [stage, entryPoint] : foundStages) {
+			const std::string stageName = ShaderStageToString(stage);
+
 			std::string stageError;
 			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.geometryMain);
-			options.targetProfile = CharToString(("gs_" + compileProperties.model).c_str());
-			options.defines.push_back(L"_DX12_GEOMETRY_STAGE");
-			auto geometryShader = CompileShaderStage(shaderCode, codeLength, options, DX12::GEOMETRY_SHADER, stageError);
+			options.entryPoint = entryPoint.c_str();
+			options.targetProfile = m_validRasterStages.at(stage);
+			auto shader = CompileShaderStageWithReflection(shaderCode, codeLength, options, stageError);
 
-			if (geometryShader == nullptr) {
-				error = "Error in compiling Geometry Stage: " + stageError;
+			if (shader.byteCode == nullptr) {
+				error = std::string("Error in compiling ") + stageName + " Stage: " + stageError;
 				return nullptr;
 			}
-
-			shaders.push_back(geometryShader);
-		}
-
-		if (compileProperties.rasterProperties.pixelMain != nullptr) {
-			std::string stageError;
-			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.pixelMain);
-			options.targetProfile = CharToString(("ps_" + compileProperties.model).c_str());
-			options.defines.push_back(L"_DX12_PIXEL_STAGE");
-			auto pixelShader = CompileShaderStage(shaderCode, codeLength, options, DX12::PIXEL_SHADER, stageError);
-
-			if (pixelShader == nullptr) {
-				error = "Error in compiling Pixel Stage: " + stageError;
-				return nullptr;
-			}
-
-			shaders.push_back(pixelShader);
+			shader.shaderType = stage;
+			shader.entryPoint = WCharToString(entryPoint.c_str());
+			shaders.push_back(shader);
 		}
 
 		finalProgram = new Rasterization::HLSLRasterizationProgram(shaders);
@@ -163,47 +138,10 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 	}
 
 	else if (compileProperties.type == ShaderProgramType::Mesh) {
-		// Phase 1: compile the whole file as a library to find the entry function of each stage from its [shader("...")] attribute
-		auto libraryOptions = baseOptions;
-		libraryOptions.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
+		std::map<D3D12_SHADER_VERSION_TYPE, std::wstring> foundStages;
 
-		ComPtr<IDxcBlob> pLibraryObjectData;
-		ComPtr<IDxcBlob> pLibraryReflectionData;
-
-		if (m_compiler->Compile(shaderCode, codeLength, libraryOptions, pLibraryObjectData, error, &pLibraryReflectionData) == false) {
+		if (DiscoverStages(shaderCode, codeLength, baseOptions, m_validMeshStages, foundStages, error) == false) {
 			return nullptr;
-		}
-
-		ComPtr<ID3D12LibraryReflection> pLibraryReflection;
-		if (FAILED(m_compiler->CreateReflection(pLibraryReflectionData.Get(), IID_PPV_ARGS(&pLibraryReflection)))) {
-			error = "Unknown Error when Creating Reflection";
-			return nullptr;
-		}
-
-		D3D12_LIBRARY_DESC libraryDesc;
-		pLibraryReflection->GetDesc(&libraryDesc);
-		std::map<D3D12_SHADER_VERSION_TYPE, std::string> foundStages;
-
-		for (UINT i = 0; i < libraryDesc.FunctionCount; i++) {
-			D3D12_FUNCTION_DESC functionDesc;
-			pLibraryReflection->GetFunctionByIndex(i)->GetDesc(&functionDesc);
-
-			D3D12_SHADER_VERSION_TYPE stage = (D3D12_SHADER_VERSION_TYPE)D3D12_SHVER_GET_TYPE(functionDesc.Version);
-
-			if (stage == D3D12_SHVER_RESERVED0)
-				continue;
-
-			if(m_validMeshStages.find(stage) == m_validMeshStages.end()) {
-				error = std::string("Invalid Stage Found: ") + ShaderStageToString(stage) + " stage is not supported in Mesh shaders";
-				return nullptr;
-			}
-
-			if(foundStages.find(stage) != foundStages.end()) {
-				error = std::string("Multiple ") + ShaderStageToString(stage) + " Stage Found";
-				return nullptr;
-			}
-
-			foundStages[stage] = functionDesc.Name;
 		}
 
 		std::vector<HLSLShaderData> shaders;
@@ -214,7 +152,7 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 
 			std::string stageError;
 			auto options = baseOptions;
-			options.entryPoint = CharToString(entryPoint.c_str());
+			options.entryPoint = entryPoint;
 			options.targetProfile = m_validMeshStages[stage];
 			auto hlslShader = CompileShaderStageWithReflection(shaderCode, codeLength, options, stageError);
 
@@ -223,7 +161,7 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::DX12::DX12ShaderC
 				return nullptr;
 			}
 			hlslShader.shaderType = stage;
-			hlslShader.entryPoint = entryPoint;
+			hlslShader.entryPoint = WCharToString(entryPoint.c_str());
 			shaders.push_back(hlslShader);
 		}
 
@@ -261,6 +199,58 @@ LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::DX12::DX1
 
 	options.outputReflection = true;
 	return options;
+}
+
+bool LuxonEngine::Rendering::DX12::DX12ShaderCompiler::DiscoverStages(const void* source, size_t size, const DXC::DXCCompileOptions& baseOptions, const std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& validStages, std::map<D3D12_SHADER_VERSION_TYPE, std::wstring>& outStages, std::string& error)
+{
+	auto libraryOptions = baseOptions;
+	libraryOptions.targetProfile = CharToString("lib_6_6");
+
+	ComPtr<IDxcBlob> pLibraryObjectData;
+	ComPtr<IDxcBlob> pLibraryReflectionData;
+
+	if (m_compiler->Compile(source, size, libraryOptions, pLibraryObjectData, error, &pLibraryReflectionData) == false) {
+		return false;
+	}
+
+	ComPtr<ID3D12LibraryReflection> pLibraryReflection;
+	if (FAILED(m_compiler->CreateReflection(pLibraryReflectionData.Get(), IID_PPV_ARGS(&pLibraryReflection)))) {
+		error = "Unknown Error when Creating Reflection";
+		return false;
+	}
+
+	D3D12_LIBRARY_DESC libraryDesc;
+	pLibraryReflection->GetDesc(&libraryDesc);
+
+	for (UINT i = 0; i < libraryDesc.FunctionCount; i++) {
+		D3D12_FUNCTION_DESC functionDesc;
+		pLibraryReflection->GetFunctionByIndex(i)->GetDesc(&functionDesc);
+
+		D3D12_SHADER_VERSION_TYPE stage = (D3D12_SHADER_VERSION_TYPE)D3D12_SHVER_GET_TYPE(functionDesc.Version);
+
+		// Functions that are not entry points of any stage
+		if (stage == D3D12_SHVER_RESERVED0)
+			continue;
+
+		if (validStages.find(stage) == validStages.end()) {
+			error = std::string("Invalid Stage Found: ") + ShaderStageToString(stage) + " stage is not supported in this shader type";
+			return false;
+		}
+
+		if (outStages.find(stage) != outStages.end()) {
+			error = std::string("Multiple ") + ShaderStageToString(stage) + " Stage Found";
+			return false;
+		}
+
+		outStages[stage] = CharToString(functionDesc.Name);
+	}
+
+	if (outStages.empty()) {
+		error = "No shader stage found. Entry points must be marked with the [shader(\"...\")] attribute";
+		return false;
+	}
+
+	return true;
 }
 
 ref<LuxonEngine::Rendering::DX12::HLSLShader> LuxonEngine::Rendering::DX12::DX12ShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, DX12_Shader_Type shaderType, std::string& error)

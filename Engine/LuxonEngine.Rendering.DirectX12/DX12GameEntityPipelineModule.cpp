@@ -29,10 +29,10 @@ bool LuxonEngine::Rendering::DX12::DX12GameEntityPipelineModule::Initialize(cons
 	m_rootSignature = program->GetRootSignature();
 	auto vertexShader = program->GetVertexShader();
 	auto pixelShader = program->GetPixelShader();
-	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetCodeSize();
-	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetByteCode();
-	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetCodeSize();
-	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetByteCode();
+	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetBufferSize();
+	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetBufferPointer();
+	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetBufferSize();
+	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetBufferPointer();
 	pipelineStateDesc.DS.pShaderBytecode = nullptr;
 	pipelineStateDesc.DS.BytecodeLength = 0;
 	pipelineStateDesc.HS.pShaderBytecode = nullptr;

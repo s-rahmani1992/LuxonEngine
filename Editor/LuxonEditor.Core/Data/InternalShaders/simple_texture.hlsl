@@ -37,6 +37,7 @@ TEXTURE(mainTexture, float4, t0)
 
 SAMPLER(mainSampler, s0)
 
+[shader("vertex")]
 VS_OUTPUT vs_main(VS_INPUT vertexIn)
 {
     VS_OUTPUT vsOut;
@@ -47,6 +48,7 @@ VS_OUTPUT vs_main(VS_INPUT vertexIn)
     return vsOut;
 }
 
+[shader("pixel")]
 float4 ps_main(VS_OUTPUT input) : SV_TARGET
 {
     float3 ads = float3(ambient, diffuse, specular);

@@ -12,7 +12,7 @@ namespace LuxonEngine::Rendering::DX12 {
 namespace LuxonEngine::Rendering::DX12::Rasterization {
 	class HLSLRasterizationProgram : public HLSLShaderProgram {
 	public:
-		HLSLRasterizationProgram(const std::vector<ref<HLSLShader>>& shaders);
+		HLSLRasterizationProgram(const std::vector<HLSLShaderData>& shaders);
 		virtual ~HLSLRasterizationProgram() = default;
 
 		virtual ShaderProgramType GetType() override { return ShaderProgramType::Rasterization; }
@@ -28,23 +28,23 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		/// Gets the vertex shader if exists
 		/// </summary>
 		/// <returns></returns>
-		inline ref<HLSLShader> GetVertexShader() const { return m_vertexShader; }
+		inline IDxcBlob* GetVertexShader() const { return m_vertexShader.Get(); }
 
 		/// <summary>
 		/// Gets the pixel shader if exists
 		/// </summary>
 		/// <returns></returns>
-		inline ref<HLSLShader> GetPixelShader() const { return m_pixelShader; }
+		inline IDxcBlob* GetPixelShader() const { return m_pixelShader.Get(); }
 
 		/// <summary>
 		/// Gets the geometry shader if exists
 		/// </summary>
 		/// <returns></returns>
-		inline ref<HLSLShader> GetGeometryShader() const { return m_geometryShader; }
+		inline IDxcBlob* GetGeometryShader() const { return m_geometryShader.Get(); }
 
 	private:
-		ref<HLSLShader> m_vertexShader;
-		ref<HLSLShader> m_pixelShader;
-		ref<HLSLShader> m_geometryShader;
+		ComPtr<IDxcBlob> m_vertexShader = nullptr;
+		ComPtr<IDxcBlob> m_geometryShader = nullptr;
+		ComPtr<IDxcBlob> m_pixelShader = nullptr;
 	};
 }

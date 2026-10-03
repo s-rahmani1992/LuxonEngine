@@ -34,6 +34,7 @@ LIGHT_VAR(b3)
 #define specular constantVars.specular
 #define color constantVars.color
 
+[shader("vertex")]
 VS_OUTPUT VA_Main(VS_INPUT vertexIn)
 {
     VS_OUTPUT vsOut;
@@ -44,6 +45,7 @@ VS_OUTPUT VA_Main(VS_INPUT vertexIn)
     return vsOut;
 }
 
+[shader("pixel")]
 float4 PS_Main(VS_OUTPUT input) : SV_TARGET
 {
     float3 ads = float3(ambient, diffuse, specular);

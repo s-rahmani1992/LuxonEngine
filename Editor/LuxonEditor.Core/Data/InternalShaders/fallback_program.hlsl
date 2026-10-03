@@ -17,6 +17,7 @@ OBJECT_TRANSFORM_VAR(b1)
 
 CAMERA_VAR(b2) 
 
+[shader("vertex")]
 VS_OUTPUT vs_main(VS_INPUT vertexIn)
 {
     VS_OUTPUT vsOut;
@@ -24,6 +25,7 @@ VS_OUTPUT vs_main(VS_INPUT vertexIn)
     return vsOut;
 }
 
+[shader("pixel")]
 float4 ps_main(VS_OUTPUT input) : SV_TARGET
 {
     return float4(1.0f, 0.0f, 1.0f, 1.0f);

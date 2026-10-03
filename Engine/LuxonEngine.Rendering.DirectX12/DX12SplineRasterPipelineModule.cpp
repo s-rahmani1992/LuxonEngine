@@ -115,16 +115,16 @@ bool LuxonEngine::Rendering::DX12::DX12SplineRasterPipelineModule::Initialize(co
 	auto vertexShader = program->GetVertexShader();
 	auto pixelShader = program->GetPixelShader();
 	auto geometryShader = program->GetGeometryShader();
-	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetCodeSize();
-	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetByteCode();
-	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetCodeSize();
-	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetByteCode();
+	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetBufferSize();
+	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetBufferPointer();
+	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetBufferSize();
+	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetBufferPointer();
 	pipelineStateDesc.DS.pShaderBytecode = nullptr;
 	pipelineStateDesc.DS.BytecodeLength = 0;
 	pipelineStateDesc.HS.pShaderBytecode = nullptr;
 	pipelineStateDesc.HS.BytecodeLength = 0;
-	pipelineStateDesc.GS.pShaderBytecode = geometryShader->GetByteCode();
-	pipelineStateDesc.GS.BytecodeLength = geometryShader->GetCodeSize();
+	pipelineStateDesc.GS.pShaderBytecode = geometryShader->GetBufferPointer();
+	pipelineStateDesc.GS.BytecodeLength = geometryShader->GetBufferSize();
 
 	//Root Signature
 	pipelineStateDesc.pRootSignature = m_rootSignature.Get();

@@ -29,11 +29,13 @@ OBJECT_TRANSFORM_VAR(b1)
 
 CAMERA_VAR(b2)
 
+[shader("vertex")]
 VS_INPUT $(VERTEX_MAIN)(VS_INPUT vertexIn)
 {
     return vertexIn;
 }
 
+[shader("geometry")]
 [maxvertexcount(4)]
 void $(GEOMETRY_MAIN)(line VS_INPUT vertexIn[2], inout TriangleStream<GS_OUTPUT> triStream)
 {
@@ -65,6 +67,7 @@ void $(GEOMETRY_MAIN)(line VS_INPUT vertexIn[2], inout TriangleStream<GS_OUTPUT>
     triStream.Append(gsOut[3]);
 }
 
+[shader("pixel")]
 float4 $(PIXEL_MAIN)(GS_OUTPUT input) : SV_TARGET
 {
     return color;

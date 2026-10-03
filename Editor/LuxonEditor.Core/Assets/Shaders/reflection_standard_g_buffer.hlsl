@@ -43,6 +43,7 @@ TEXTURE(reflectTexture, float4, t4)
 
 SAMPLER(mainSampler, s0);
 
+[shader("vertex")]
 VS_OUTPUT vs_main(VS_INPUT vertexIn)
 {
     VS_OUTPUT vsOut;
@@ -54,6 +55,7 @@ VS_OUTPUT vs_main(VS_INPUT vertexIn)
     return vsOut;
 }
 
+[shader("pixel")]
 float4 ps_main(VS_OUTPUT input) : SV_TARGET
 {
     uint width, height;

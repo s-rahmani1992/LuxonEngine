@@ -25,6 +25,7 @@ OBJECT_TRANSFORM_VAR(b0)
 
 CAMERA_VAR(b1)
 
+[shader("vertex")]
 VS_OUTPUT vs_main(VS_INPUT vertexIn)
 {
     VS_OUTPUT vsOut;
@@ -34,6 +35,7 @@ VS_OUTPUT vs_main(VS_INPUT vertexIn)
     return vsOut;
 }
 
+[shader("pixel")]
 PSOutput ps_main(VS_OUTPUT input)
 {
     PSOutput psOut;

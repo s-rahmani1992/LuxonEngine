@@ -42,11 +42,13 @@ SAMPLER(mainSampler, s0)
 #define _width MaterialProps._width
 
 
+[shader("vertex")]
 VS_INPUT vs_main(VS_INPUT vertexIn)
 {
     return vertexIn;
 }
 
+[shader("geometry")]
 [maxvertexcount(4)]
 void gs_main(line VS_INPUT vertexIn[2], inout TriangleStream<GS_OUTPUT> triStream)
 {
@@ -78,6 +80,7 @@ void gs_main(line VS_INPUT vertexIn[2], inout TriangleStream<GS_OUTPUT> triStrea
     triStream.Append(gsOut[3]);
 }
 
+[shader("pixel")]
 float4 ps_main(GS_OUTPUT input) : SV_TARGET
 {
     float3 ads = float3(ambient, diffuse, specular);

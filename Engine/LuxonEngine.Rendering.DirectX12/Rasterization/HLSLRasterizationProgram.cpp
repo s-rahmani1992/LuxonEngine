@@ -3,25 +3,25 @@
 #include "HLSLShader.h"
 #include <set>
 
-LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRasterizationProgram(const std::vector<ref<HLSLShader>>& shaders)
+LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRasterizationProgram(const std::vector<HLSLShaderData>& shaders)
 {
     std::set<std::string> keys;
     UInt8 rootParamIndex = 0;
 
 	for (auto& shader : shaders) {
         // Set Shader Stages
-		if (shader->GetShaderTypeId() == VERTEX_SHADER) {
-			m_vertexShader = shader;
+		if (shader.shaderType == D3D12_SHVER_VERTEX_SHADER) {
+			m_vertexShader = shader.byteCode;
 		}
-		else if (shader->GetShaderTypeId() == GEOMETRY_SHADER) {
-            m_geometryShader = shader;
+		else if (shader.shaderType == D3D12_SHVER_GEOMETRY_SHADER) {
+            m_geometryShader = shader.byteCode;
 		}
-		else if (shader->GetShaderTypeId() == PIXEL_SHADER) {
-			m_pixelShader = shader;
+		else if (shader.shaderType == D3D12_SHVER_PIXEL_SHADER) {
+			m_pixelShader = shader.byteCode;
 		}
 
 		// Create Reflection Data by merging all shader reflections
-		auto shaderReflection = shader->GetRawReflection();	
+		auto shaderReflection = shader.reflection;	
         
 		m_reflection.AddShaderReflection(shaderReflection.Get());
 	}

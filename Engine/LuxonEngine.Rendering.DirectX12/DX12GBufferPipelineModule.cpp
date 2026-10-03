@@ -310,10 +310,10 @@ bool LuxonEngine::Rendering::DX12::DX12GBufferPipelineModule::CreatePipelineStat
 	//m_rootSignature = m_program->GetReflectionDatas()->rootSignature;
 	auto vertexShader = m_program->GetVertexShader();
 	auto pixelShader = m_program->GetPixelShader();
-	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetCodeSize();
-	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetByteCode();
-	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetCodeSize();
-	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetByteCode();
+	pipelineStateDesc.VS.BytecodeLength = vertexShader->GetBufferSize();
+	pipelineStateDesc.VS.pShaderBytecode = vertexShader->GetBufferPointer();
+	pipelineStateDesc.PS.BytecodeLength = pixelShader->GetBufferSize();
+	pipelineStateDesc.PS.pShaderBytecode = pixelShader->GetBufferPointer();
 	pipelineStateDesc.DS.pShaderBytecode = nullptr;
 	pipelineStateDesc.DS.BytecodeLength = 0;
 	pipelineStateDesc.HS.pShaderBytecode = nullptr;
