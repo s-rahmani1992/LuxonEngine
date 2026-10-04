@@ -21,157 +21,114 @@
 
 using namespace Microsoft::WRL;
 
-LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::VulkanShaderCompiler(VkDevice device)
-	: m_device(device)
+namespace LuxonEngine::Rendering::Vulkan
 {
-}
+	const std::map<ShaderProgramType, std::map<SpvReflectShaderStageFlagBits, std::wstring>> s_validStages = {
+		{ ShaderProgramType::Rasterization, {
+			{ SPV_REFLECT_SHADER_STAGE_VERTEX_BIT, L"vs_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT, L"gs_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT, L"ps_6_6" },
+		}},
+		{ ShaderProgramType::Compute, {
+			{ SPV_REFLECT_SHADER_STAGE_COMPUTE_BIT, L"cs_6_6" },
+		}},
+		{ ShaderProgramType::RayTracing, {
+			{ SPV_REFLECT_SHADER_STAGE_RAYGEN_BIT_KHR, L"lib_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_MISS_BIT_KHR, L"lib_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, L"lib_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_ANY_HIT_BIT_KHR, L"lib_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_INTERSECTION_BIT_KHR, L"lib_6_6" },
+		}},
+		{ ShaderProgramType::Mesh, {
+			{ SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT, L"ps_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_TASK_BIT_EXT, L"as_6_6" },
+			{ SPV_REFLECT_SHADER_STAGE_MESH_BIT_EXT, L"ms_6_6" },
+		}},
+	};
 
-LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::~VulkanShaderCompiler() = default;
-
-LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
-{
-	const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
-
-	SPIRVShaderProgram* finalProgram;
-
-	if (compileProperties.type == ShaderProgramType::Rasterization) {
-
-		std::vector<ref<SPIRVShader>> shaders;
-
-		if (compileProperties.rasterProperties.vertexMain != nullptr) {
-			std::string stageError;
-			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.vertexMain);
-			options.targetProfile = CharToString(("vs_" + compileProperties.model).c_str());
-
-			auto vertexShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Vertex, stageError);
-
-			if (vertexShader == nullptr) {
-				error = "Error in compiling Vertex Stage: " + stageError;
-				return nullptr;
-			}
-
-			shaders.push_back(vertexShader);
-		}
-
-		if (compileProperties.rasterProperties.geometryMain != nullptr) {
-			std::string stageError;
-			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.geometryMain);
-			options.targetProfile = CharToString(("gs_" + compileProperties.model).c_str());
-
-			auto geometryShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Geometry, stageError);
-
-			if (geometryShader == nullptr) {
-				error = "Error in compiling Geometry Stage: " + stageError;
-				return nullptr;
-			}
-
-			shaders.push_back(geometryShader);
-		}
-
-		if (compileProperties.rasterProperties.pixelMain != nullptr) {
-			std::string stageError;
-			auto options = baseOptions;
-			options.entryPoint = CharToString(compileProperties.rasterProperties.pixelMain);
-			options.targetProfile = CharToString(("ps_" + compileProperties.model).c_str());
-
-			auto pixelShader = CompileShaderStage(shaderCode, codeLength, options, Vulkan_Fragment, stageError);
-
-			if (pixelShader == nullptr) {
-				error = "Error in compiling Pixel Stage: " + stageError;
-				return nullptr;
-			}
-
-			shaders.push_back(pixelShader);
-		}
-
-		finalProgram = new Rasterization::SPIRVRasterizationProgram(shaders, m_device);
+	VulkanShaderCompiler::VulkanShaderCompiler(VkDevice device)
+		: m_device(device)
+	{
 	}
 
-	else if (compileProperties.type == ShaderProgramType::RayTracing) {
-		auto options = baseOptions;
-		options.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
-		options.defines.push_back(L"_VK_RAY_TRACING");
+	VulkanShaderCompiler::~VulkanShaderCompiler() = default;
 
-		if (compileProperties.rayTracingProperties.rayGen == nullptr)
-			options.defines.push_back(L"_VK_RAY_TRACING_LOCAL");
-
-		ComPtr<IDxcBlob> pshaderObjectData;
-
-		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error) == false) {
+	ShaderProgram* VulkanShaderCompiler::CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& compileProperties, std::string& error)
+	{
+		if (s_validStages.find(compileProperties.type) == s_validStages.end()) {
+			error = "Unknown Shader Type";
 			return nullptr;
 		}
 
-		finalProgram = new RayTracing::SPIRVRayTracingProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
-	}
+		const auto baseOptions = CreateCompileOptions(compileProperties.folderPath);
 
-	else if (compileProperties.type == ShaderProgramType::Compute) {
-		auto options = baseOptions;
-		options.entryPoint = CharToString(compileProperties.computeProperties.computeMain);
-		options.targetProfile = CharToString(("cs_" + compileProperties.model).c_str());
+		auto discoveryOptions = baseOptions;
 
-		ComPtr<IDxcBlob> pshaderObjectData;
-
-		if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error) == false) {
-			return nullptr;
-		}
-
-		finalProgram = new Compute::SPIRVComputeProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
-	}
-
-	else if (compileProperties.type == ShaderProgramType::Mesh) {
-		// Phase 1: compile the whole file as a library to find the entry function of each stage from its [shader("...")] attribute
-		auto libraryOptions = baseOptions;
-		libraryOptions.targetProfile = CharToString(("lib_" + compileProperties.model).c_str());
-
-		ComPtr<IDxcBlob> pLibraryObjectData;
-
-		if (m_compiler->Compile(shaderCode, codeLength, libraryOptions, pLibraryObjectData, error) == false) {
-			return nullptr;
-		}
-
-		SpvReflectShaderModule libraryReflection;
-
-		if (spvReflectCreateShaderModule(pLibraryObjectData->GetBufferSize(), pLibraryObjectData->GetBufferPointer(), &libraryReflection) != SPV_REFLECT_RESULT_SUCCESS) {
-			error = "Unknown Error when Creating Reflection";
-			return nullptr;
-		}
+		//if (compileProperties.type == ShaderProgramType::RayTracing)
+		//	discoveryOptions.defines.push_back(L"_VK_RAY_TRACING");
 
 		std::map<SpvReflectShaderStageFlagBits, std::string> foundStages;
 
-		for (UInt32 i = 0; i < libraryReflection.entry_point_count; i++) {
-			auto& entryPoint = libraryReflection.entry_points[i];
-			SpvReflectShaderStageFlagBits stage = entryPoint.shader_stage;
-
-			if (m_validMeshStages.find(stage) == m_validMeshStages.end()) {
-				error = std::string("Invalid Stage Found: ") + SPIRVVariableReflection::ShaderStageToString(stage) + " stage is not supported in Mesh shaders";
-				spvReflectDestroyShaderModule(&libraryReflection);
-				return nullptr;
-			}
-
-			if (foundStages.find(stage) != foundStages.end()) {
-				error = std::string("Multiple ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage Found";
-				spvReflectDestroyShaderModule(&libraryReflection);
-				return nullptr;
-			}
-
-			foundStages[stage] = entryPoint.name;
+		if (DiscoverStages(shaderCode, codeLength, discoveryOptions, compileProperties.type, foundStages, error) == false) {
+			return nullptr;
 		}
 
-		spvReflectDestroyShaderModule(&libraryReflection);
+		SPIRVShaderProgram* finalProgram;
 
-		// Phase 2: compile each stage separately with its entry function
-		std::vector<SPIRVShaderData> shaders;
+		if (compileProperties.type == ShaderProgramType::Rasterization) {
+			std::vector<ref<SPIRVShader>> shaders;
 
-		for (auto& [stage, entryPoint] : foundStages) {
-			if (entryPoint.empty())
-				continue;
+			for (auto& [stage, entryPoint] : foundStages) {
+				Vulkan_Shader_Type shaderType = Vulkan_Fragment;
+
+				if (stage == SPV_REFLECT_SHADER_STAGE_VERTEX_BIT)
+					shaderType = Vulkan_Vertex;
+				else if (stage == SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT)
+					shaderType = Vulkan_Geometry;
+
+				std::string stageError;
+				auto options = baseOptions;
+				options.entryPoint = CharToString(entryPoint.c_str());
+				options.targetProfile = s_validStages.at(ShaderProgramType::Rasterization).at(stage);
+
+				auto shader = CompileShaderStage(shaderCode, codeLength, options, shaderType, stageError);
+
+				if (shader == nullptr) {
+					error = std::string("Error in compiling ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage: " + stageError;
+					return nullptr;
+				}
+
+				shaders.push_back(shader);
+			}
+
+			finalProgram = new Rasterization::SPIRVRasterizationProgram(shaders, m_device);
+		}
+
+		else if (compileProperties.type == ShaderProgramType::RayTracing) {
+			auto options = baseOptions;
+			options.targetProfile = CharToString("lib_6_6");
+			options.defines.push_back(L"_VK_RAY_TRACING");
+
+			if (foundStages.find(SPV_REFLECT_SHADER_STAGE_RAYGEN_BIT_KHR) == foundStages.end())
+				options.defines.push_back(L"_VK_RAY_TRACING_LOCAL");
+
+			ComPtr<IDxcBlob> pshaderObjectData;
+
+			if (m_compiler->Compile(shaderCode, codeLength, options, pshaderObjectData, error) == false) {
+				return nullptr;
+			}
+
+			finalProgram = new RayTracing::SPIRVRayTracingProgram((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), m_device);
+		}
+
+		else if (compileProperties.type == ShaderProgramType::Compute) {
+			const auto& [stage, entryPoint] = *foundStages.begin();
 
 			std::string stageError;
 			auto options = baseOptions;
 			options.entryPoint = CharToString(entryPoint.c_str());
-			options.targetProfile = m_validMeshStages[stage];
+			options.targetProfile = s_validStages.at(ShaderProgramType::Compute).at(stage);
+
 			auto spirvShader = CompileShaderStageData(shaderCode, codeLength, options, stageError);
 
 			if (spirvShader.byteCode == nullptr) {
@@ -179,79 +136,141 @@ LuxonEngine::Rendering::ShaderProgram* LuxonEngine::Rendering::Vulkan::VulkanSha
 				return nullptr;
 			}
 
-			// the SPIR-V reflection stage bits have the same values as the Vulkan stage bits
-			spirvShader.shaderType = (VkShaderStageFlagBits)stage;
-			spirvShader.entryPoint = entryPoint;
-			shaders.push_back(spirvShader);
+			finalProgram = new Compute::SPIRVComputeProgram((Byte*)spirvShader.byteCode->GetBufferPointer(), spirvShader.byteCode->GetBufferSize(), m_device);
 		}
 
-		auto meshProgram = new MeshShading::SPIRVMeshProgram(shaders, m_device);
-		std::string layoutError;
+		else {
+			std::vector<SPIRVShaderData> shaders;
 
-		if (meshProgram->InitializePipelineLayout(layoutError) == false) {
-			error = "Error in Creating Pipeline Layout: " + layoutError;
-			delete meshProgram;
+			for (auto& [stage, entryPoint] : foundStages) {
+				std::string stageError;
+				auto options = baseOptions;
+				options.entryPoint = CharToString(entryPoint.c_str());
+				options.targetProfile = s_validStages.at(ShaderProgramType::Mesh).at(stage);
+				auto spirvShader = CompileShaderStageData(shaderCode, codeLength, options, stageError);
+
+				if (spirvShader.byteCode == nullptr) {
+					error = std::string("Error in compiling ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage: " + stageError;
+					return nullptr;
+				}
+
+				// the SPIR-V reflection stage bits have the same values as the Vulkan stage bits
+				spirvShader.shaderType = (VkShaderStageFlagBits)stage;
+				spirvShader.entryPoint = entryPoint;
+				shaders.push_back(spirvShader);
+			}
+
+			auto meshProgram = new MeshShading::SPIRVMeshProgram(shaders, m_device);
+			std::string layoutError;
+
+			if (meshProgram->InitializePipelineLayout(layoutError) == false) {
+				error = "Error in Creating Pipeline Layout: " + layoutError;
+				delete meshProgram;
+				return nullptr;
+			}
+
+			finalProgram = meshProgram;
+		}
+
+		return finalProgram;
+	}
+
+	bool VulkanShaderCompiler::Initialize()
+	{
+		std::string error;
+		m_compiler = std::make_unique<DXC::DXCCompiler>();
+
+		if (m_compiler->Initialize(error) == false) {
+			return false;
+		}
+
+		return true;
+	}
+
+	DXC::DXCCompileOptions VulkanShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
+	{
+		DXC::DXCCompileOptions options;
+		options.includeDirs.push_back(includeDir);
+		options.defines.push_back(L"_VULKAN");
+
+		options.arguments = {
+			L"-spirv",
+			L"-fspv-target-env=vulkan1.3",
+			L"-O3",
+			L"-fvk-use-dx-layout",
+		};
+
+		return options;
+	}
+
+	bool VulkanShaderCompiler::DiscoverStages(const void* source, size_t size, const DXC::DXCCompileOptions& baseOptions, const ShaderProgramType shaderType, std::map<SpvReflectShaderStageFlagBits, std::string>& outStages, std::string& error)
+	{
+		auto libraryOptions = baseOptions;
+		libraryOptions.targetProfile = CharToString("lib_6_6");
+
+		ComPtr<IDxcBlob> pLibraryObjectData;
+
+		if (m_compiler->Compile(source, size, libraryOptions, pLibraryObjectData, error) == false) {
+			return false;
+		}
+
+		SpvReflectShaderModule libraryReflection;
+
+		if (spvReflectCreateShaderModule(pLibraryObjectData->GetBufferSize(), pLibraryObjectData->GetBufferPointer(), &libraryReflection) != SPV_REFLECT_RESULT_SUCCESS) {
+			error = "Unknown Error when Creating Reflection";
+			return false;
+		}
+
+		auto& validStages = s_validStages.at(shaderType);
+		bool success = true;
+
+		for (UInt32 i = 0; i < libraryReflection.entry_point_count && success; i++) {
+			auto& entryPoint = libraryReflection.entry_points[i];
+			SpvReflectShaderStageFlagBits stage = entryPoint.shader_stage;
+
+			if (validStages.find(stage) == validStages.end()) {
+				error = std::string("Invalid Stage Found: ") + SPIRVVariableReflection::ShaderStageToString(stage) + " stage is not supported in this shader type";
+				success = false;
+			}
+			else if (outStages.find(stage) != outStages.end()) {
+				error = std::string("Multiple ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage Found";
+				success = false;
+			}
+			else {
+				outStages[stage] = entryPoint.name;
+			}
+		}
+
+		spvReflectDestroyShaderModule(&libraryReflection);
+
+		if (success && outStages.empty()) {
+			error = "No shader stage found. Entry points must be marked with the [shader(\"...\")] attribute";
+			return false;
+		}
+
+		return success;
+	}
+
+	ref<SPIRVShader> VulkanShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
+	{
+		ComPtr<IDxcBlob> pshaderObjectData;
+
+		if (m_compiler->Compile(source, size, options, pshaderObjectData, error) == false) {
 			return nullptr;
 		}
 
-		finalProgram = meshProgram;
+		ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, WStringToString(options.entryPoint));
+		return shader;
 	}
 
-	else {
-		error = "Unknown Shader Type";
-		return nullptr;
+	SPIRVShaderData VulkanShaderCompiler::CompileShaderStageData(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error)
+	{
+		SPIRVShaderData shaderData{};
+
+		if (m_compiler->Compile(source, size, options, shaderData.byteCode, error) == false) {
+			shaderData.byteCode = nullptr;
+		}
+
+		return shaderData;
 	}
-
-	return finalProgram;
-}
-
-bool LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::Initialize()
-{
-	std::string error;
-	m_compiler = std::make_unique<DXC::DXCCompiler>();
-
-	if (m_compiler->Initialize(error) == false) {
-		return false;
-	}
-
-	return true;
-}
-
-LuxonEngine::Rendering::DXC::DXCCompileOptions LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
-{
-	DXC::DXCCompileOptions options;
-	options.includeDirs.push_back(includeDir);
-	options.defines.push_back(L"_VULKAN");
-
-	options.arguments = {
-		L"-spirv",
-		L"-fspv-target-env=vulkan1.3",
-		L"-O3",
-		L"-fvk-use-dx-layout",
-	};
-
-	return options;
-}
-
-ref<LuxonEngine::Rendering::Vulkan::SPIRVShader> LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
-{
-	ComPtr<IDxcBlob> pshaderObjectData;
-
-	if (m_compiler->Compile(source, size, options, pshaderObjectData, error) == false) {
-		return nullptr;
-	}
-
-	ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, WStringToString(options.entryPoint));
-	return shader;
-}
-
-LuxonEngine::Rendering::Vulkan::SPIRVShaderData LuxonEngine::Rendering::Vulkan::VulkanShaderCompiler::CompileShaderStageData(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error)
-{
-	SPIRVShaderData shaderData{};
-
-	if (m_compiler->Compile(source, size, options, shaderData.byteCode, error) == false) {
-		shaderData.byteCode = nullptr;
-	}
-
-	return shaderData;
 }
