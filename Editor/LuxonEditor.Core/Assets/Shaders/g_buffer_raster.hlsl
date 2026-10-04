@@ -1,4 +1,4 @@
-#include "Common/TransformStructs.hlsli"
+#include "TransformStructs.hlsli"
 
 struct VS_INPUT
 {

@@ -54,5 +54,12 @@ namespace LuxonEngine::Rendering {
 		/// <param name="error">contains error message if compilation fails</param>
 		/// <returns></returns>
 		virtual ShaderProgram* CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& properties, std::string& error) = 0;
+
+		/// <summary>
+		/// registers a directory that is searched for included files in every following compilation,
+		/// in addition to the folder of the file being compiled
+		/// </summary>
+		/// <param name="includePath">directory path</param>
+		virtual void AddIncludePath(const std::wstring& includePath) = 0;
 	};
 }

@@ -1,4 +1,4 @@
-#include "Common/VariableMacros.hlsli"
+#include "VariableMacros.hlsli"
 
 struct SplineVertex
 {

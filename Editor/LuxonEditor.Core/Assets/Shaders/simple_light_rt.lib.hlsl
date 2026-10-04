@@ -1,7 +1,7 @@
-#include "Common/VariableMacros.hlsli"
-#include "Common/TransformStructs.hlsli"
-#include "Common/LightStructs.hlsli"
-#include "Common/RTStructs.hlsli"
+#include "VariableMacros.hlsli"
+#include "TransformStructs.hlsli"
+#include "LightStructs.hlsli"
+#include "RTStructs.hlsli"
 
 CONSTANT_VARIABLES_BEGIN
     float ambient;

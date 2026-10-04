@@ -14,6 +14,8 @@
 LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderCompiler* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
 	: ShaderRegistery(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
 {
+	m_shaderCompiler->AddIncludePath(CharToString((EngineApplication::GetProjectPath() + "/Data/InternalShaders/Common").c_str()));
+
 	m_callbackID = m_assetWatcher->RegisterCallback(
 		[this](const FileChangeEvent& event) { this->OnAssetChanged(event); }
 	);

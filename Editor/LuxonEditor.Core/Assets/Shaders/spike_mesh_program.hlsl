@@ -1,5 +1,5 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/LightStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "LightStructs.hlsli"
 
 #define MESH_GROUPS_PER_TASK 32
 #define TRIANGLES_PER_GROUP 32

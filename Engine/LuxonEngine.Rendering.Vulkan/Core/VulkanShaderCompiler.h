@@ -32,8 +32,9 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool Initialize();
 
 		virtual ShaderProgram* CompileProgram(const Byte* shaderCode, const UInt64 codeLength, const ShaderCompileProperties& properties, std::string& error) override;
+		virtual void AddIncludePath(const std::wstring& includePath) override;
 	private:
-		DXC::DXCCompileOptions CreateCompileOptions(const std::wstring& includeDir) const;
+		DXC::DXCCompileOptions CreateCompileOptions(const std::wstring& currentFileDir) const;
 
 		bool DiscoverStages(const void* source, size_t size, const DXC::DXCCompileOptions& baseOptions, ShaderProgramType shaderType,
 			std::map<SpvReflectShaderStageFlagBits, std::string>& outStages, std::string& error);
@@ -42,5 +43,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkDevice m_device;
 
 		std::unique_ptr<DXC::DXCCompiler> m_compiler;
+		std::vector<std::wstring> m_includePaths;
 	};
 }

@@ -48,8 +48,8 @@ void $(MISS)(inout GeneralPayload payload)
 )") 
 
 std::string LuxonEditor::ShaderCreator::s_rayTracingCodeBegin = R"(
-#include "Common/TransformStructs.hlsli"
-#include "Common/RTStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "RTStructs.hlsli"
 
 CONSTANT_VARIABLES_BEGIN
     float4 missColor;

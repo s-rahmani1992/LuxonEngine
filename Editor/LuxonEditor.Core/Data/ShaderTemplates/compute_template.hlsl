@@ -1,4 +1,4 @@
-#include "Common/VariableMacros.hlsli"
+#include "VariableMacros.hlsli"
 
 CONSTANT_VARIABLES_BEGIN
     float var1;

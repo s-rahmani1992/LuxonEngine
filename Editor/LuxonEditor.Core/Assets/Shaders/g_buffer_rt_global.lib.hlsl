@@ -1,5 +1,5 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/RTStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "RTStructs.hlsli"
 
 CAMERA_VAR(b0)
 

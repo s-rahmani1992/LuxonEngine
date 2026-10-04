@@ -1,5 +1,5 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/RTStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "RTStructs.hlsli"
 
 OBJECT_TRANSFORM_VAR(b0)
 

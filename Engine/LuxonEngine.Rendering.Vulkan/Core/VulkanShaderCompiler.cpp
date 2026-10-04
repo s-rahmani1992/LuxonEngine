@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 #include "SPIRVShader.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
@@ -187,10 +188,19 @@ namespace LuxonEngine::Rendering::Vulkan
 		return true;
 	}
 
-	DXC::DXCCompileOptions VulkanShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
+	void VulkanShaderCompiler::AddIncludePath(const std::wstring& includePath)
+	{
+		if (std::find(m_includePaths.begin(), m_includePaths.end(), includePath) == m_includePaths.end())
+			m_includePaths.push_back(includePath);
+	}
+
+	DXC::DXCCompileOptions VulkanShaderCompiler::CreateCompileOptions(const std::wstring& currentFileDir) const
 	{
 		DXC::DXCCompileOptions options;
-		options.includeDirs.push_back(includeDir);
+
+		options.includeDirs = m_includePaths;
+		if (!currentFileDir.empty() && std::find(m_includePaths.begin(), m_includePaths.end(), currentFileDir) == m_includePaths.end())
+			options.includeDirs.push_back(currentFileDir);
 		options.defines.push_back(L"_VULKAN");
 
 		options.arguments = {

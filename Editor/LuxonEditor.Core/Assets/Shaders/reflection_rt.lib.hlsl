@@ -1,6 +1,6 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/RTStructs.hlsli"
-#include "Common/LightStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "RTStructs.hlsli"
+#include "LightStructs.hlsli"
 
 OBJECT_TRANSFORM_VAR(b0)
 

@@ -1,5 +1,5 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/LightStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "LightStructs.hlsli"
 
 struct VS_INPUT
 {

@@ -1,5 +1,5 @@
-#include "Common/TransformStructs.hlsli"
-#include "Common/LightStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "LightStructs.hlsli"
 
 #define TRIANGLES_PER_GROUP 16
 #define MAX_VERTICES (TRIANGLES_PER_GROUP * 3)

@@ -1,6 +1,6 @@
-#include "Common/RTStructs.hlsli"
-#include "Common/TransformStructs.hlsli"
-#include "Common/LightStructs.hlsli"
+#include "RTStructs.hlsli"
+#include "TransformStructs.hlsli"
+#include "LightStructs.hlsli"
 
 CONSTANT_VARIABLES_BEGIN
     uint castShadow;

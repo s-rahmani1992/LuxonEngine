@@ -12,6 +12,7 @@
 
 #include "StringUtilities.h"
 #include <vector>
+#include <algorithm>
 #include <memory>
 #include <Platform/Application.h>
 
@@ -223,10 +224,19 @@ namespace LuxonEngine::Rendering::DX12
 		return finalProgram;
 	}
 
-	DXC::DXCCompileOptions DX12ShaderCompiler::CreateCompileOptions(const std::wstring& includeDir) const
+	void DX12ShaderCompiler::AddIncludePath(const std::wstring& includePath)
+	{
+		if (std::find(m_includePaths.begin(), m_includePaths.end(), includePath) == m_includePaths.end())
+			m_includePaths.push_back(includePath);
+	}
+
+	DXC::DXCCompileOptions DX12ShaderCompiler::CreateCompileOptions(const std::wstring& currentFileDir) const
 	{
 		DXC::DXCCompileOptions options;
-		options.includeDirs.push_back(includeDir);
+
+		options.includeDirs = m_includePaths;
+		if (!currentFileDir.empty() && std::find(m_includePaths.begin(), m_includePaths.end(), currentFileDir) == m_includePaths.end())
+			options.includeDirs.push_back(currentFileDir);
 
 		// Strip reflection data and pdbs, reflection is obtained separately
 		options.arguments = {
