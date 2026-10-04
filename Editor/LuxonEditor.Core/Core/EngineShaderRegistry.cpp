@@ -14,7 +14,17 @@
 LuxonEditor::EngineShaderRegistry::EngineShaderRegistry(Render::ShaderCompiler* shaderCompiler, AssetDirectoryWatcher* assetWatcher)
 	: ShaderRegistery(shaderCompiler), m_assetWatcher(assetWatcher), m_callbackID(0)
 {
-	m_shaderCompiler->AddIncludePath(CharToString((EngineApplication::GetProjectPath() + "/Data/InternalShaders/Common").c_str()));
+	const fs::path commonIncludePath = fs::path(EngineApplication::GetProjectPath()) / "Data" / "InternalShaders" / "Common";
+	m_shaderCompiler->AddIncludePath(commonIncludePath.wstring());
+
+	std::ofstream toolsConfig(fs::path(EngineApplication::GetProjectPath()) / "shadertoolsconfig.json", std::ios::trunc);
+	if (toolsConfig.is_open()) {
+		toolsConfig << "{\n"
+			<< "\t\"hlsl.additionalIncludeDirectories\": [\n"
+			<< "\t\t\"" << commonIncludePath.generic_string() << "\"\n"
+			<< "\t]\n"
+			<< "}\n";
+	}
 
 	m_callbackID = m_assetWatcher->RegisterCallback(
 		[this](const FileChangeEvent& event) { this->OnAssetChanged(event); }
