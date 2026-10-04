@@ -26,17 +26,9 @@ namespace LuxonEditor::GUI::QT {
 		void OnUsageFieldChanged(bool isValid);
 		void SetOriginalValues();
 
-		bool ValidateRasterizationProperties();
-		bool ValidateRayTracingProperties();
-		bool ValidateComputeProperties();
 		bool ValidateUsageProperties();
-		bool ValidateStageProperties();
 
 		bool CompareProperties();
-
-		void OnRasterChanged(bool isValid);
-		void OnRayTracingChanged(bool isValid);
-		void OnComputeChanged(bool isValid);
 
 		Ui::ShaderInspecterWidgetClass ui;
 		LuxonEngine::Rendering::ShaderCompileProperties m_currentProperties;

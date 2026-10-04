@@ -260,21 +260,12 @@ void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::S
 
 	if (typeStr == "RayTracing") {
 		properties.type = Render::ShaderProgramType::RayTracing;
-		dataNode.GetString("rayGen", &properties.rayTracingProperties.rayGen);
-		dataNode.GetString("miss", &properties.rayTracingProperties.miss);
-		dataNode.GetString("intersection", &properties.rayTracingProperties.intersection);
-		dataNode.GetString("anyHit", &properties.rayTracingProperties.anyHit);
-		dataNode.GetString("closestHit", &properties.rayTracingProperties.closestHit);
 	}
 	else if (typeStr == "Rasterization") {
 		properties.type = Render::ShaderProgramType::Rasterization;
-		dataNode.GetString("vsMain", &properties.rasterProperties.vertexMain);
-		dataNode.GetString("psMain", &properties.rasterProperties.pixelMain);
-		dataNode.GetString("gsMain", &properties.rasterProperties.geometryMain);
 	}
 	else if (typeStr == "Compute") {
 		properties.type = Render::ShaderProgramType::Compute;
-		dataNode.GetString("csMain", &properties.computeProperties.computeMain);
 	}
 	else if (typeStr == "Mesh") {
 		properties.type = Render::ShaderProgramType::Mesh;
@@ -298,27 +289,12 @@ void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::R
 	switch(properties.type) {
 		case Render::ShaderProgramType::RayTracing:
 			stream.SetString("type", "RayTracing");
-			if(properties.rayTracingProperties.rayGen != nullptr )
-				stream.SetString("rayGen", properties.rayTracingProperties.rayGen);
-			if(properties.rayTracingProperties.miss != nullptr )
-				stream.SetString("miss", properties.rayTracingProperties.miss);
-			if(properties.rayTracingProperties.intersection != nullptr )
-				stream.SetString("intersection", properties.rayTracingProperties.intersection);
-			if(properties.rayTracingProperties.anyHit != nullptr )
-				stream.SetString("anyHit", properties.rayTracingProperties.anyHit);
-			if(properties.rayTracingProperties.closestHit != nullptr )
-				stream.SetString("closestHit", properties.rayTracingProperties.closestHit);
 			break;
 		case Render::ShaderProgramType::Rasterization:
 			stream.SetString("type", "Rasterization");
-			stream.SetString("vsMain", properties.rasterProperties.vertexMain);
-			stream.SetString("psMain", properties.rasterProperties.pixelMain);
-			if(properties.rasterProperties.geometryMain != nullptr)
-				stream.SetString("gsMain", properties.rasterProperties.geometryMain);
 			break;
 		case Render::ShaderProgramType::Compute:
 			stream.SetString("type", "Compute");
-			stream.SetString("csMain", properties.computeProperties.computeMain);
 			break;
 		case Render::ShaderProgramType::Mesh:
 			stream.SetString("type", "Mesh");
