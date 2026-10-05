@@ -1,21 +1,52 @@
 #pragma once
 #include <string>
+#include <Rendering/ShaderCompiler.h>
 
 namespace LuxonEngine {
-	namespace Rendering {
-		struct ShaderCompileProperties;
-	}
 	class SerializationStream;
 }
 
 namespace LuxonEditor {
+	struct RasterizationProgramProperties {
+		char* vertexMain;
+		char* pixelMain;
+		char* geometryMain;
+	};
+
+	struct RayTracingProgramProperties {
+		char* rayGen;
+		char* miss;
+		char* intersection;
+		char* anyHit;
+		char* closestHit;
+	};
+
+	struct ComputeProgramProperties {
+		char* computeMain;
+	};
+
+	struct MeshProgramProperties {
+		char* taskMain;
+		char* meshMain;
+		char* pixelMain;
+	};
+
+	struct ShaderCreationProperties : LuxonEngine::Rendering::ShaderCompileProperties {
+		std::string fileName;
+		union {
+			RasterizationProgramProperties rasterProperties;
+			RayTracingProgramProperties rayTracingProperties;
+			ComputeProgramProperties computeProperties;
+			MeshProgramProperties meshProperties;
+		};
+	};
+
 	class ShaderCreator {
 	public:
-		static void CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName);
-		static void CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain = nullptr);
+		static void CreateShader(const ShaderCreationProperties& properties);
 
 	private:
-		static void WriteShaderFiles(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const std::string& shaderCode);
+		static void WriteShaderFiles(const ShaderCreationProperties& properties, const std::string& shaderCode);
 
 		static std::string s_rayTracingCodeBegin;
 	};

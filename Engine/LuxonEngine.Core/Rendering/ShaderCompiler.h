@@ -8,27 +8,9 @@ namespace LuxonEngine::Rendering {
 	class ShaderProgram;
 	class Shader;
 
-	struct RasterizationProgramProperties {
-		char* vertexMain;
-		char* pixelMain;
-		char* geometryMain;
-	};
-
-	struct RayTracingProgramProperties {
-		char* rayGen;
-		char* miss;
-		char* intersection;
-		char* anyHit;
-		char* closestHit;
-	};
-
-	struct ComputeProgramProperties {
-		char* computeMain;
-	};
-
 	enum class ShaderUsage {
-		User,	
-		Internal
+		User,
+		Internal,
 	};
 
 	struct ShaderCompileProperties {
@@ -36,12 +18,6 @@ namespace LuxonEngine::Rendering {
 		ShaderUsage usage = ShaderUsage::User;
 		std::string identifier;
 		std::string name;
-		std::string model;
-		union {
-			RasterizationProgramProperties rasterProperties;
-			RayTracingProgramProperties rayTracingProperties;
-			ComputeProgramProperties computeProperties;
-		};
 		std::wstring folderPath;
 	};
 

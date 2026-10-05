@@ -4,12 +4,18 @@
 #include <EngineAPI.h>
 #include <filesystem>
 #include <StringUtilities.h>
+#include <qfiledialog.h>
+#include <qfilesystemmodel.h>
+#include <qabstractitemview.h>
 
 LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent)
-	: QDialog(parent)
+	: QDialog(parent), m_folderPath(GetProjectPath() + "/Assets/Shaders/")
 {
 	ui.setupUi(this);
 	layout()->setAlignment(ui.propertiesContainer, Qt::AlignTop);
+	ui.pathPanel->layout()->setAlignment(ui.shaderNameField, Qt::AlignLeft);
+	ui.pathPanel->layout()->setAlignment(ui.browseButton, Qt::AlignLeft);
+	static_cast<QHBoxLayout*>(ui.pathPanel->layout())->addStretch(1);
 	
 	OnshaderTypeChanged(LuxonEngine::Rendering::ShaderProgramType::Rasterization);
 	connect(ui.shaderTypeBox, &QComboBox::currentIndexChanged, this, [this](int index) {
@@ -25,10 +31,14 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 	};
 
 	ui.shaderNameField->InputText()->setText("new_shader_" + QString::number(i));
-	ui.shaderNameField->RegisterValidationFunction(FileNameValidate);
+	ui.shaderNameField->RegisterValidationFunction([this](const QString& text) { return FileNameValidate(text); });
 	connect(ui.shaderNameField, &QTextField::ValueChanged, this, [this](bool isValid) {
+		UpdatePathLabel();
 		ui.createButton->setEnabled(isValid);
 		});
+
+	connect(ui.browseButton, &QPushButton::clicked, this, &ShaderCreationWindow::BrowseFolder);
+	UpdatePathLabel();
 
 	ui.nameField->InputText()->setText("new_shader_" + QString::number(i));
 	ui.nameField->RegisterValidationFunction(NameValidate);
@@ -83,8 +93,6 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 	connect(ui.meshPixelField, &QTextField::ValueChanged, this, &ShaderCreationWindow::OnMeshChanged);
 
 	connect(ui.createButton, &QPushButton::clicked, this, [this]() {
-		m_compileProperties.model = "6_6";
-
 		bool isInternal = m_compileProperties.usage == LuxonEngine::Rendering::ShaderUsage::Internal;
 		m_compileProperties.identifier = isInternal ? ui.identifierField->GetStdString() : std::string();
 		m_compileProperties.name = isInternal ? std::string() : ui.nameField->GetStdString();
@@ -108,12 +116,15 @@ LuxonEditor::GUI::QT::ShaderCreationWindow::ShaderCreationWindow(QWidget *parent
 			break;
 		case LuxonEngine::Rendering::ShaderProgramType::Mesh:
 			meshMainStr = ui.meshField->InputText()->text().toStdString();
+			m_compileProperties.meshProperties.meshMain = meshMainStr.data();
 			pixelMainStr = ui.meshPixelField->InputText()->text().toStdString();
-			CreateMeshShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString(), meshMainStr.data(), pixelMainStr.data(), ui.taskField->GetText());
-			accept();
-			return;
+			m_compileProperties.meshProperties.pixelMain = pixelMainStr.data();
+			m_compileProperties.meshProperties.taskMain = ui.taskField->GetText();
+			break;
 		}
-		CreateShader(m_compileProperties, ui.shaderNameField->InputText()->text().toStdString());
+		m_compileProperties.folderPath = m_folderPath.wstring();
+		m_compileProperties.fileName = ui.shaderNameField->InputText()->text().toStdString();
+		CreateShader(m_compileProperties);
 		accept();
 		});
 
@@ -267,8 +278,35 @@ bool LuxonEditor::GUI::QT::ShaderCreationWindow::FileNameValidate(const QString&
 		return false;
 	}
 
-	auto shaderFolderPath = GetProjectPath() + "/Assets/Shaders/";
-	// implement checking if the file exists in the shader folder
-	return !std::filesystem::exists(shaderFolderPath + text.toStdString() + ".hlsl");
+	return !std::filesystem::exists(m_folderPath / (text.toStdString() + ".hlsl"));
+}
+
+void LuxonEditor::GUI::QT::ShaderCreationWindow::UpdatePathLabel()
+{
+	ui.pathLabel->setText(QString::fromStdString((m_folderPath / (ui.shaderNameField->InputText()->text().toStdString() + ".hlsl")).lexically_normal().string()));
+}
+
+void LuxonEditor::GUI::QT::ShaderCreationWindow::BrowseFolder()
+{
+	QFileDialog dlg;
+	dlg.setFileMode(QFileDialog::Directory);
+	dlg.setOption(QFileDialog::ShowDirsOnly, true);
+	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
+
+	QFileSystemModel* model = new QFileSystemModel(&dlg);
+	QModelIndex rootIndex = model->setRootPath(QString::fromStdString(GetProjectPath() + "/Assets/"));
+
+	auto views = dlg.findChildren<QAbstractItemView*>();
+	for (QAbstractItemView* view : views) {
+		view->setRootIndex(rootIndex);
+	}
+
+	dlg.setDirectory(QString::fromStdString(m_folderPath.string()));
+	if (dlg.exec() == QDialog::Accepted) {
+		m_folderPath = dlg.selectedFiles().first().toStdString();
+		ui.shaderNameField->Validate();
+		UpdatePathLabel();
+		UpdateCreateButton();
+	}
 }
 

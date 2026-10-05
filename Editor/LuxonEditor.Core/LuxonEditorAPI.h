@@ -29,6 +29,4 @@ LUXON_ENGINE_API void AssetRegistry_RenamePath(LuxonEditor::AssetRegistry* asset
 
 LUXON_ENGINE_API void AssetRegistry_MovePath(LuxonEditor::AssetRegistry* assetRegistry, const std::string& oldRelativePath, const std::string& folderRelativePath);
 
-LUXON_ENGINE_API void CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName);
-
-LUXON_ENGINE_API void CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain = nullptr);
+LUXON_ENGINE_API void CreateShader(const LuxonEditor::ShaderCreationProperties& properties);

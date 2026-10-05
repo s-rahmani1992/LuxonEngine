@@ -259,8 +259,6 @@ void LuxonEditor::EngineShaderRegistry::InvokeShaderChangedCallback(ShaderEntry*
 
 void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& dataNode)
 {
-	dataNode.GetString("model", properties.model);
-
 	std::string usageStr;
 	dataNode.GetString("usage", usageStr);
 	properties.usage = usageStr == "Internal" ? Render::ShaderUsage::Internal : Render::ShaderUsage::User;
@@ -287,7 +285,6 @@ void LuxonEditor::EngineShaderRegistry::FillProperties(LuxonEngine::Rendering::S
 void LuxonEditor::EngineShaderRegistry::SerializeProperties(const LuxonEngine::Rendering::ShaderCompileProperties& properties, LuxonEngine::SerializationStream& stream)
 {
 	stream.Clear();
-	stream.SetString("model", properties.model);
 
 	if (properties.usage == Render::ShaderUsage::Internal) {
 		stream.SetString("usage", "Internal");

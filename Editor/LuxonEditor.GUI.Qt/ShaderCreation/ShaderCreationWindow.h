@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QDialog>
+#include <filesystem>
 #include "ui_ShaderCreationWindow.h"
 #include <EngineAPI.h>
+#include <Core/ShaderCreator.h>
 
 namespace LuxonEngine::Rendering {
 	enum class ShaderProgramType;
@@ -22,6 +24,8 @@ namespace LuxonEditor::GUI::QT {
 		void OnshaderTypeChanged(LuxonEngine::Rendering::ShaderProgramType programType);
 		void OnShaderUsageChanged(LuxonEngine::Rendering::ShaderUsage usage);
 		void UpdateCreateButton();
+		void UpdatePathLabel();
+		void BrowseFolder();
 		bool ValidateRasterizationProperties();
 		bool ValidateRayTracingProperties();
 		bool ValidateComputeProperties();
@@ -41,8 +45,9 @@ namespace LuxonEditor::GUI::QT {
 		Ui::ShaderCreationWindowClass ui;
 
 		
-		static bool FileNameValidate(const QString& text);
+		bool FileNameValidate(const QString& text);
 
-		LuxonEngine::Rendering::ShaderCompileProperties m_compileProperties;
+		LuxonEditor::ShaderCreationProperties m_compileProperties;
+		std::filesystem::path m_folderPath;
 	};
 }

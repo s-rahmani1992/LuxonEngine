@@ -41,12 +41,7 @@ void AssetRegistry_MovePath(LuxonEditor::AssetRegistry* assetRegistry, const std
 	assetRegistry->MovePath(oldRelativePath, folderRelativePath);
 }
 
-LUXON_ENGINE_API void CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName)
+LUXON_ENGINE_API void CreateShader(const LuxonEditor::ShaderCreationProperties& properties)
 {
-	LuxonEditor::ShaderCreator::CreateShader(properties, shaderName);
-}
-
-LUXON_ENGINE_API void CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain)
-{
-	LuxonEditor::ShaderCreator::CreateMeshShader(properties, shaderName, meshMain, pixelMain, taskMain);
+	LuxonEditor::ShaderCreator::CreateShader(properties);
 }

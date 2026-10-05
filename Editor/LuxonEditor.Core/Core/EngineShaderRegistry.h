@@ -4,11 +4,11 @@
 #include <filesystem>
 #include <functional>
 #include "GuidUtilities.h"
+#include "ShaderCreator.h"
 #include <Rendering/ShaderRegistery.h>
 
 namespace LuxonEngine {
 	namespace Rendering {
-		struct ShaderCompileProperties;
 		class ShaderCompiler;
 		class ShaderProgram;
 	}

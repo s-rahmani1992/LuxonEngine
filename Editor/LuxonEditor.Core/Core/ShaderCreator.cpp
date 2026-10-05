@@ -69,7 +69,7 @@ RT_OUT_TEXTURE_VAR(u0)
 
 )";
 
-void LuxonEditor::ShaderCreator::CreateShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName)
+void LuxonEditor::ShaderCreator::CreateShader(const ShaderCreationProperties& properties)
 {
 	std::string templatePath = EngineApplication::GetProjectPath() + "/Data/ShaderTemplates/";
 	std::string shaderCode;
@@ -126,52 +126,46 @@ void LuxonEditor::ShaderCreator::CreateShader(const LuxonEngine::Rendering::Shad
 
 		shaderCode = templateContent.replace(templateContent.find("$(COMPUTE_MAIN)"), std::string("$(COMPUTE_MAIN)").length(), properties.computeProperties.computeMain);
 	}
+	else if (properties.type == LuxonEngine::Rendering::ShaderProgramType::Mesh)
+	{
+		const auto& mesh = properties.meshProperties;
+
+		// load templete file into a string variable
+		std::ifstream templateFile(templatePath + (mesh.taskMain == nullptr ? "mesh_simple_template.hlsl" : "mesh_task_template.hlsl"));
+		std::string templateContent((std::istreambuf_iterator<char>(templateFile)),
+			std::istreambuf_iterator<char>());
+
+		shaderCode = templateContent.replace(templateContent.find("$(MESH_MAIN)"), std::string("$(MESH_MAIN)").length(), mesh.meshMain);
+		shaderCode = shaderCode.replace(shaderCode.find("$(PIXEL_MAIN)"), std::string("$(PIXEL_MAIN)").length(), mesh.pixelMain);
+
+		if (mesh.taskMain != nullptr)
+		{
+			shaderCode = shaderCode.replace(shaderCode.find("$(TASK_MAIN)"), std::string("$(TASK_MAIN)").length(), mesh.taskMain);
+		}
+	}
 	else
 		return;
 
-	WriteShaderFiles(properties, shaderName, shaderCode);
+	WriteShaderFiles(properties, shaderCode);
 }
 
-void LuxonEditor::ShaderCreator::CreateMeshShader(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const char* meshMain, const char* pixelMain, const char* taskMain)
-{
-	std::string templatePath = EngineApplication::GetProjectPath() + "/Data/ShaderTemplates/";
-
-	// load templete file into a string variable
-	std::ifstream templateFile(templatePath + (taskMain == nullptr ? "mesh_simple_template.hlsl" : "mesh_task_template.hlsl"));
-	std::string templateContent((std::istreambuf_iterator<char>(templateFile)),
-		std::istreambuf_iterator<char>());
-
-	std::string shaderCode = templateContent.replace(templateContent.find("$(MESH_MAIN)"), std::string("$(MESH_MAIN)").length(), meshMain);
-	shaderCode = shaderCode.replace(shaderCode.find("$(PIXEL_MAIN)"), std::string("$(PIXEL_MAIN)").length(), pixelMain);
-
-	if (taskMain != nullptr)
-	{
-		shaderCode = shaderCode.replace(shaderCode.find("$(TASK_MAIN)"), std::string("$(TASK_MAIN)").length(), taskMain);
-	}
-
-	// the stage entry points are found from the [shader("...")] attributes at compile time, so only the type goes to the meta file
-	LuxonEngine::Rendering::ShaderCompileProperties meshProperties = properties;
-	meshProperties.type = LuxonEngine::Rendering::ShaderProgramType::Mesh;
-
-	WriteShaderFiles(meshProperties, shaderName, shaderCode);
-}
-
-void LuxonEditor::ShaderCreator::WriteShaderFiles(const LuxonEngine::Rendering::ShaderCompileProperties& properties, const std::string& shaderName, const std::string& shaderCode)
+void LuxonEditor::ShaderCreator::WriteShaderFiles(const ShaderCreationProperties& properties, const std::string& shaderCode)
 {
 	std::string metaString;
 	LuxonEngine::SerializationStream metadataStream, shaderMetaStream;
 	metadataStream.SetGuid("uuid", LuxonEditor::GuidGenerator::GenerateGUID());
 
-	LuxonEngine::Rendering::ShaderCompileProperties metaProperties = properties;
+	ShaderCreationProperties metaProperties = properties;
 	if (metaProperties.usage == LuxonEngine::Rendering::ShaderUsage::User && metaProperties.name.empty())
-		metaProperties.name = shaderName;
+		metaProperties.name = properties.fileName;
 
 	EngineShaderRegistry::SerializeProperties(metaProperties, shaderMetaStream);
 
 	metadataStream.SetObject("data", shaderMetaStream);
 	metaString = metadataStream.ToString();
 
-	std::string shaderPath = EngineApplication::GetProjectPath() + "/Assets/Shaders/" + shaderName + ".hlsl";
+	const std::filesystem::path outputFolder = properties.folderPath.empty() ? std::filesystem::path(EngineApplication::GetProjectPath() + "/Assets/Shaders/") : std::filesystem::path(properties.folderPath);
+	std::string shaderPath = (outputFolder / (properties.fileName + ".hlsl")).string();
 	std::string shaderMetaPath = shaderPath + ".json";
 
 	metadataStream.SaveToFile(shaderMetaPath);
