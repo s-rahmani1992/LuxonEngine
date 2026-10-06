@@ -18,6 +18,7 @@
 #include <Core/Logger.h>
 #include <Core/Mesh.h>
 #include <Mesh/DX12MeshPipelineModule.h>
+#include "Rasterization/DX12RasterizationPipelineModule.h"
 #include <Rendering/ShaderInternalNames.h>
 #include "DX12MeshController.h"
 #include "DX12Texture2DController.h"
@@ -127,7 +128,10 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Render()
 		pipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
 	}
 
-	// the mesh pipelines bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
+	// the pipelines below bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
+	for (auto& pipeline : m_meshRendererPipelines)
+		pipeline->Draw(m_commandList.Get());
+
 	DispatchMeshShadingPipelines(m_meshShadingPipelines);
 
 	D3D12_RESOURCE_BARRIER endBarrier
@@ -202,6 +206,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 {
 	m_meshRendererData.clear();
 	m_rasterizationPipelines.clear();
+	m_meshRendererPipelines.clear();
 	m_meshShadingPipelines.clear();
 
 	// heap slots: camera + light + one transform per entity
@@ -245,6 +250,10 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 
 	// Per-entity transform CBVs
 	for (auto& entityGpu : m_entityGPUData) {
+		// the mesh renderers are drawn by the new rasterization pipeline
+		if (std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
+			continue;
+
 		auto mesh = ExtractMeshFromGameEntity(entityGpu.gameEntity);
 		if(mesh == nullptr)
 			continue;
@@ -276,10 +285,75 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 		m_rasterizationPipelines.push_back(pipeline);
 	}
 
+	m_meshRendererPipelines = CreateMeshRendererPipelines();
+
 	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
 
 	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
 	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
+}
+
+std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::CreateMeshRendererPipelines()
+{
+	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
+
+	struct MeshRendererData {
+		GameEntity* entity;
+		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
+		ref<DX12MeshController> meshController;
+	};
+
+	std::map<ref<Material>, std::vector<MeshRendererData>> meshRendererMap;
+
+	// group the mesh renderers by their material, one pipeline is created per material
+	for (auto& entityGpu : m_entityGPUData) {
+		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer());
+		if (meshRenderer == nullptr || meshRenderer->GetMesh() == nullptr)
+			continue;
+
+		if (meshRenderer->GetMaterial() == nullptr) {
+			Logger::LogWarning("The mesh renderer of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
+			continue;
+		}
+
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(meshRenderer->GetMesh()->GetGPUHandle());
+		if (meshController == nullptr) // the mesh is not uploaded to the GPU
+			continue;
+
+		meshRendererMap[meshRenderer->GetMaterial()].push_back(MeshRendererData{
+			.entity = entityGpu.gameEntity.get(),
+			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+			.meshController = meshController,
+			});
+	}
+
+	std::string error;
+	Rasterization::RasterizationPipelineProperties properties;
+
+	for (auto& [material, meshRendererList] : meshRendererMap) {
+		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), properties, error);
+
+		if (pipeline == nullptr) {
+			Logger::LogError("Failed to create the mesh renderer pipeline: " + error);
+			continue;
+		}
+
+		if (pipeline->Initialize((UInt32)meshRendererList.size()) == false)
+			continue;
+
+		pipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+		pipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+
+		for (auto& meshRendererData : meshRendererList) {
+			pipeline->SetEntityDescriptor(meshRendererData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, meshRendererData.transformHandle);
+			pipeline->SetEntityGeometry(meshRendererData.entity, *meshRendererData.meshController->GetVertexView(),
+				*meshRendererData.meshController->GetIndexView(), meshRendererData.meshController->GetMesh()->GetIndexCount());
+		}
+
+		pipelines.push_back(pipeline);
+	}
+
+	return pipelines;
 }
 
 std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModule>> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::CreateSurfaceInstancePipelines()

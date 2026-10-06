@@ -8,6 +8,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	namespace Rasterization {
 		class DX12RasterizationMaterial;
+		class DX12RasterizationPipelineModule;
 	}
 
 	namespace MeshShading {
@@ -33,6 +34,11 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 
+		/// <summary>
+		/// Creates one rasterization pipeline per material of the mesh renderers of the entities
+		/// </summary>
+		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateMeshRendererPipelines();
+
 		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
 
 	private:
@@ -48,6 +54,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		std::vector<DX12MeshRendererGPUData> m_meshRendererData;
 		std::vector<ref<DX12GameEntityPipelineModule>> m_rasterizationPipelines;
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> m_meshShadingPipelines;
+		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_meshRendererPipelines;
 
 		ref<Material> m_overrideMaterial;
 		ref<Scene> m_scene;

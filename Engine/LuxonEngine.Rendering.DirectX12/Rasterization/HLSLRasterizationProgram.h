@@ -42,6 +42,10 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		/// <returns></returns>
 		inline IDxcBlob* GetGeometryShader() const { return m_geometryShader.Get(); }
 
+		inline const InputAssemblyReflection& GetInputAssemblyReflection() const { return m_inputAssemblyReflection; }
+
+		D3D12_RT_FORMAT_ARRAY GetRenderTargetFormats() const;
+
 	private:
 		ComPtr<IDxcBlob> m_vertexShader = nullptr;
 		ComPtr<IDxcBlob> m_geometryShader = nullptr;

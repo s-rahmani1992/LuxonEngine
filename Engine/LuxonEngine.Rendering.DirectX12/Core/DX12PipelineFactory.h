@@ -18,6 +18,16 @@ namespace LuxonEngine::Rendering::DX12 {
 		};
 	}
 
+	namespace Rasterization {
+		class DX12RasterizationPipelineModule;
+		class HLSLRasterizationProgram;
+		struct RasterizationPipelineProperties {
+			bool enableDepthTest = true;
+			bool indexBufferEnabled = true;
+			D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // point, line or triangle. patches are not supported
+		};
+	}
+
 	class DX12PipelineFactory {
 	public:
 		DX12PipelineFactory(ID3D12Device10* device);
@@ -25,8 +35,13 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 
+		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(Material* material, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
+		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(const ShaderProgram* program, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
+
 	private:
 		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
+
+		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(const ShaderProgram* program, Material* material, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
 
 		template <D3D12_PIPELINE_STATE_SUBOBJECT_TYPE Type, typename T>
 		struct alignas(void*) PsoSubobject

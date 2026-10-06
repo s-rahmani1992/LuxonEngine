@@ -192,6 +192,7 @@
     <ClInclude Include="Core\DX12PipelineFactory.h" />
     <ClInclude Include="Mesh\DX12MeshPipelineModule.h" />
     <ClInclude Include="Mesh\HLSLMeshProgram.h" />
+    <ClInclude Include="Core\DX12MaterialResourceManager.h" />
     <ClInclude Include="Core\DX12ShaderCompiler.h" />
     <ClInclude Include="Core\HLSLReflection.h" />
     <ClInclude Include="Core\HLSLVariableReflection.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="DX12Utilities.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rasterization\DX12RasterizationMaterial.h" />
+    <ClInclude Include="Rasterization\DX12RasterizationPipelineModule.h" />
     <ClInclude Include="Rasterization\HLSLRasterizationProgram.h" />
     <ClInclude Include="RayTracing\DX12RayTracingMaterial.h" />
     <ClInclude Include="RayTracing\DX12RayTracingPipelineModule.h" />
@@ -226,6 +228,7 @@
     <ClCompile Include="Core\DX12PipelineFactory.cpp" />
     <ClCompile Include="Mesh\DX12MeshPipelineModule.cpp" />
     <ClCompile Include="Mesh\HLSLMeshProgram.cpp" />
+    <ClCompile Include="Core\DX12MaterialResourceManager.cpp" />
     <ClCompile Include="Core\DX12ShaderCompiler.cpp" />
     <ClCompile Include="Core\HLSLReflection.cpp" />
     <ClCompile Include="Core\HLSLVariableReflection.cpp" />
@@ -253,6 +256,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Rasterization\DX12RasterizationMaterial.cpp" />
+    <ClCompile Include="Rasterization\DX12RasterizationPipelineModule.cpp" />
     <ClCompile Include="Rasterization\HLSLRasterizationProgram.cpp" />
     <ClCompile Include="RayTracing\DX12RayTracingMaterial.cpp" />
     <ClCompile Include="RayTracing\DX12RayTracingPipelineModule.cpp" />
