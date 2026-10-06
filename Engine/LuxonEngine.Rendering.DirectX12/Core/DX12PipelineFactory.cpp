@@ -165,6 +165,11 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
+		if (properties.renderTargetFormats.size() > D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT) {
+			error = "Too many render target formats in the rasterization pipeline properties";
+			return nullptr;
+		}
+
 		IDxcBlob* vertexShader = rasterizationProgram->GetVertexShader();
 		IDxcBlob* pixelShader = rasterizationProgram->GetPixelShader();
 		IDxcBlob* geometryShader = rasterizationProgram->GetGeometryShader();
@@ -256,12 +261,20 @@ namespace LuxonEngine::Rendering::DX12 {
 			.BackFace = stencilOp,
 		};
 
-		//RTVs, from the render target reflection of the pixel shader
-		D3D12_RT_FORMAT_ARRAY renderTargetFormats = rasterizationProgram->GetRenderTargetFormats();
-		pipelineStateDesc.NumRenderTargets = renderTargetFormats.NumRenderTargets;
+		//RTVs, from the render target reflection of the pixel shader unless the properties override them
+		if (properties.renderTargetFormats.empty() == false) {
+			pipelineStateDesc.NumRenderTargets = (UINT)properties.renderTargetFormats.size();
 
-		for (UINT i = 0; i < renderTargetFormats.NumRenderTargets; i++)
-			pipelineStateDesc.RTVFormats[i] = renderTargetFormats.RTFormats[i];
+			for (UINT i = 0; i < pipelineStateDesc.NumRenderTargets; i++)
+				pipelineStateDesc.RTVFormats[i] = properties.renderTargetFormats[i];
+		}
+		else {
+			D3D12_RT_FORMAT_ARRAY renderTargetFormats = rasterizationProgram->GetRenderTargetFormats();
+			pipelineStateDesc.NumRenderTargets = renderTargetFormats.NumRenderTargets;
+
+			for (UINT i = 0; i < renderTargetFormats.NumRenderTargets; i++)
+				pipelineStateDesc.RTVFormats[i] = renderTargetFormats.RTFormats[i];
+		}
 
 		//DSV
 		pipelineStateDesc.DSVFormat = properties.enableDepthTest ? DXGI_FORMAT_D32_FLOAT : DXGI_FORMAT_UNKNOWN;

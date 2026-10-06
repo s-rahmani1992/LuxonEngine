@@ -3,9 +3,7 @@
 #include "Platform/GraphicWindow.h"
 #include "DX12Utilities.h"
 #include "DX12CommandExecuter.h"
-#include "DX12GameEntityPipelineModule.h"
 #include "RayTracing/Dx12RayTracingPipelineModule.h"
-#include "DX12GBufferPipelineModule.h"
 #include "HLSLShaderProgram.h"
 #include <set>
 #include <map>
@@ -82,7 +80,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_commandList->SetDescriptorHeaps(1, m_rasterHeap.GetAddressOf());
 
 	if (m_gBufferEntities.size() > 0) {
-		m_gBufferPipeline->RenderCommand(m_commandList, m_cameraHandle);
+		RenderGBuffer();
 		m_GBufferrayTracingPipeline->RenderCommand(m_commandList, m_camera);
 	}
 
@@ -128,16 +126,12 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	//draw
 
 	m_commandList->SetDescriptorHeaps(1, m_rasterHeap.GetAddressOf());
-	for (auto& pipeline : m_rasterizationPipelines) {
-		pipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
-	}
-
 	for(auto& splinePipeline : m_splinePipelines) {
 		splinePipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
 	}
 
 	// the pipelines below bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
-	for (auto& pipeline : m_meshRendererPipelines)
+	for (auto& pipeline : m_rasterizationModules)
 		pipeline->Draw(m_commandList.Get());
 
 	DispatchMeshShadingPipelines(m_meshShadingPipelines);
@@ -219,10 +213,11 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	std::map<ref<Material>, ref<Rasterization::DX12RasterizationMaterial>> usedMaterials;
 
 	for (auto& entityGpu : m_entityGPUData) {
-		// spike and surface instance renderers use mesh shading materials, and the mesh renderers are drawn by the rasterization pipelines. their pipelines are created separately
+		// spike and surface instance renderers use mesh shading materials, and the mesh and g buffer renderers are drawn by the rasterization pipelines. their pipelines are created separately
 		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr ||
 			std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr ||
-			std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
+			std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr ||
+			std::dynamic_pointer_cast<GBufferRTReflectionRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
 			continue;
 
 		auto material = entityGpu.gameEntity->GetRenderer()->GetMaterial();
@@ -283,8 +278,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		if (gBufferMeshRenderer != nullptr) {
 			m_gBufferEntities.push_back(EntityGBufferData{
 				.renderer = gBufferMeshRenderer,
-				.transformResource = entityGpu.transformResource,
-				.transformHandle = gpuHandle,
+				.entity = entityGpu.gameEntity.get(),
+				.transformCpuHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
 				});
 		}
 
@@ -305,12 +300,13 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		gpuHandle.ptr += incrementSize;
 	}
 
+	if (m_gBufferEntities.size() > 0 && InitializeGBuffer() == false) {
+		Logger::LogError("Failed to initialize the g buffer pipeline, the g buffer renderers are not drawn");
+		m_gBufferRasterization = nullptr;
+		m_gBufferEntities.clear();
+	}
+
 	if (m_gBufferEntities.size() > 0) {
-		m_gBufferPipeline = std::make_shared<DX12GBufferPipelineModule>();
-
-		if (m_gBufferPipeline->Initialize(m_device, Vector2UInt(m_window->GetWidth(), m_window->GetHeight()), std::dynamic_pointer_cast<Rasterization::HLSLRasterizationProgram>(GetInternalProgram("G_Buffer_Program"))))
-			m_gBufferPipeline->PrepareEntities(m_gBufferEntities);
-
 		// Initialize Ray Tracing Stage of Reflection Renderer
 		std::vector<DX12RayTracingGPUData> rtEntityData;
 
@@ -339,43 +335,25 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		m_commandExecuter->ExecuteAndWait(m_commandList.Get());
 
 		auto rtGlob = m_GBufferrayTracingPipeline->GetMaterialInterface();
-		rtGlob->SetDescriptorHandle("_PositionTexture", m_gBufferPipeline->GetPositionHeap()->GetGPUDescriptorHandleForHeapStart());
-		rtGlob->SetDescriptorHandle("_NormalTexture", m_gBufferPipeline->GetNormalHeap()->GetGPUDescriptorHandleForHeapStart());
-		rtGlob->SetDescriptorHandle("_MaskTexture", m_gBufferPipeline->GetMaskHeap()->GetGPUDescriptorHandleForHeapStart());
+		rtGlob->SetDescriptorHandle("_PositionTexture", m_gBuffer.srvHeaps[GBufferResources::Position]->GetGPUDescriptorHandleForHeapStart());
+		rtGlob->SetDescriptorHandle("_NormalTexture", m_gBuffer.srvHeaps[GBufferResources::Normal]->GetGPUDescriptorHandleForHeapStart());
+		rtGlob->SetDescriptorHandle("_MaskTexture", m_gBuffer.srvHeaps[GBufferResources::Mask]->GetGPUDescriptorHandleForHeapStart());
 		
-		auto cpuHandle = m_rasterHeap->GetCPUDescriptorHandleForHeapStart();
-		auto gpuHandle1 = m_rasterHeap->GetGPUDescriptorHandleForHeapStart();
-		cpuHandle.ptr += (rasterHeapSize - 1) * incrementSize;
-		gpuHandle1.ptr += (rasterHeapSize - 1) * incrementSize;
+		// the output of the ray tracing stage is read by the third stage. a non shader visible view is the source of the descriptor copy
+		D3D12_DESCRIPTOR_HEAP_DESC rtOutputHeapDesc{
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = 1,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+			.NodeMask = 0,
+		};
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC outRTDesc = {};
-		outRTDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-		outRTDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		outRTDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		outRTDesc.Texture2D = D3D12_TEX2D_SRV{ .MipLevels = 1, };
-		m_device->CreateShaderResourceView(m_GBufferrayTracingPipeline->GetOutputBuffer().Get(), &outRTDesc, cpuHandle);
-
-		for (auto& entity : m_gBufferEntities) {
-			auto meshRender = std::make_shared<MeshRenderer>(entity.renderer->GetMesh(), entity.renderer->GetMaterial());
-			auto pipeline = std::make_shared<DX12GameEntityPipelineModule>();
-
-			auto& material = usedMaterials[entity.renderer->GetMaterial()];
-			material->SetDescriptorHandles("_PositionTexture", m_gBufferPipeline->GetPositionHeap()->GetGPUDescriptorHandleForHeapStart());
-			material->SetDescriptorHandles("_NormalTexture", m_gBufferPipeline->GetNormalHeap()->GetGPUDescriptorHandleForHeapStart());
-			material->SetDescriptorHandles("_MaskTexture", m_gBufferPipeline->GetMaskHeap()->GetGPUDescriptorHandleForHeapStart());
-			material->SetDescriptorHandles(HLSL_RT_OUTPUT_TEXTURE_NAME, gpuHandle1);
-
-			if (pipeline->Initialize(m_device, DX12MeshRendererGPUData
-				{
-					.meshRenderer = meshRender,
-					.material = material,
-					.transformResource = entity.transformResource,
-					.transformHandle = entity.transformHandle
-				}, m_depthFormat) == false) {
-				continue;
-			}
-
-			m_rasterizationPipelines.push_back(pipeline);
+		if (SUCCEEDED(m_device->CreateDescriptorHeap(&rtOutputHeapDesc, IID_PPV_ARGS(&m_rtOutputCpuHeap)))) {
+			D3D12_SHADER_RESOURCE_VIEW_DESC outRTDesc = {};
+			outRTDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+			outRTDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			outRTDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			outRTDesc.Texture2D = D3D12_TEX2D_SRV{ .MipLevels = 1, };
+			m_device->CreateShaderResourceView(m_GBufferrayTracingPipeline->GetOutputBuffer().Get(), &outRTDesc, m_rtOutputCpuHeap->GetCPUDescriptorHandleForHeapStart());
 		}
 	}
 
@@ -390,7 +368,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		offset += 1;
 	}
 
-	m_meshRendererPipelines = CreateMeshRendererPipelines();
+	m_rasterizationModules = CreateRasterizationPipelines();
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
 
@@ -398,34 +376,266 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
 }
 
-std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateMeshRendererPipelines()
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
+{
+	m_gBufferMaterial = DX12MaterialFactory::BuildMaterial(GetInternalProgram("G_Buffer_Program"));
+
+	if (m_gBufferMaterial == nullptr)
+		return false;
+
+	m_gBuffer = GBufferResources{};
+	auto& g = m_gBuffer;
+
+	D3D12_RESOURCE_DESC bufferDesc{
+		.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+		.Width = m_window->GetWidth(),
+		.Height = m_window->GetHeight(),
+		.DepthOrArraySize = 1,
+		.MipLevels = 1,
+		.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
+		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+		.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
+	};
+
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+		.NumDescriptors = GBufferResources::TargetCount,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		.NodeMask = 0,
+	};
+
+	// a shader visible heap can not be the source of a descriptor copy, so the views exist in a CPU only heap too
+	D3D12_DESCRIPTOR_HEAP_DESC cpuSrvHeapDesc{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		.NumDescriptors = GBufferResources::TargetCount,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		.NodeMask = 0,
+	};
+
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		.NumDescriptors = 1,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+		.NodeMask = 0,
+	};
+
+	if (FAILED(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&g.rtvHeap))) ||
+		FAILED(m_device->CreateDescriptorHeap(&cpuSrvHeapDesc, IID_PPV_ARGS(&g.cpuSrvHeap))))
+		return false;
+
+	auto rtvIncrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	auto srvIncrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto rtvStart = g.rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	auto cpuSrvStart = g.cpuSrvHeap->GetCPUDescriptorHandleForHeapStart();
+
+	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
+		bufferDesc.Format = g.formats[i];
+
+		D3D12_CLEAR_VALUE clearValue{
+			.Format = g.formats[i],
+			.Color = { 0.0f, 0.0f, 0.0f, 0.0f }
+		};
+
+		if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE,
+			&bufferDesc, D3D12_RESOURCE_STATE_COMMON, &clearValue, IID_PPV_ARGS(&g.buffers[i]))))
+			return false;
+
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{
+			.Format = g.formats[i],
+			.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+			.Texture2D = D3D12_TEX2D_RTV{ .MipSlice = 0, .PlaneSlice = 0 },
+		};
+
+		g.rtvHandles[i] = D3D12_CPU_DESCRIPTOR_HANDLE{ .ptr = rtvStart.ptr + i * rtvIncrementSize };
+		m_device->CreateRenderTargetView(g.buffers[i].Get(), &rtvDesc, g.rtvHandles[i]);
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
+			.Format = g.formats[i],
+			.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+			.Texture2D = D3D12_TEX2D_SRV{ .MipLevels = 1 },
+		};
+
+		if (FAILED(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&g.srvHeaps[i]))))
+			return false;
+
+		m_device->CreateShaderResourceView(g.buffers[i].Get(), &srvDesc, g.srvHeaps[i]->GetCPUDescriptorHandleForHeapStart());
+
+		g.cpuSrvHandles[i] = D3D12_CPU_DESCRIPTOR_HANDLE{ .ptr = cpuSrvStart.ptr + i * srvIncrementSize };
+		m_device->CreateShaderResourceView(g.buffers[i].Get(), &srvDesc, g.cpuSrvHandles[i]);
+	}
+
+	// Depth buffer of the g buffer pass
+	D3D12_RESOURCE_DESC depthResourceDesc{
+		.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+		.Alignment = 0,
+		.Width = m_window->GetWidth(),
+		.Height = m_window->GetHeight(),
+		.DepthOrArraySize = 1,
+		.MipLevels = 1,
+		.Format = m_depthFormat,
+		.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
+		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+		.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
+	};
+
+	D3D12_CLEAR_VALUE depthClearValue{
+		.Format = m_depthFormat,
+		.DepthStencil = D3D12_DEPTH_STENCIL_VALUE{ .Depth = 1.0f, .Stencil = 0 },
+	};
+
+	if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE,
+		&depthResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&g.depthBuffer))))
+		return false;
+
+	D3D12_DESCRIPTOR_HEAP_DESC depthHeapDesc{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+		.NumDescriptors = 1,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		.NodeMask = 0,
+	};
+
+	if (FAILED(m_device->CreateDescriptorHeap(&depthHeapDesc, IID_PPV_ARGS(&g.depthHeap))))
+		return false;
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc{
+		.Format = m_depthFormat,
+		.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
+		.Flags = D3D12_DSV_FLAG_NONE,
+		.Texture2D = D3D12_TEX2D_DSV{ .MipSlice = 0 },
+	};
+
+	m_device->CreateDepthStencilView(g.depthBuffer.Get(), &depthViewDesc, g.depthHeap->GetCPUDescriptorHandleForHeapStart());
+
+	// the rasterization pipeline that draws into the g buffer. the formats of the pixel shader reflection do not describe the g buffer targets
+	Rasterization::RasterizationPipelineProperties properties;
+	properties.renderTargetFormats.assign(std::begin(g.formats), std::end(g.formats));
+
+	std::string error;
+	m_gBufferRasterization = m_pipelineFactory->CreateRasterizationPipeline(m_gBufferMaterial.get(), properties, error);
+
+	if (m_gBufferRasterization == nullptr) {
+		Logger::LogError("Failed to create the g buffer pipeline: " + error);
+		return false;
+	}
+
+	if (m_gBufferRasterization->Initialize((UInt32)m_gBufferEntities.size()) == false)
+		return false;
+
+	// the camera view of the base context is in a non shader visible heap, so it can be the source of a descriptor copy
+	m_gBufferRasterization->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+
+	for (auto& entityData : m_gBufferEntities) {
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(entityData.renderer->GetMesh()->GetGPUHandle());
+
+		if (meshController == nullptr) // the mesh is not uploaded to the GPU, the entity is not drawn
+			continue;
+
+		m_gBufferRasterization->SetEntityDescriptor(entityData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, entityData.transformCpuHandle);
+		m_gBufferRasterization->SetEntityGeometry(entityData.entity, *meshController->GetVertexView(), *meshController->GetIndexView(), meshController->GetMesh()->GetIndexCount());
+	}
+
+	return true;
+}
+
+void LuxonEngine::Rendering::DX12::DX12HybridContext::RenderGBuffer()
+{
+	auto& g = m_gBuffer;
+
+	D3D12_RESOURCE_BARRIER barriers[GBufferResources::TargetCount];
+
+	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
+		barriers[i] = D3D12_RESOURCE_BARRIER{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+				.pResource = g.buffers[i].Get(),
+				.Subresource = 0,
+				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
+				.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
+			},
+		};
+	}
+
+	m_commandList->ResourceBarrier(GBufferResources::TargetCount, barriers);
+
+	auto dsvHandle = g.depthHeap->GetCPUDescriptorHandleForHeapStart();
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	float clearPositionAndNormal[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float clearMask = 0.0f;
+	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Position], clearPositionAndNormal, 0, nullptr);
+	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Normal], clearPositionAndNormal, 0, nullptr);
+	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Mask], &clearMask, 0, nullptr);
+	m_commandList->OMSetRenderTargets(GBufferResources::TargetCount, g.rtvHandles, false, &dsvHandle);
+
+	D3D12_VIEWPORT viewPort{};
+	viewPort.Height = m_window->GetHeight();
+	viewPort.Width = m_window->GetWidth();
+	viewPort.TopLeftX = viewPort.TopLeftY = 0;
+	viewPort.MinDepth = 0.0f;
+	viewPort.MaxDepth = 1.0f;
+	m_commandList->RSSetViewports(1, &viewPort);
+
+	RECT scissorRect{};
+	scissorRect.left = scissorRect.top = 0;
+	scissorRect.right = m_window->GetWidth();
+	scissorRect.bottom = m_window->GetHeight();
+	m_commandList->RSSetScissorRects(1, &scissorRect);
+
+	// the pipeline binds its own descriptor heap
+	m_gBufferRasterization->Draw(m_commandList.Get());
+
+	for (auto& barrier : barriers)
+		std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+
+	m_commandList->ResourceBarrier(GBufferResources::TargetCount, barriers);
+}
+
+std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateRasterizationPipelines()
 {
 	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
 
-	struct MeshRendererData {
+	struct RasterizationEntityData {
 		GameEntity* entity;
 		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
 		ref<DX12MeshController> meshController;
 	};
 
-	std::map<ref<Material>, std::vector<MeshRendererData>> meshRendererMap;
+	std::map<ref<Material>, std::vector<RasterizationEntityData>> materialMap;
 
-	// group the mesh renderers by their material, one pipeline is created per material
+	// group the entities by their material, one pipeline is created per material
 	for (auto& entityGpu : m_entityGPUData) {
-		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer());
-		if (meshRenderer == nullptr || meshRenderer->GetMesh() == nullptr)
+		auto renderer = entityGpu.gameEntity->GetRenderer();
+		ref<Mesh> mesh;
+		ref<Material> material;
+		const char* rendererName = nullptr;
+
+		if (auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(renderer)) {
+			mesh = meshRenderer->GetMesh();
+			material = meshRenderer->GetMaterial();
+			rendererName = "mesh renderer";
+		}
+		else if (auto gBufferRenderer = std::dynamic_pointer_cast<GBufferRTReflectionRenderer>(renderer)) {
+			// the third stage of the reflection renderer. the g buffer and the ray tracing output are bound to the pipeline below
+			mesh = gBufferRenderer->GetMesh();
+			material = gBufferRenderer->GetMaterial();
+			rendererName = "g buffer renderer";
+		}
+
+		if (mesh == nullptr)
 			continue;
 
-		if (meshRenderer->GetMaterial() == nullptr) {
-			Logger::LogWarning("The mesh renderer of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
+		if (material == nullptr) {
+			Logger::LogWarning(std::string("The ") + rendererName + " of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
 			continue;
 		}
 
-		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(meshRenderer->GetMesh()->GetGPUHandle());
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(mesh->GetGPUHandle());
 		if (meshController == nullptr) // the mesh is not uploaded to the GPU
 			continue;
 
-		meshRendererMap[meshRenderer->GetMaterial()].push_back(MeshRendererData{
+		materialMap[material].push_back(RasterizationEntityData{
 			.entity = entityGpu.gameEntity.get(),
 			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
 			.meshController = meshController,
@@ -435,24 +645,34 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 	std::string error;
 	Rasterization::RasterizationPipelineProperties properties;
 
-	for (auto& [material, meshRendererList] : meshRendererMap) {
+	for (auto& [material, entityList] : materialMap) {
 		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), properties, error);
 
 		if (pipeline == nullptr) {
-			Logger::LogError("Failed to create the mesh renderer pipeline: " + error);
+			Logger::LogError("Failed to create the rasterization pipeline: " + error);
 			continue;
 		}
 
-		if (pipeline->Initialize((UInt32)meshRendererList.size()) == false)
+		if (pipeline->Initialize((UInt32)entityList.size()) == false)
 			continue;
 
 		pipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
 		pipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
 
-		for (auto& meshRendererData : meshRendererList) {
-			pipeline->SetEntityDescriptor(meshRendererData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, meshRendererData.transformHandle);
-			pipeline->SetEntityGeometry(meshRendererData.entity, *meshRendererData.meshController->GetVertexView(),
-				*meshRendererData.meshController->GetIndexView(), meshRendererData.meshController->GetMesh()->GetIndexCount());
+		// the variables of the reflection renderer stages. a program that does not use them ignores them
+		if (m_gBufferRasterization != nullptr) {
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Position]);
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Normal]);
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Mask]);
+		}
+
+		if (m_rtOutputCpuHeap != nullptr)
+			pipeline->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputCpuHeap->GetCPUDescriptorHandleForHeapStart());
+
+		for (auto& entityData : entityList) {
+			pipeline->SetEntityDescriptor(entityData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, entityData.transformHandle);
+			pipeline->SetEntityGeometry(entityData.entity, *entityData.meshController->GetVertexView(),
+				*entityData.meshController->GetIndexView(), entityData.meshController->GetMesh()->GetIndexCount());
 		}
 
 		pipelines.push_back(pipeline);

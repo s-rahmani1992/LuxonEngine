@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "BasicTypes.h"
 #include <string>
+#include <vector>
 
 namespace LuxonEngine::Rendering {
 	class Material;
@@ -25,6 +26,7 @@ namespace LuxonEngine::Rendering::DX12 {
 			bool enableDepthTest = true;
 			bool indexBufferEnabled = true;
 			D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // point, line or triangle. patches are not supported
+			std::vector<DXGI_FORMAT> renderTargetFormats; // overrides the formats of the pixel shader reflection when it is not empty. at most 8 render targets
 		};
 	}
 

@@ -57,12 +57,6 @@
     <ClInclude Include="DX12LightManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX12GameEntityPipelineModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX12GBufferPipelineModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DX12HybridContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -157,12 +151,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DX12LightManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DX12GameEntityPipelineModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DX12GBufferPipelineModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DX12HybridContext.cpp">

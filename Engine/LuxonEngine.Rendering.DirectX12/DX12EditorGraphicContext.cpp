@@ -3,12 +3,9 @@
 #include "Platform/GraphicWindow.h"
 #include "DX12Utilities.h"
 #include "DX12CommandExecuter.h"
-#include "DX12GameEntityPipelineModule.h"
 #include "Core/GameEntity.h"
 #include "Rendering/MeshRenderer.h"
 #include "Core/Scene.h"
-#include "Rasterization/DX12RasterizationMaterial.h"
-#include "Rasterization/HLSLRasterizationProgram.h"
 #include "DX12MaterialFactory.h"
 #include <Rendering/GBufferRTReflectionRenderer.h>
 #include <Rendering/SpikeMeshRenderer.h>
@@ -64,7 +61,7 @@ bool LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::PrepareScene(const 
 
 	UploadTexturesAndMeshes(scene);
 	InitializeEntityGPUData(scene->entities);
-	InitializePipelines(m_overrideMaterial);
+	InitializePipelines();
 
 	return true;
 }
@@ -123,13 +120,8 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Render()
 	m_commandList->RSSetScissorRects(1, &scissorRect);
 
 	// Draw
-	m_commandList->SetDescriptorHeaps(1, m_rasterHeap.GetAddressOf());
-	for (auto& pipeline : m_rasterizationPipelines) {
-		pipeline->Render(m_commandList, m_cameraHandle, m_lightHandle);
-	}
-
-	// the pipelines below bind their own descriptor heaps, so they are drawn after the pipelines using the raster heap
-	for (auto& pipeline : m_meshRendererPipelines)
+	// the pipelines bind their own descriptor heaps
+	for (auto& pipeline : m_rasterizationModules)
 		pipeline->Draw(m_commandList.Get());
 
 	DispatchMeshShadingPipelines(m_meshShadingPipelines);
@@ -202,90 +194,12 @@ bool LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializeDepthBuff
 	return true;
 }
 
-void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines(const ref<Material>& overrideMaterial)
+void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines()
 {
-	m_meshRendererData.clear();
-	m_rasterizationPipelines.clear();
-	m_meshRendererPipelines.clear();
+	m_rasterizationModules.clear();
 	m_meshShadingPipelines.clear();
 
-	// heap slots: camera + light + one transform per entity
-	UInt32 rasterHeapSize = 2 + static_cast<UInt32>(m_entityGPUData.size());
-
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = rasterHeapSize,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-	};
-
-	m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rasterHeap));
-
-	auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	auto cpuHandle = m_rasterHeap->GetCPUDescriptorHandleForHeapStart();
-	auto gpuHandle = m_rasterHeap->GetGPUDescriptorHandleForHeapStart();
-
-	// Camera CBV
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cameraViewDesc;
-	cameraViewDesc.BufferLocation = m_cameraBuffer->GetGPUVirtualAddress();
-	cameraViewDesc.SizeInBytes = CONSTANT_BUFFER_ALIGHT(sizeof(CameraGPU));
-	m_device->CreateConstantBufferView(&cameraViewDesc, cpuHandle);
-	m_cameraHandle = gpuHandle;
-
-	cpuHandle.ptr += incrementSize;
-	gpuHandle.ptr += incrementSize;
-
-	// Light CBV
-	D3D12_CONSTANT_BUFFER_VIEW_DESC lightViewDesc;
-	lightViewDesc.BufferLocation = m_lightManager.GetResource()->GetGPUVirtualAddress();
-	lightViewDesc.SizeInBytes = m_lightManager.GetResource()->GetDesc().Width;
-	m_device->CreateConstantBufferView(&lightViewDesc, cpuHandle);
-	m_lightHandle = gpuHandle;
-
-	cpuHandle.ptr += incrementSize;
-	gpuHandle.ptr += incrementSize;
-
-	// Build a single shared DX12RasterizationMaterial wrapping the override material
-	auto program = std::dynamic_pointer_cast<Rasterization::HLSLRasterizationProgram>(overrideMaterial->GetProgram());
-	auto sharedRasterMaterial = std::make_shared<Rasterization::DX12RasterizationMaterial>(overrideMaterial, program);
-
-	// Per-entity transform CBVs
-	for (auto& entityGpu : m_entityGPUData) {
-		// the mesh renderers are drawn by the new rasterization pipeline
-		if (std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer()) != nullptr)
-			continue;
-
-		auto mesh = ExtractMeshFromGameEntity(entityGpu.gameEntity);
-		if(mesh == nullptr)
-			continue;
-
-		D3D12_CONSTANT_BUFFER_VIEW_DESC transformViewDesc;
-		transformViewDesc.BufferLocation = entityGpu.transformResource->GetGPUVirtualAddress();
-		transformViewDesc.SizeInBytes = CONSTANT_BUFFER_ALIGHT(sizeof(TransformGPU));
-		m_device->CreateConstantBufferView(&transformViewDesc, cpuHandle);
-
-		m_meshRendererData.push_back(DX12MeshRendererGPUData{
-			.meshRenderer = std::make_shared<MeshRenderer>(mesh, nullptr),
-			.material = sharedRasterMaterial,
-			.transformResource = entityGpu.transformResource,
-			.transformHandle = gpuHandle,
-			});
-
-		cpuHandle.ptr += incrementSize;
-		gpuHandle.ptr += incrementSize;
-	}
-
-	for (auto& meshRenderData : m_meshRendererData) {
-		if(meshRenderData.meshRenderer->GetMesh() == nullptr)
-			continue;
-
-		auto pipeline = std::make_shared<DX12GameEntityPipelineModule>();
-		if (pipeline->Initialize(m_device, meshRenderData, m_depthFormat) == false)
-			continue;
-
-		m_rasterizationPipelines.push_back(pipeline);
-	}
-
-	m_meshRendererPipelines = CreateMeshRendererPipelines();
+	m_rasterizationModules = CreateRasterizationPipelines();
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
 
@@ -293,7 +207,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
 }
 
-std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::CreateMeshRendererPipelines()
+std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::CreateRasterizationPipelines()
 {
 	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
 
@@ -305,22 +219,50 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 
 	std::map<ref<Material>, std::vector<MeshRendererData>> meshRendererMap;
 
-	// group the mesh renderers by their material, one pipeline is created per material
+	// group the entities by material, one pipeline is created per material
 	for (auto& entityGpu : m_entityGPUData) {
-		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGpu.gameEntity->GetRenderer());
-		if (meshRenderer == nullptr || meshRenderer->GetMesh() == nullptr)
-			continue;
+		auto renderer = entityGpu.gameEntity->GetRenderer();
+		ref<Mesh> mesh;
+		ref<Material> material;
 
-		if (meshRenderer->GetMaterial() == nullptr) {
-			Logger::LogWarning("The mesh renderer of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
-			continue;
+		if (auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(renderer)) {
+			mesh = meshRenderer->GetMesh();
+			material = meshRenderer->GetMaterial();
+
+			if (mesh != nullptr && material == nullptr) {
+				Logger::LogWarning("The mesh renderer of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
+				continue;
+			}
+		}
+		else if (auto gBufferRenderer = std::dynamic_pointer_cast<GBufferRTReflectionRenderer>(renderer)) {
+			// the reflection material needs the ray tracing outputs, which the editor does not have. the g buffer renderers are drawn with the override material
+			mesh = gBufferRenderer->GetMesh();
+			material = m_overrideMaterial;
+
+			if (mesh != nullptr && material == nullptr) {
+				Logger::LogWarning("There is no override material to draw the g buffer renderer of " + entityGpu.gameEntity->GetName());
+				continue;
+			}
+		}
+		else {
+			// the entities with only a ray tracing component are drawn with the override material
+			mesh = ExtractMeshFromGameEntity(entityGpu.gameEntity);
+			material = m_overrideMaterial;
+
+			if (mesh != nullptr && material == nullptr) {
+				Logger::LogWarning("There is no override material to draw " + entityGpu.gameEntity->GetName());
+				continue;
+			}
 		}
 
-		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(meshRenderer->GetMesh()->GetGPUHandle());
+		if (mesh == nullptr)
+			continue;
+
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(mesh->GetGPUHandle());
 		if (meshController == nullptr) // the mesh is not uploaded to the GPU
 			continue;
 
-		meshRendererMap[meshRenderer->GetMaterial()].push_back(MeshRendererData{
+		meshRendererMap[material].push_back(MeshRendererData{
 			.entity = entityGpu.gameEntity.get(),
 			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
 			.meshController = meshController,
@@ -502,7 +444,7 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()
 	UploadTexturesAndMeshes(m_scene);
 	InitializeEntityGPUData(added);
 	// Rebuild pipelines for the full updated entity list
-	InitializePipelines(m_overrideMaterial);
+	InitializePipelines();
 }
 
 ref<LuxonEngine::Mesh> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::ExtractMeshFromGameEntity(const ref<GameEntity>& entity)

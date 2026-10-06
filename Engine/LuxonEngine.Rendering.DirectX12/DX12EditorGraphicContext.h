@@ -4,10 +4,7 @@
 
 namespace LuxonEngine::Rendering::DX12 {
 
-	class DX12GameEntityPipelineModule;
-
 	namespace Rasterization {
-		class DX12RasterizationMaterial;
 		class DX12RasterizationPipelineModule;
 	}
 
@@ -29,15 +26,12 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	private:
 		bool InitializeDepthBuffer();
-		void InitializePipelines(const ref<Material>& overrideMaterial);
+		void InitializePipelines();
 		void SyncEntities();
 
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 
-		/// <summary>
-		/// Creates one rasterization pipeline per material of the mesh renderers of the entities
-		/// </summary>
-		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateMeshRendererPipelines();
+		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateRasterizationPipelines();
 
 		static ref<Mesh> ExtractMeshFromGameEntity(const ref<GameEntity>& entity);
 
@@ -49,12 +43,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12Resource> m_depthStencilBuffer;
 		ComPtr<ID3D12DescriptorHeap> m_depthStencilvHeap;
 
-		ComPtr<ID3D12DescriptorHeap> m_rasterHeap;
-
-		std::vector<DX12MeshRendererGPUData> m_meshRendererData;
-		std::vector<ref<DX12GameEntityPipelineModule>> m_rasterizationPipelines;
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> m_meshShadingPipelines;
-		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_meshRendererPipelines;
+		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_rasterizationModules;
 
 		ref<Material> m_overrideMaterial;
 		ref<Scene> m_scene;
