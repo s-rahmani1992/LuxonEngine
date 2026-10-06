@@ -46,5 +46,8 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		ComPtr<IDxcBlob> m_vertexShader = nullptr;
 		ComPtr<IDxcBlob> m_geometryShader = nullptr;
 		ComPtr<IDxcBlob> m_pixelShader = nullptr;
+
+		InputAssemblyReflection m_inputAssemblyReflection;
+		RenderTargetReflection m_renderTargetReflection;
 	};
 }

@@ -26,6 +26,8 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	void FillRenderTargetReflection(RenderTargetReflection& reflection, ID3D12ShaderReflection* shaderReflection);
 
+	void FillInputAssemblyReflection(InputAssemblyReflection& reflection, ID3D12ShaderReflection* shaderReflection);
+
 	void FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, ID3D12ShaderReflection* shaderReflection);
 
 	ComPtr<ID3D12RootSignature> CreateRootSignature(const ComPtr<ID3D12Device10>& device, const ShaderVariableReflection& reflection,

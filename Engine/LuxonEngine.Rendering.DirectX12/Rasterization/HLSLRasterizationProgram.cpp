@@ -2,6 +2,7 @@
 #include "HLSLRasterizationProgram.h"
 #include "HLSLShader.h"
 #include <set>
+#include "../Core/HLSLVariableReflection.h"
 
 LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRasterizationProgram(const std::vector<HLSLShaderData>& shaders)
 {
@@ -9,21 +10,23 @@ LuxonEngine::Rendering::DX12::Rasterization::HLSLRasterizationProgram::HLSLRaste
     UInt8 rootParamIndex = 0;
 
 	for (auto& shader : shaders) {
+		auto shaderReflection = shader.reflection.Get();
+
         // Set Shader Stages
 		if (shader.shaderType == D3D12_SHVER_VERTEX_SHADER) {
 			m_vertexShader = shader.byteCode;
+			FillInputAssemblyReflection(m_inputAssemblyReflection, shaderReflection);
 		}
 		else if (shader.shaderType == D3D12_SHVER_GEOMETRY_SHADER) {
             m_geometryShader = shader.byteCode;
 		}
 		else if (shader.shaderType == D3D12_SHVER_PIXEL_SHADER) {
 			m_pixelShader = shader.byteCode;
+			FillRenderTargetReflection(m_renderTargetReflection, shaderReflection);
 		}
 
-		// Create Reflection Data by merging all shader reflections
-		auto shaderReflection = shader.reflection;	
-        
-		m_reflection.AddShaderReflection(shaderReflection.Get());
+		m_reflection.AddShaderReflection(shaderReflection);
+		AddShaderReflection(m_variableReflection, shaderReflection);
 	}
 }
 

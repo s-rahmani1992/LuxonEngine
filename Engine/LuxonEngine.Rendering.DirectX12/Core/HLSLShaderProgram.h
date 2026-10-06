@@ -29,6 +29,11 @@ namespace LuxonEngine::Rendering::DX12 {
 		std::vector<DXGI_FORMAT> formats;
 	};
 
+    struct InputAssemblyReflection {
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
+		std::set<std::string> inputElementNames;
+	};
+
     struct HLSLShaderData {
         D3D12_SHADER_VERSION_TYPE shaderType;
 		std::string entryPoint;
