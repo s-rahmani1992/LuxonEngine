@@ -4,6 +4,8 @@
 #include "../Mesh/HLSLMeshProgram.h"
 #include "../Rasterization/DX12RasterizationPipelineModule.h"
 #include "../Rasterization/HLSLRasterizationProgram.h"
+#include "../Compute/DX12ComputePipelineModule.h"
+#include "../Compute/HLSLComputeProgram.h"
 #include "Rendering/Material.h"
 #include <vector>
 
@@ -170,6 +172,11 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
+		if (properties.stripTopology && properties.topologyType == D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT) {
+			error = "A point topology can not be a strip";
+			return nullptr;
+		}
+
 		IDxcBlob* vertexShader = rasterizationProgram->GetVertexShader();
 		IDxcBlob* pixelShader = rasterizationProgram->GetPixelShader();
 		IDxcBlob* geometryShader = rasterizationProgram->GetGeometryShader();
@@ -211,7 +218,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		//Rasterizer, same as the other rasterization pipelines of the engine
 		pipelineStateDesc.RasterizerState = D3D12_RASTERIZER_DESC{
 			.FillMode = D3D12_FILL_MODE_SOLID,
-			.CullMode = D3D12_CULL_MODE_FRONT,
+			.CullMode = properties.cullMode,
 			.FrontCounterClockwise = FALSE,
 			.DepthBias = 0,
 			.DepthBiasClamp = 0.0f,
@@ -295,6 +302,61 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
-		return std::make_shared<Rasterization::DX12RasterizationPipelineModule>(m_device, pipelineState, rootSignature, material, properties.topologyType);
+		return std::make_shared<Rasterization::DX12RasterizationPipelineModule>(m_device, pipelineState, rootSignature, material, properties.topologyType, properties.stripTopology);
+	}
+
+	ref<Compute::DX12ComputePipelineModule> DX12PipelineFactory::CreateComputePipeline(Material* material, std::string& error)
+	{
+		if (material == nullptr) {
+			error = "Material is null";
+			return nullptr;
+		}
+
+		return CreateComputePipeline(material->GetProgram().get(), material, error);
+	}
+
+	ref<Compute::DX12ComputePipelineModule> DX12PipelineFactory::CreateComputePipeline(const ShaderProgram* program, std::string& error)
+	{
+		return CreateComputePipeline(program, nullptr, error);
+	}
+
+	ref<Compute::DX12ComputePipelineModule> DX12PipelineFactory::CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error)
+	{
+		auto computeProgram = dynamic_cast<const Compute::HLSLComputeProgram*>(program);
+
+		if (computeProgram == nullptr) {
+			error = "Program is not a compute shader program";
+			return nullptr;
+		}
+
+		IDxcBlob* computeShader = computeProgram->GetShader();
+
+		if (computeShader == nullptr) {
+			error = "Compute program has no compute shader";
+			return nullptr;
+		}
+
+		ID3D12RootSignature* rootSignature = computeProgram->GetRootSignature().Get();
+
+		if (rootSignature == nullptr) {
+			error = "Compute program has no root signature";
+			return nullptr;
+		}
+
+		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDesc{
+			.pRootSignature = rootSignature,
+			.CS = D3D12_SHADER_BYTECODE{ computeShader->GetBufferPointer(), computeShader->GetBufferSize() },
+			.NodeMask = 0,
+			.Flags = D3D12_PIPELINE_STATE_FLAG_NONE,
+		};
+
+		ComPtr<ID3D12PipelineState> pipelineState;
+
+		if (FAILED(m_device->CreateComputePipelineState(&pipelineStateDesc, IID_PPV_ARGS(&pipelineState)))) {
+			error = "Failed to create compute pipeline state";
+			return nullptr;
+		}
+
+		return std::make_shared<Compute::DX12ComputePipelineModule>(m_device, pipelineState, rootSignature, material);
 	}
 }

@@ -19,7 +19,7 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 	class DX12RasterizationPipelineModule {
 	public:
 		DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState,
-			ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+			ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, bool stripTopology = false);
 
 		~DX12RasterizationPipelineModule();
 
@@ -35,6 +35,11 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		bool SetEntityDescriptor(GameEntity* entity, const char* name, D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle);
 
 		bool SetEntityGeometry(GameEntity* entity, const D3D12_VERTEX_BUFFER_VIEW& vertexBuffer, const D3D12_INDEX_BUFFER_VIEW& indexBuffer, UInt32 indexCount);
+
+		/// <summary>
+		/// Sets the geometry that is drawn for the entity without an index buffer. the entity is not drawn while the vertex count is zero
+		/// </summary>
+		bool SetEntityGeometry(GameEntity* entity, const D3D12_VERTEX_BUFFER_VIEW& vertexBuffer, UInt32 vertexCount);
 
 		/// <summary>
 		/// Sets the pipeline state, root signature, topology and binds the global and material resources shared by all the entities.
@@ -65,6 +70,7 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 			D3D12_VERTEX_BUFFER_VIEW vertexBuffer = {};
 			D3D12_INDEX_BUFFER_VIEW indexBuffer = {};
 			UInt32 indexCount = 0;
+			UInt32 vertexCount = 0; // used when there is no index buffer
 		};
 
 		ComPtr<ID3D12PipelineState> m_pipelineState;

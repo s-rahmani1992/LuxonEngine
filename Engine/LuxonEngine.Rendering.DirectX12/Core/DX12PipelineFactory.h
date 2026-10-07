@@ -26,8 +26,15 @@ namespace LuxonEngine::Rendering::DX12 {
 			bool enableDepthTest = true;
 			bool indexBufferEnabled = true;
 			D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // point, line or triangle. patches are not supported
+			bool stripTopology = false; // draws line or triangle strips instead of lists. points have no strip
+			D3D12_CULL_MODE cullMode = D3D12_CULL_MODE_FRONT;
 			std::vector<DXGI_FORMAT> renderTargetFormats; // overrides the formats of the pixel shader reflection when it is not empty. at most 8 render targets
 		};
+	}
+
+	namespace Compute {
+		class DX12ComputePipelineModule;
+		class HLSLComputeProgram;
 	}
 
 	class DX12PipelineFactory {
@@ -40,7 +47,12 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(Material* material, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
 		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(const ShaderProgram* program, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
 
+		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(Material* material, std::string& error);
+		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, std::string& error);
+
 	private:
+		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error);
+
 		ref<MeshShading::DX12MeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, Material* material, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 
 		ref<Rasterization::DX12RasterizationPipelineModule> CreateRasterizationPipeline(const ShaderProgram* program, Material* material, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);

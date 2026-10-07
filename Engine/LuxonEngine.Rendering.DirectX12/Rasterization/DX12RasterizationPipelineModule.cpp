@@ -4,7 +4,7 @@
 #include "Rendering/Material.h"
 
 namespace LuxonEngine::Rendering::DX12::Rasterization {
-	DX12RasterizationPipelineModule::DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType)
+	DX12RasterizationPipelineModule::DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, bool stripTopology)
 		:m_pipelineState(pipelineState), m_rootSignature(rootSignature)
 	{
 		switch (topologyType) {
@@ -12,10 +12,10 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 			m_topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
 			break;
 		case D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
-			m_topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+			m_topology = stripTopology ? D3D_PRIMITIVE_TOPOLOGY_LINESTRIP : D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 			break;
 		default:
-			m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			m_topology = stripTopology ? D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP : D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 			break;
 		}
 
@@ -51,6 +51,20 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 		return m_resourceManager->SetEntityDescriptor(entity, name, sourceHandle);
 	}
 
+	bool DX12RasterizationPipelineModule::SetEntityGeometry(GameEntity* entity, const D3D12_VERTEX_BUFFER_VIEW& vertexBuffer, UInt32 vertexCount)
+	{
+		UInt32 slot = m_resourceManager->RegisterEntity(entity);
+
+		if (slot == DX12MaterialResourceManager::InvalidEntityIndex)
+			return false;
+
+		if (m_entityGeometries.size() <= slot)
+			m_entityGeometries.resize(slot + 1);
+
+		m_entityGeometries[slot] = EntityGeometry{ vertexBuffer, D3D12_INDEX_BUFFER_VIEW{}, 0, vertexCount };
+		return true;
+	}
+
 	bool DX12RasterizationPipelineModule::SetEntityGeometry(GameEntity* entity, const D3D12_VERTEX_BUFFER_VIEW& vertexBuffer, const D3D12_INDEX_BUFFER_VIEW& indexBuffer, UInt32 indexCount)
 	{
 		UInt32 slot = m_resourceManager->RegisterEntity(entity);
@@ -81,13 +95,20 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 
 		auto& geometry = m_entityGeometries[slot];
 
-		if (geometry.indexCount == 0)
+		if (geometry.indexCount == 0 && geometry.vertexCount == 0)
 			return false;
 
 		m_resourceManager->BindEntity(commandList, slot);
 		commandList->IASetVertexBuffers(0, 1, &geometry.vertexBuffer);
-		commandList->IASetIndexBuffer(&geometry.indexBuffer);
-		commandList->DrawIndexedInstanced(geometry.indexCount, 1, 0, 0, 0);
+
+		if (geometry.indexCount > 0) {
+			commandList->IASetIndexBuffer(&geometry.indexBuffer);
+			commandList->DrawIndexedInstanced(geometry.indexCount, 1, 0, 0, 0);
+		}
+		else {
+			commandList->DrawInstanced(geometry.vertexCount, 1, 0, 0);
+		}
+
 		return true;
 	}
 

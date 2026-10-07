@@ -16,6 +16,10 @@
 #include <Core/Mesh.h>
 #include <Mesh/DX12MeshPipelineModule.h>
 #include "Rasterization/DX12RasterizationPipelineModule.h"
+#include "Compute/DX12ComputePipelineModule.h"
+#include "DX12SplineVertex.h"
+#include <Rendering/SplineRenderer.h>
+#include <Rendering/ShaderRegistery.h>
 #include <Rendering/ShaderInternalNames.h>
 #include "DX12MeshController.h"
 #include "DX12Texture2DController.h"
@@ -119,6 +123,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::Render()
 	scissorRect.bottom = m_window->GetHeight();
 	m_commandList->RSSetScissorRects(1, &scissorRect);
 
+	// the spline vertices are generated before they are drawn
+	UpdateSplines();
+
 	// Draw
 	// the pipelines bind their own descriptor heaps
 	for (auto& pipeline : m_rasterizationModules)
@@ -200,6 +207,9 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::InitializePipelines
 	m_meshShadingPipelines.clear();
 
 	m_rasterizationModules = CreateRasterizationPipelines();
+
+	auto splinePipelines = CreateSplinePipelines();
+	m_rasterizationModules.insert(m_rasterizationModules.end(), splinePipelines.begin(), splinePipelines.end());
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
 
@@ -405,6 +415,218 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 	}
 
 	return pipelines;
+}
+
+std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::CreateSplinePipelines()
+{
+	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
+
+	m_splines.clear();
+	m_splineUavHeap = nullptr;
+
+	struct SplineEntry {
+		GameEntity* entity;
+		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
+		ref<SplineRenderer> renderer;
+	};
+
+	std::vector<SplineEntry> splineEntries;
+
+	for (auto& entityGpu : m_entityGPUData) {
+		auto splineRenderer = std::dynamic_pointer_cast<SplineRenderer>(entityGpu.gameEntity->GetRenderer());
+		if (splineRenderer == nullptr || splineRenderer->GetSegments() <= 0)
+			continue;
+
+		if (splineRenderer->GetMaterial() == nullptr) {
+			Logger::LogWarning("The spline renderer of " + entityGpu.gameEntity->GetName() + " has no material and is not drawn");
+			continue;
+		}
+
+		splineEntries.push_back(SplineEntry{
+			.entity = entityGpu.gameEntity.get(),
+			.transformHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
+			.renderer = splineRenderer,
+			});
+	}
+
+	if (splineEntries.empty())
+		return pipelines;
+
+	auto computeProgram = GetInternalProgram("Bezier_Curve_Compute_Program");
+
+	if (computeProgram == nullptr) {
+		Logger::LogError("The spline compute program is not registered, the splines are not drawn");
+		return pipelines;
+	}
+
+	// the unordered access views of the vertex buffers are the source of the descriptor copies of the compute modules
+	D3D12_DESCRIPTOR_HEAP_DESC uavHeapDesc{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		.NumDescriptors = (UInt32)splineEntries.size(),
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		.NodeMask = 0,
+	};
+
+	if (FAILED(m_device->CreateDescriptorHeap(&uavHeapDesc, IID_PPV_ARGS(&m_splineUavHeap)))) {
+		Logger::LogError("Failed to create the spline descriptor heap, the splines are not drawn");
+		return pipelines;
+	}
+
+	auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto uavStart = m_splineUavHeap->GetCPUDescriptorHandleForHeapStart();
+
+	// the thread group size of the compute shader
+	constexpr UInt32 threadsPerGroup = 32;
+	std::string error;
+	std::map<ref<Material>, std::vector<size_t>> materialMap; // material of the spline renderer -> indices in m_splines
+
+	for (UInt32 i = 0; i < splineEntries.size(); i++) {
+		auto& entry = splineEntries[i];
+		UInt32 vertexCount = (UInt32)entry.renderer->GetSegments() + 1;
+
+		SplineGPUData spline;
+		spline.renderer = entry.renderer;
+		spline.entity = entry.entity;
+		spline.transformHandle = entry.transformHandle;
+
+		D3D12_RESOURCE_DESC vertexBufferDesc = ResourceUtilities::GetCommonBufferResourceDesc(
+			sizeof(SplineVertex) * vertexCount, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+		if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE, &vertexBufferDesc,
+			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&spline.vertexBuffer)))) {
+			Logger::LogError("Failed to create the vertex buffer of " + entry.entity->GetName());
+			continue;
+		}
+
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
+			.Format = DXGI_FORMAT_UNKNOWN,
+			.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+			.Buffer = D3D12_BUFFER_UAV{
+				.FirstElement = 0,
+				.NumElements = vertexCount,
+				.StructureByteStride = sizeof(SplineVertex),
+				.CounterOffsetInBytes = 0,
+			},
+		};
+
+		D3D12_CPU_DESCRIPTOR_HANDLE uavHandle{ .ptr = uavStart.ptr + i * incrementSize };
+		m_device->CreateUnorderedAccessView(spline.vertexBuffer.Get(), nullptr, &uavDesc, uavHandle);
+
+		spline.vertexView = D3D12_VERTEX_BUFFER_VIEW{
+			.BufferLocation = spline.vertexBuffer->GetGPUVirtualAddress(),
+			.SizeInBytes = (UInt32)(sizeof(SplineVertex) * vertexCount),
+			.StrideInBytes = sizeof(SplineVertex),
+		};
+
+		// every spline has its own compute material, because the curve parameters are material values
+		spline.computeMaterial = DX12MaterialFactory::BuildMaterial(computeProgram);
+		spline.computeModule = spline.computeMaterial != nullptr ? m_pipelineFactory->CreateComputePipeline(spline.computeMaterial.get(), error) : nullptr;
+
+		if (spline.computeModule == nullptr) {
+			Logger::LogError("Failed to create the spline compute pipeline: " + error);
+			continue;
+		}
+
+		if (spline.computeModule->Initialize(1) == false)
+			continue;
+
+		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, uavHandle);
+		spline.computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
+
+		// the vertices are generated on the first render
+		spline.renderer->SetDirty();
+
+		materialMap[spline.renderer->GetMaterial()].push_back(m_splines.size());
+		m_splines.push_back(std::move(spline));
+	}
+
+	// the geometry shader turns every line of the strip into a quad, so the quads do not have a fixed winding
+	Rasterization::RasterizationPipelineProperties properties;
+	properties.topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	properties.stripTopology = true;
+	properties.cullMode = D3D12_CULL_MODE_NONE;
+
+	for (auto& [material, splineIndices] : materialMap) {
+		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), properties, error);
+
+		if (pipeline == nullptr) {
+			Logger::LogError("Failed to create the spline rasterization pipeline: " + error);
+			continue;
+		}
+
+		if (pipeline->Initialize((UInt32)splineIndices.size()) == false)
+			continue;
+
+		pipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+		pipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+
+		for (auto splineIndex : splineIndices) {
+			auto& spline = m_splines[splineIndex];
+			float width = spline.renderer->GetWidth();
+
+			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spline.transformHandle);
+			pipeline->SetEntityGeometry(spline.entity, spline.vertexView, (UInt32)spline.renderer->GetSegments() + 1);
+			pipeline->SetEntityConstant(spline.entity, INTERNAL_SPLINE_WIDTH_NAME, width);
+			spline.rasterModule = pipeline;
+		}
+
+		pipelines.push_back(pipeline);
+	}
+
+	return pipelines;
+}
+
+void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::UpdateSplines()
+{
+	for (auto& spline : m_splines) {
+		if (spline.renderer->IsDirty() == false)
+			continue;
+
+		auto& curve = spline.renderer->GetCurve();
+
+		// the curve parameters are the material values of the compute program
+		spline.computeMaterial->SetValue("startPoint", curve.m_point1);
+		spline.computeMaterial->SetValue("midPoint", curve.m_point2);
+		spline.computeMaterial->SetValue("endPoint", curve.m_point3);
+		spline.computeMaterial->SetValue("tileFactor", spline.renderer->GetTileFactor());
+		spline.computeMaterial->SetValue("length", curve.InterpolateLength(1.0f));
+
+		if (spline.rasterModule != nullptr) {
+			float width = spline.renderer->GetWidth();
+			spline.rasterModule->SetEntityConstant(spline.entity, INTERNAL_SPLINE_WIDTH_NAME, width);
+		}
+
+		// the vertex buffer is a vertex buffer in the common state and an unordered access buffer while it is generated
+		D3D12_RESOURCE_BARRIER barrier{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+				.pResource = spline.vertexBuffer.Get(),
+				.Subresource = 0,
+				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
+				.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			},
+		};
+
+		m_commandList->ResourceBarrier(1, &barrier);
+		spline.computeModule->Dispatch(m_commandList.Get());
+
+		std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+		m_commandList->ResourceBarrier(1, &barrier);
+	}
+}
+
+ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::GetInternalProgram(const std::string& identifier) const
+{
+	if (m_shaderProgramRegistery == nullptr)
+		return nullptr;
+
+	ShaderProgram* program = m_shaderProgramRegistery->GetShaderProgram(identifier);
+	if (program == nullptr)
+		return nullptr;
+
+	// the registery owns the program. the empty deleter keeps the ref from deleting it
+	return ref<ShaderProgram>(program, [](ShaderProgram*) {});
 }
 
 void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::SyncEntities()

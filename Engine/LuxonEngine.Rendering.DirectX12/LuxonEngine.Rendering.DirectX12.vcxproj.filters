@@ -66,11 +66,14 @@
     <ClInclude Include="DX12MaterialFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX12SplineRasterPipelineModule.h">
+    <ClInclude Include="DX12SplineVertex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mesh\HLSLMeshProgram.h">
       <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Compute\DX12ComputePipelineModule.h">
+      <Filter>Compute</Filter>
     </ClInclude>
     <ClInclude Include="Compute\HLSLComputeProgram.h">
       <Filter>Compute</Filter>
@@ -94,9 +97,6 @@
       <Filter>RayTracing</Filter>
     </ClInclude>
     <ClInclude Include="Rasterization\HLSLRasterizationProgram.h">
-      <Filter>Rasterization</Filter>
-    </ClInclude>
-    <ClInclude Include="Rasterization\DX12RasterizationMaterial.h">
       <Filter>Rasterization</Filter>
     </ClInclude>
     <ClInclude Include="Rasterization\DX12RasterizationPipelineModule.h">
@@ -162,11 +162,11 @@
     <ClCompile Include="DX12MaterialFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX12SplineRasterPipelineModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh\HLSLMeshProgram.cpp">
       <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Compute\DX12ComputePipelineModule.cpp">
+      <Filter>Compute</Filter>
     </ClCompile>
     <ClCompile Include="Compute\HLSLComputeProgram.cpp">
       <Filter>Compute</Filter>
@@ -190,9 +190,6 @@
       <Filter>RayTracing</Filter>
     </ClCompile>
     <ClCompile Include="Rasterization\HLSLRasterizationProgram.cpp">
-      <Filter>Rasterization</Filter>
-    </ClCompile>
-    <ClCompile Include="Rasterization\DX12RasterizationMaterial.cpp">
       <Filter>Rasterization</Filter>
     </ClCompile>
     <ClCompile Include="Rasterization\DX12RasterizationPipelineModule.cpp">

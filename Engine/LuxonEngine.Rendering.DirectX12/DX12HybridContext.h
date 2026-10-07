@@ -13,11 +13,13 @@ namespace LuxonEngine::Rendering::DX12 {
 	}
 
 	namespace Rasterization {
-		class DX12RasterizationMaterial;
 		class DX12RasterizationPipelineModule;
 	}
 
-	class DX12SplineRasterPipelineModule;
+	namespace Compute {
+		class DX12ComputePipelineModule;
+	}
+
 	class DX12PipelineFactory;
 
 	struct EntityGBufferData {
@@ -46,13 +48,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12DescriptorHeap> depthHeap;
 	};
 
-	struct SplineRendererData {
-	public:
-		ref<SplineRenderer> renderer;
-		ref<Rasterization::DX12RasterizationMaterial> material;
-		D3D12_GPU_DESCRIPTOR_HANDLE transformHandle;
-	};
-
 	class DX12HybridContext : public DX12GraphicContext
 	{
 	public:
@@ -77,9 +72,32 @@ namespace LuxonEngine::Rendering::DX12 {
 		/// Creates one rasterization pipeline per material of the mesh renderers and g buffer renderers of the entities
 		/// </summary>
 		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateRasterizationPipelines();
+
+		/// <summary>
+		/// Creates the pipelines of the spline renderers: a compute module per spline that generates the vertices and one rasterization module per material that draws them.
+		/// returns the rasterization modules
+		/// </summary>
+		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateSplinePipelines();
+
+		/// <summary>
+		/// Regenerates the vertices of the splines that changed. it records commands, so it is called while the command list is open
+		/// </summary>
+		void UpdateSplines();
+
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 
 	private:
+		struct SplineGPUData {
+			ref<SplineRenderer> renderer;
+			GameEntity* entity = nullptr;
+			D3D12_CPU_DESCRIPTOR_HANDLE transformHandle = {};
+			ComPtr<ID3D12Resource2> vertexBuffer;
+			D3D12_VERTEX_BUFFER_VIEW vertexView = {};
+			ref<Material> computeMaterial; // holds the curve parameters of the spline
+			ref<Compute::DX12ComputePipelineModule> computeModule;
+			ref<Rasterization::DX12RasterizationPipelineModule> rasterModule;
+		};
+
 		ref<DX12PipelineFactory> m_pipelineFactory;
 		ShaderRegistery* m_shaderProgramRegistery;
 
@@ -88,10 +106,10 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12Resource> m_depthStencilBuffer;
 		ComPtr<ID3D12DescriptorHeap> m_depthStencilvHeap;
 
-		ComPtr<ID3D12DescriptorHeap> m_rasterHeap;
-
 		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_rasterizationModules;
-		std::vector<ref<DX12SplineRasterPipelineModule>> m_splinePipelines;
+
+		std::vector<SplineGPUData> m_splines;
+		ComPtr<ID3D12DescriptorHeap> m_splineUavHeap; // non shader visible, the source of the vertex buffer descriptor copies
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> m_meshShadingPipelines;
 
 		std::vector<EntityGBufferData> m_gBufferEntities;
