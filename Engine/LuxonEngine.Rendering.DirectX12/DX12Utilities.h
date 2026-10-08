@@ -26,6 +26,6 @@ namespace LuxonEngine::Rendering::DX12 {
 	class ResourceUtilities
 	{
 	public:
-		static D3D12_RESOURCE_DESC GetCommonBufferResourceDesc(UInt32 size, D3D12_RESOURCE_FLAGS flag);
+		static D3D12_RESOURCE_DESC GetCommonBufferResourceDesc(UInt64 size, D3D12_RESOURCE_FLAGS flag);
 	};
 }

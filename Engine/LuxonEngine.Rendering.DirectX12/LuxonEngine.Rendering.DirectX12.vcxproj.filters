@@ -105,6 +105,12 @@
     <ClInclude Include="Core\DX12ShaderCompiler.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX12Buffer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12GPUResourceManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\DX12MaterialResourceManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -199,6 +205,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12MaterialResourceManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12Buffer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12GPUResourceManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\HLSLShader.cpp">

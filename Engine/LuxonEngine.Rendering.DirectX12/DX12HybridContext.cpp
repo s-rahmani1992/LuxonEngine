@@ -26,16 +26,20 @@
 #include "DX12Texture2DController.h"
 #include "DX12AssetManager.h"
 #include "DX12PipelineFactory.h"
+#include "Core/DX12GPUResourceManager.h"
 #include <Mesh/DX12MeshPipelineModule.h>
 #include "Rasterization/DX12RasterizationPipelineModule.h"
 #include <Core/Texture2D.h>
 #include <Core/Transform.h>
 #include <Core/Logger.h>
+#include "DX12Buffer.h"
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::Initialize(const ComPtr<ID3D12Device10>& device, const ComPtr<IDXGIFactory7>& factory)
 {
 	if (InitializeCommandObjects(device) == false)
 		return false;
+
+	m_resourceManager = std::make_shared<DX12GPUResourceManager>(device.Get(), m_bufferCount);
 
 	if (InitializeSwapChain(factory) == false)
 		return false;
@@ -69,6 +73,7 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Sce
 
 void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 {
+	m_resourceManager->BeginFrame();
 	UpdateDataHeaps();
 
 	// Reset Commands
@@ -771,35 +776,14 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 		spline.entity = entry.entity;
 		spline.transformHandle = entry.transformHandle;
 
-		D3D12_RESOURCE_DESC vertexBufferDesc = ResourceUtilities::GetCommonBufferResourceDesc(
-			sizeof(SplineVertex) * vertexCount, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		spline.vertexBufferData = m_resourceManager->CreateStructuredBuffer<SplineVertex>(DX12BufferDesc{
+			.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+			}, vertexCount);
 
-		if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE, &vertexBufferDesc,
-			D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&spline.vertexBuffer)))) {
+		if (!spline.vertexBufferData) {
 			Logger::LogError("Failed to create the vertex buffer of " + entry.entity->GetName());
 			continue;
 		}
-
-		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
-			.Format = DXGI_FORMAT_UNKNOWN,
-			.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-			.Buffer = D3D12_BUFFER_UAV{
-				.FirstElement = 0,
-				.NumElements = vertexCount,
-				.StructureByteStride = sizeof(SplineVertex),
-				.CounterOffsetInBytes = 0,
-			},
-		};
-
-		D3D12_CPU_DESCRIPTOR_HANDLE uavHandle{ .ptr = uavStart.ptr + i * incrementSize };
-		m_device->CreateUnorderedAccessView(spline.vertexBuffer.Get(), nullptr, &uavDesc, uavHandle);
-
-		spline.vertexView = D3D12_VERTEX_BUFFER_VIEW{
-			.BufferLocation = spline.vertexBuffer->GetGPUVirtualAddress(),
-			.SizeInBytes = (UInt32)(sizeof(SplineVertex) * vertexCount),
-			.StrideInBytes = sizeof(SplineVertex),
-		};
-
 		// every spline has its own compute material, because the curve parameters are material values
 		spline.computeMaterial = DX12MaterialFactory::BuildMaterial(computeProgram);
 		spline.computeModule = spline.computeMaterial != nullptr ? m_pipelineFactory->CreateComputePipeline(spline.computeMaterial.get(), error) : nullptr;
@@ -812,7 +796,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 		if (spline.computeModule->Initialize(1) == false)
 			continue;
 
-		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, uavHandle);
+		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBufferData->GetWriteHandle());
 		spline.computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 
 		// the vertices are generated on the first render
@@ -847,7 +831,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 			float width = spline.renderer->GetWidth();
 
 			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, spline.transformHandle);
-			pipeline->SetEntityGeometry(spline.entity, spline.vertexView, (UInt32)spline.renderer->GetSegments() + 1);
+			pipeline->SetEntityGeometry(spline.entity, spline.vertexBufferData->GetVertexBufferView(), (UInt32)spline.renderer->GetSegments() + 1);
 			pipeline->SetEntityConstant(spline.entity, INTERNAL_SPLINE_WIDTH_NAME, width);
 			spline.rasterModule = pipeline;
 		}
@@ -883,7 +867,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::UpdateSplines()
 			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
 			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
 			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-				.pResource = spline.vertexBuffer.Get(),
+				.pResource = spline.vertexBufferData->GetResource(),
 				.Subresource = 0,
 				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
 				.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,

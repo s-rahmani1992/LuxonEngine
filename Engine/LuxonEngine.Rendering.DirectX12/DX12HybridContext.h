@@ -1,5 +1,6 @@
 #pragma once
 #include "DX12GraphicContext.h"
+#include "Core/DX12Buffer.h"
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
@@ -21,6 +22,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	}
 
 	class DX12PipelineFactory;
+	class DX12GPUResourceManager;
 
 	struct EntityGBufferData {
 	public:
@@ -91,14 +93,14 @@ namespace LuxonEngine::Rendering::DX12 {
 			ref<SplineRenderer> renderer;
 			GameEntity* entity = nullptr;
 			D3D12_CPU_DESCRIPTOR_HANDLE transformHandle = {};
-			ComPtr<ID3D12Resource2> vertexBuffer;
-			D3D12_VERTEX_BUFFER_VIEW vertexView = {};
+			Ptr<DX12Buffer> vertexBufferData;
 			ref<Material> computeMaterial; // holds the curve parameters of the spline
 			ref<Compute::DX12ComputePipelineModule> computeModule;
 			ref<Rasterization::DX12RasterizationPipelineModule> rasterModule;
 		};
 
 		ref<DX12PipelineFactory> m_pipelineFactory;
+		ref<DX12GPUResourceManager> m_resourceManager;
 		ShaderRegistery* m_shaderProgramRegistery;
 
 		// Depth Stencil

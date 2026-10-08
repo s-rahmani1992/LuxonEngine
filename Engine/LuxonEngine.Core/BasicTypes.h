@@ -23,5 +23,8 @@ typedef float Float;
 template <typename T>
 using ref = std::shared_ptr<T>;
 
+template <typename T>
+using Ptr = std::unique_ptr<T>;
+
 #endif // !BASIC_TYPES
 

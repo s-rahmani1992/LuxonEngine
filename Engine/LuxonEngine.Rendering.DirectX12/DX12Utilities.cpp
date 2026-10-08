@@ -19,7 +19,7 @@ const D3D12_HEAP_PROPERTIES DirectX12::DescriptorUtilities::CommonDefaultHeapPro
 	.VisibleNodeMask = 0,
 };
 
-D3D12_RESOURCE_DESC LuxonEngine::Rendering::DX12::ResourceUtilities::GetCommonBufferResourceDesc(UInt32 size, D3D12_RESOURCE_FLAGS flag)
+D3D12_RESOURCE_DESC LuxonEngine::Rendering::DX12::ResourceUtilities::GetCommonBufferResourceDesc(UInt64 size, D3D12_RESOURCE_FLAGS flag)
 {
 	D3D12_RESOURCE_DESC resourceDesc;
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
