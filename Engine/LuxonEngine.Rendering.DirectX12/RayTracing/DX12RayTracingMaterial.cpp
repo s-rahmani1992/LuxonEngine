@@ -147,6 +147,20 @@ void LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetDescri
 		(*it).gpuHandle = handle;
 }
 
+bool LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::SetCPUDescriptor(const std::string& fieldName, const D3D12_CPU_DESCRIPTOR_HANDLE& sourceHandle)
+{
+	auto it = std::find_if(m_heapValues.begin(), m_heapValues.end(), [&fieldName](const HeapData& h) {
+		return h.fieldName == fieldName;
+		});
+
+	// cpuHandle is only assigned when the material is linked to a descriptor heap
+	if (it == m_heapValues.end() || it->cpuHandle.ptr == 0)
+		return false;
+
+	m_device->CopyDescriptorsSimple(1, it->cpuHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	return true;
+}
+
 UInt32 LuxonEngine::Rendering::DX12::RayTracing::DX12RayTracingMaterial::LinkUserMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset)
 {
 	auto cpuHandleStart = heap->GetCPUDescriptorHandleForHeapStart();

@@ -108,6 +108,15 @@
     <ClInclude Include="Core\DX12Buffer.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX12Texture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12RenderTexture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12DepthTexture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\DX12GPUResourceManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -208,6 +217,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12Buffer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12Texture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12GPUResourceManager.cpp">

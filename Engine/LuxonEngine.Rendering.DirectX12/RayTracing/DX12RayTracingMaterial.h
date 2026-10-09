@@ -23,6 +23,7 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		UInt32 LinkInternalMaterials(const ComPtr<ID3D12DescriptorHeap>& heap, UInt32 offset);
 
 		void SetDescriptorHandle(const std::string& fieldName, const D3D12_GPU_DESCRIPTOR_HANDLE& handle);
+		bool SetCPUDescriptor(const std::string& fieldName, const D3D12_CPU_DESCRIPTOR_HANDLE& sourceHandle);
 		void SetCBV(const std::string& name, const D3D12_CONSTANT_BUFFER_VIEW_DESC& cbv);
 		void SetSRV(const std::string& name,const ComPtr<ID3D12Resource2>& resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& srv);
 		

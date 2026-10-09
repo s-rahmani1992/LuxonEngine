@@ -256,9 +256,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		m_commandExecuter->ExecuteAndWait(m_commandList.Get());
 
 		auto rtGlob = m_GBufferrayTracingPipeline->GetMaterialInterface();
-		rtGlob->SetDescriptorHandle("_PositionTexture", m_gBuffer.srvHeaps[GBufferResources::Position]->GetGPUDescriptorHandleForHeapStart());
-		rtGlob->SetDescriptorHandle("_NormalTexture", m_gBuffer.srvHeaps[GBufferResources::Normal]->GetGPUDescriptorHandleForHeapStart());
-		rtGlob->SetDescriptorHandle("_MaskTexture", m_gBuffer.srvHeaps[GBufferResources::Mask]->GetGPUDescriptorHandleForHeapStart());
+		rtGlob->SetCPUDescriptor("_PositionTexture", m_gBuffer.renderTextures[GBufferResources::Position]->GetSrvHandle());
+		rtGlob->SetCPUDescriptor("_NormalTexture", m_gBuffer.renderTextures[GBufferResources::Normal]->GetSrvHandle());
+		rtGlob->SetCPUDescriptor("_MaskTexture", m_gBuffer.renderTextures[GBufferResources::Mask]->GetSrvHandle());
 		
 		// the output of the ray tracing stage is read by the third stage. a non shader visible view is the source of the descriptor copy
 		D3D12_DESCRIPTOR_HEAP_DESC rtOutputHeapDesc{
@@ -299,126 +299,30 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 	m_gBuffer = GBufferResources{};
 	auto& g = m_gBuffer;
 
-	D3D12_RESOURCE_DESC bufferDesc{
-		.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-		.Width = m_window->GetWidth(),
-		.Height = m_window->GetHeight(),
-		.DepthOrArraySize = 1,
-		.MipLevels = 1,
-		.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
-		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-		.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-	};
+	for (int i = 0; i < m_gBuffer.TargetCount; i++) {
+		m_gBuffer.renderTextures[i] = m_resourceManager->CreateRenderTexture(DX12TextureDesc{
+			.width = m_window->GetWidth(),
+			.height = m_window->GetHeight(),
+			.format = g.formats[i],
+			.clearValue = D3D12_CLEAR_VALUE{ 
+				.Format = g.formats[i],
+				.Color = { 0.0f, 0.0f, 0.0f, 0.0f } },
+			});
 
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-		.NumDescriptors = GBufferResources::TargetCount,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-		.NodeMask = 0,
-	};
-
-	// a shader visible heap can not be the source of a descriptor copy, so the views exist in a CPU only heap too
-	D3D12_DESCRIPTOR_HEAP_DESC cpuSrvHeapDesc{
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = GBufferResources::TargetCount,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-		.NodeMask = 0,
-	};
-
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = 1,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-		.NodeMask = 0,
-	};
-
-	if (FAILED(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&g.rtvHeap))) ||
-		FAILED(m_device->CreateDescriptorHeap(&cpuSrvHeapDesc, IID_PPV_ARGS(&g.cpuSrvHeap))))
-		return false;
-
-	auto rtvIncrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	auto srvIncrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	auto rtvStart = g.rtvHeap->GetCPUDescriptorHandleForHeapStart();
-	auto cpuSrvStart = g.cpuSrvHeap->GetCPUDescriptorHandleForHeapStart();
-
-	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
-		bufferDesc.Format = g.formats[i];
-
-		D3D12_CLEAR_VALUE clearValue{
-			.Format = g.formats[i],
-			.Color = { 0.0f, 0.0f, 0.0f, 0.0f }
-		};
-
-		if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE,
-			&bufferDesc, D3D12_RESOURCE_STATE_COMMON, &clearValue, IID_PPV_ARGS(&g.buffers[i]))))
+		if (m_gBuffer.renderTextures[i] == nullptr)
 			return false;
 
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{
-			.Format = g.formats[i],
-			.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
-			.Texture2D = D3D12_TEX2D_RTV{ .MipSlice = 0, .PlaneSlice = 0 },
-		};
-
-		g.rtvHandles[i] = D3D12_CPU_DESCRIPTOR_HANDLE{ .ptr = rtvStart.ptr + i * rtvIncrementSize };
-		m_device->CreateRenderTargetView(g.buffers[i].Get(), &rtvDesc, g.rtvHandles[i]);
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
-			.Format = g.formats[i],
-			.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-			.Texture2D = D3D12_TEX2D_SRV{ .MipLevels = 1 },
-		};
-
-		if (FAILED(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&g.srvHeaps[i]))))
-			return false;
-
-		m_device->CreateShaderResourceView(g.buffers[i].Get(), &srvDesc, g.srvHeaps[i]->GetCPUDescriptorHandleForHeapStart());
-
-		g.cpuSrvHandles[i] = D3D12_CPU_DESCRIPTOR_HANDLE{ .ptr = cpuSrvStart.ptr + i * srvIncrementSize };
-		m_device->CreateShaderResourceView(g.buffers[i].Get(), &srvDesc, g.cpuSrvHandles[i]);
+		m_gBuffer.rtvHandles[i] = m_gBuffer.renderTextures[i]->GetRtvHandle();
 	}
 
-	// Depth buffer of the g buffer pass
-	D3D12_RESOURCE_DESC depthResourceDesc{
-		.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-		.Alignment = 0,
-		.Width = m_window->GetWidth(),
-		.Height = m_window->GetHeight(),
-		.DepthOrArraySize = 1,
-		.MipLevels = 1,
-		.Format = m_depthFormat,
-		.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
-		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-		.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
-	};
-
-	D3D12_CLEAR_VALUE depthClearValue{
-		.Format = m_depthFormat,
-		.DepthStencil = D3D12_DEPTH_STENCIL_VALUE{ .Depth = 1.0f, .Stencil = 0 },
-	};
-
-	if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE,
-		&depthResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&g.depthBuffer))))
-		return false;
-
-	D3D12_DESCRIPTOR_HEAP_DESC depthHeapDesc{
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-		.NumDescriptors = 1,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-		.NodeMask = 0,
-	};
-
-	if (FAILED(m_device->CreateDescriptorHeap(&depthHeapDesc, IID_PPV_ARGS(&g.depthHeap))))
-		return false;
-
-	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc{
-		.Format = m_depthFormat,
-		.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
-		.Flags = D3D12_DSV_FLAG_NONE,
-		.Texture2D = D3D12_TEX2D_DSV{ .MipSlice = 0 },
-	};
-
-	m_device->CreateDepthStencilView(g.depthBuffer.Get(), &depthViewDesc, g.depthHeap->GetCPUDescriptorHandleForHeapStart());
+	m_gBuffer.depthTexture = m_resourceManager->CreateDepthTexture(DX12TextureDesc{
+		.width = m_window->GetWidth(),
+		.height = m_window->GetHeight(),
+		.format = m_depthFormat,
+		.clearValue = D3D12_CLEAR_VALUE{
+			.Format = m_depthFormat,
+			.DepthStencil = D3D12_DEPTH_STENCIL_VALUE{ .Depth = 1.0f, .Stencil = 0 } },
+		});
 
 	// the rasterization pipeline that draws into the g buffer. the formats of the pixel shader reflection do not describe the g buffer targets
 	Rasterization::RasterizationPipelineProperties properties;
@@ -462,7 +366,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::RenderGBuffer()
 			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
 			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
 			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-				.pResource = g.buffers[i].Get(),
+				.pResource = g.renderTextures[i]->GetResource(),
 				.Subresource = 0,
 				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
 				.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -472,7 +376,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::RenderGBuffer()
 
 	m_commandList->ResourceBarrier(GBufferResources::TargetCount, barriers);
 
-	auto dsvHandle = g.depthHeap->GetCPUDescriptorHandleForHeapStart();
+	auto dsvHandle = g.depthTexture->GetDsvHandle();
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	float clearPositionAndNormal[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -574,9 +478,9 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 
 		// the variables of the reflection renderer stages. a program that does not use them ignores them
 		if (m_gBufferRasterization != nullptr) {
-			pipeline->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Position]);
-			pipeline->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Normal]);
-			pipeline->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBuffer.cpuSrvHandles[GBufferResources::Mask]);
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Position]->GetSrvHandle());
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Normal]->GetSrvHandle());
+			pipeline->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Mask]->GetSrvHandle());
 		}
 
 		if (m_rtOutputCpuHeap != nullptr)

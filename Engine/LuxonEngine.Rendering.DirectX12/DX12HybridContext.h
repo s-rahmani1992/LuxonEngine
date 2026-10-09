@@ -1,6 +1,8 @@
 #pragma once
 #include "DX12GraphicContext.h"
 #include "Core/DX12Buffer.h"
+#include "Core/DX12RenderTexture.h"
+#include "Core/DX12DepthTexture.h"
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
@@ -40,14 +42,9 @@ namespace LuxonEngine::Rendering::DX12 {
 		static constexpr UInt32 Mask = 2;
 
 		DXGI_FORMAT formats[TargetCount] = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8_UINT };
-		ComPtr<ID3D12Resource2> buffers[TargetCount];
-		ComPtr<ID3D12DescriptorHeap> rtvHeap;
+		Ptr<DX12RenderTexture> renderTextures[TargetCount] = {};
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[TargetCount] = {};
-		ComPtr<ID3D12DescriptorHeap> srvHeaps[TargetCount]; // shader visible, read by the ray tracing stage
-		ComPtr<ID3D12DescriptorHeap> cpuSrvHeap; // non shader visible views, the source of the descriptor copies
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuSrvHandles[TargetCount] = {};
-		ComPtr<ID3D12Resource2> depthBuffer;
-		ComPtr<ID3D12DescriptorHeap> depthHeap;
+		Ptr<DX12DepthTexture> depthTexture;
 	};
 
 	class DX12HybridContext : public DX12GraphicContext
