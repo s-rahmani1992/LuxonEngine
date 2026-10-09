@@ -3,6 +3,7 @@
 #include "Core/DX12Buffer.h"
 #include "Core/DX12RenderTexture.h"
 #include "Core/DX12DepthTexture.h"
+#include "Core/DX12RenderPass.h"
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
@@ -41,6 +42,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		static constexpr UInt32 Normal = 1;
 		static constexpr UInt32 Mask = 2;
 
+		float clearColors[TargetCount][4] = { { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } };
 		DXGI_FORMAT formats[TargetCount] = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8_UINT };
 		Ptr<DX12RenderTexture> renderTextures[TargetCount] = {};
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[TargetCount] = {};
@@ -61,22 +63,21 @@ namespace LuxonEngine::Rendering::DX12 {
 
 	private:
 		bool InitializeDepthBuffer();
+		bool InitializeMainRenderPass();
 		void InitializePipelines();
 		bool InitializeGBuffer();
-		void RenderGBuffer();
 
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 
 		/// <summary>
 		/// Creates one rasterization pipeline per material of the mesh renderers and g buffer renderers of the entities
 		/// </summary>
-		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateRasterizationPipelines();
+		void CreateRasterizationPipelines();
 
 		/// <summary>
 		/// Creates the pipelines of the spline renderers: a compute module per spline that generates the vertices and one rasterization module per material that draws them.
-		/// returns the rasterization modules
 		/// </summary>
-		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> CreateSplinePipelines();
+		void CreateSplinePipelines();
 
 		/// <summary>
 		/// Regenerates the vertices of the splines that changed. it records commands, so it is called while the command list is open
@@ -100,16 +101,10 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<DX12GPUResourceManager> m_resourceManager;
 		ShaderRegistery* m_shaderProgramRegistery;
 
-		// Depth Stencil
 		const DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;
-		ComPtr<ID3D12Resource> m_depthStencilBuffer;
-		ComPtr<ID3D12DescriptorHeap> m_depthStencilvHeap;
-
-		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_rasterizationModules;
+		Ptr<DX12DepthTexture> m_depthTexture;
 
 		std::vector<SplineGPUData> m_splines;
-		ComPtr<ID3D12DescriptorHeap> m_splineUavHeap; // non shader visible, the source of the vertex buffer descriptor copies
-		std::vector<ref<MeshShading::DX12MeshPipelineModule>> m_meshShadingPipelines;
 
 		std::vector<EntityGBufferData> m_gBufferEntities;
 		GBufferResources m_gBuffer;
@@ -118,6 +113,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12DescriptorHeap> m_rtOutputCpuHeap; // CPU only view of the ray tracing output, the source of the descriptor copies
 		ref<RayTracing::DX12RayTracingPipelineModule> m_GBufferrayTracingPipeline;
 		float m_hybridBackgroundColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+		Ptr<DX12RenderPass> m_gBufferRenderPass;
+		Ptr<DX12RenderPass> m_mainRenderPass;
 	};
 }
-

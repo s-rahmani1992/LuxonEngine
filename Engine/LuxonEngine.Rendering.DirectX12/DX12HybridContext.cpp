@@ -64,6 +64,9 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Sce
 	m_hybridBackgroundColor[2] = colorArray[2];
 	m_hybridBackgroundColor[3] = colorArray[3];
 
+	if (InitializeMainRenderPass() == false)
+		return false;
+
 	UploadTexturesAndMeshes(scene);
 	InitializeEntityGPUData(scene->entities);
 	InitializePipelines();
@@ -80,76 +83,15 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
-	if (m_gBufferEntities.size() > 0) {
-		RenderGBuffer();
+	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr) {
+		m_gBufferRenderPass->Execute(m_commandList.Get());
 		m_GBufferrayTracingPipeline->RenderCommand(m_commandList, m_camera);
 	}
 
-	//Set Render Target
-	auto m_current_buffer_index = m_swapChain->GetCurrentBackBufferIndex();
-
-	D3D12_RESOURCE_BARRIER beginBarrier
-	{
-	.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-	.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-	.Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-		{
-		.pResource = m_renderBuffers[m_current_buffer_index].Get(),
-		.Subresource = 0,
-		.StateBefore = D3D12_RESOURCE_STATE_PRESENT,
-		.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
-		},
-	};
-	m_commandList->ResourceBarrier(1, &beginBarrier);
-
-	m_commandList->ClearDepthStencilView(m_depthStencilvHeap->GetCPUDescriptorHandleForHeapStart(),
-		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
-
-	auto dsvHandle = m_depthStencilvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_commandList->ClearRenderTargetView(m_rtvHandles[m_current_buffer_index], m_hybridBackgroundColor, 0, nullptr);
-	m_commandList->OMSetRenderTargets(1, &m_rtvHandles[m_current_buffer_index], false, &dsvHandle);
-	//Viewport
-	D3D12_VIEWPORT viewPort{};
-	viewPort.Height = m_window->GetHeight();
-	viewPort.Width = m_window->GetWidth();
-	viewPort.TopLeftX = viewPort.TopLeftY = 0;
-	viewPort.MinDepth = 0.0f;
-	viewPort.MaxDepth = 1.0f;
-	m_commandList->RSSetViewports(1, &viewPort);
-
-	//Rect Scissor
-	RECT scissorRect{};
-	scissorRect.left = scissorRect.top = 0;
-	scissorRect.right = m_window->GetWidth();
-	scissorRect.bottom = m_window->GetHeight();
-	m_commandList->RSSetScissorRects(1, &scissorRect);
-
-	// the spline vertices are generated before they are drawn
 	UpdateSplines();
 
-	//draw
-
-	// the pipelines bind their own descriptor heaps
-	for (auto& pipeline : m_rasterizationModules)
-		pipeline->Draw(m_commandList.Get());
-
-	DispatchMeshShadingPipelines(m_meshShadingPipelines);
-
-	//draw
-
-	D3D12_RESOURCE_BARRIER endBarrier
-	{
-	.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-	.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-	.Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-		{
-		.pResource = m_renderBuffers[m_current_buffer_index].Get(),
-		.Subresource = 0,
-		.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET,
-		.StateAfter = D3D12_RESOURCE_STATE_PRESENT,
-		},
-	};
-	m_commandList->ResourceBarrier(1, &endBarrier);
+	if (m_mainRenderPass != nullptr)
+		m_mainRenderPass->Execute(m_commandList.Get());
 
 	m_commandExecuter->ExecuteAndWait(m_commandList.Get());
 	m_swapChain->Present(1, 0);
@@ -157,51 +99,33 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeDepthBuffer()
 {
-	// Create Depth Buffer
-	D3D12_RESOURCE_DESC depthResourceDesc;
-	depthResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthResourceDesc.Alignment = 0;
-	depthResourceDesc.Width = m_window->GetWidth();
-	depthResourceDesc.Height = m_window->GetHeight();
-	depthResourceDesc.DepthOrArraySize = 1;
-	depthResourceDesc.MipLevels = 1;
-	depthResourceDesc.Format = m_depthFormat;
-	depthResourceDesc.SampleDesc.Count = 1;
-	depthResourceDesc.SampleDesc.Quality = 0;
-	depthResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	m_depthTexture = m_resourceManager->CreateDepthTexture(DX12TextureDesc{
+		.width = m_window->GetWidth(),
+		.height = m_window->GetHeight(),
+		.format = m_depthFormat,
+		.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		.clearValue = D3D12_CLEAR_VALUE{
+			.Format = m_depthFormat,
+			.DepthStencil = D3D12_DEPTH_STENCIL_VALUE{ .Depth = 1.0f, .Stencil = 0 } },
+		.name = L"Main Depth Texture",
+		});
 
-	D3D12_CLEAR_VALUE depthClearValue;
-	depthClearValue.Format = m_depthFormat;
-	depthClearValue.DepthStencil.Depth = 1.0f;
-	depthClearValue.DepthStencil.Stencil = 0;
+	return m_depthTexture != nullptr;
+}
 
-	if (FAILED(m_device->CreateCommittedResource(&DescriptorUtilities::CommonDefaultHeapProps, D3D12_HEAP_FLAG_NONE,
-		&depthResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue,
-		IID_PPV_ARGS(&m_depthStencilBuffer))))
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeMainRenderPass()
+{
+	m_mainRenderPass = std::make_unique<DX12RenderPass>();
+
+	DX12RenderPassParams params;
+	params.depthTarget = m_depthTexture.get();
+	params.clearColors = { { m_hybridBackgroundColor[0], m_hybridBackgroundColor[1], m_hybridBackgroundColor[2], m_hybridBackgroundColor[3] } };
+
+	if (m_mainRenderPass->Initialize(m_swapChain.Get(), params) == false) {
+		Logger::LogError("Failed to initialize the main render pass");
+		m_mainRenderPass = nullptr;
 		return false;
-
-	D3D12_DESCRIPTOR_HEAP_DESC depthHeapDesc{
-	.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-	.NumDescriptors = 1,
-	.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-	.NodeMask = 0,
-	};
-
-	if (FAILED(m_device->CreateDescriptorHeap(&depthHeapDesc, IID_PPV_ARGS(&m_depthStencilvHeap))))
-		return false;
-
-	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc{
-		.Format = m_depthFormat,
-		.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
-		.Flags = D3D12_DSV_FLAG_NONE,
-		.Texture2D = D3D12_TEX2D_DSV{.MipSlice = 0},
-	};
-
-	m_device->CreateDepthStencilView(
-		m_depthStencilBuffer.Get(),
-		&depthViewDesc,
-		m_depthStencilvHeap->GetCPUDescriptorHandleForHeapStart());
+	}
 
 	return true;
 }
@@ -224,6 +148,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 	if (m_gBufferEntities.size() > 0 && InitializeGBuffer() == false) {
 		Logger::LogError("Failed to initialize the g buffer pipeline, the g buffer renderers are not drawn");
 		m_gBufferRasterization = nullptr;
+		m_gBufferRenderPass = nullptr;
 		m_gBufferEntities.clear();
 	}
 
@@ -278,15 +203,15 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		}
 	}
 
-	m_rasterizationModules = CreateRasterizationPipelines();
+	CreateRasterizationPipelines();
+	CreateSplinePipelines();
 
-	auto splinePipelines = CreateSplinePipelines();
-	m_rasterizationModules.insert(m_rasterizationModules.end(), splinePipelines.begin(), splinePipelines.end());
+	// created by the shared base class setup, so they are added to the pass here. the pass keeps the modules alive
+	for (auto& spikePipeline : CreateSpikeMeshPipelines(*m_pipelineFactory))
+		m_mainRenderPass->AddPipeline(spikePipeline);
 
-	m_meshShadingPipelines = CreateSpikeMeshPipelines(*m_pipelineFactory);
-
-	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
-	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
+	// added to the pass by their own setup
+	CreateSurfaceInstancePipelines();
 }
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
@@ -296,6 +221,7 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 	if (m_gBufferMaterial == nullptr)
 		return false;
 
+	m_gBufferRenderPass = nullptr; // it points to the textures that are recreated below
 	m_gBuffer = GBufferResources{};
 	auto& g = m_gBuffer;
 
@@ -306,7 +232,7 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 			.format = g.formats[i],
 			.clearValue = D3D12_CLEAR_VALUE{ 
 				.Format = g.formats[i],
-				.Color = { 0.0f, 0.0f, 0.0f, 0.0f } },
+				.Color = { g.clearColors[i][0], g.clearColors[i][1], g.clearColors[i][2], g.clearColors[i][3] } },
 			});
 
 		if (m_gBuffer.renderTextures[i] == nullptr)
@@ -324,6 +250,9 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 			.DepthStencil = D3D12_DEPTH_STENCIL_VALUE{ .Depth = 1.0f, .Stencil = 0 } },
 		});
 
+	if (g.depthTexture == nullptr)
+		return false;
+
 	// the rasterization pipeline that draws into the g buffer. the formats of the pixel shader reflection do not describe the g buffer targets
 	Rasterization::RasterizationPipelineProperties properties;
 	properties.renderTargetFormats.assign(std::begin(g.formats), std::end(g.formats));
@@ -338,6 +267,24 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 
 	if (m_gBufferRasterization->Initialize((UInt32)m_gBufferEntities.size()) == false)
 		return false;
+
+	// phase 1: the g buffer renderers are drawn into the g buffer textures
+	std::vector<DX12RenderTexture*> gBufferTargets;
+	DX12RenderPassParams gBufferPassParams;
+	gBufferPassParams.depthTarget = g.depthTexture.get();
+	gBufferPassParams.renderTargetFinalState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
+		gBufferTargets.push_back(g.renderTextures[i].get());
+		gBufferPassParams.clearColors.push_back({ g.clearColors[i][0], g.clearColors[i][1], g.clearColors[i][2], g.clearColors[i][3] });
+	}
+
+	m_gBufferRenderPass = std::make_unique<DX12RenderPass>();
+	if (m_gBufferRenderPass->Initialize(gBufferTargets, gBufferPassParams) == false) {
+		m_gBufferRenderPass = nullptr;
+		return false;
+	}
+	m_gBufferRenderPass->AddPipeline(m_gBufferRasterization);
 
 	// the camera view of the base context is in a non shader visible heap, so it can be the source of a descriptor copy
 	m_gBufferRasterization->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
@@ -355,64 +302,8 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 	return true;
 }
 
-void LuxonEngine::Rendering::DX12::DX12HybridContext::RenderGBuffer()
+void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateRasterizationPipelines()
 {
-	auto& g = m_gBuffer;
-
-	D3D12_RESOURCE_BARRIER barriers[GBufferResources::TargetCount];
-
-	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
-		barriers[i] = D3D12_RESOURCE_BARRIER{
-			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-				.pResource = g.renderTextures[i]->GetResource(),
-				.Subresource = 0,
-				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
-				.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
-			},
-		};
-	}
-
-	m_commandList->ResourceBarrier(GBufferResources::TargetCount, barriers);
-
-	auto dsvHandle = g.depthTexture->GetDsvHandle();
-	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
-
-	float clearPositionAndNormal[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float clearMask = 0.0f;
-	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Position], clearPositionAndNormal, 0, nullptr);
-	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Normal], clearPositionAndNormal, 0, nullptr);
-	m_commandList->ClearRenderTargetView(g.rtvHandles[GBufferResources::Mask], &clearMask, 0, nullptr);
-	m_commandList->OMSetRenderTargets(GBufferResources::TargetCount, g.rtvHandles, false, &dsvHandle);
-
-	D3D12_VIEWPORT viewPort{};
-	viewPort.Height = m_window->GetHeight();
-	viewPort.Width = m_window->GetWidth();
-	viewPort.TopLeftX = viewPort.TopLeftY = 0;
-	viewPort.MinDepth = 0.0f;
-	viewPort.MaxDepth = 1.0f;
-	m_commandList->RSSetViewports(1, &viewPort);
-
-	RECT scissorRect{};
-	scissorRect.left = scissorRect.top = 0;
-	scissorRect.right = m_window->GetWidth();
-	scissorRect.bottom = m_window->GetHeight();
-	m_commandList->RSSetScissorRects(1, &scissorRect);
-
-	// the pipeline binds its own descriptor heap
-	m_gBufferRasterization->Draw(m_commandList.Get());
-
-	for (auto& barrier : barriers)
-		std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
-
-	m_commandList->ResourceBarrier(GBufferResources::TargetCount, barriers);
-}
-
-std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateRasterizationPipelines()
-{
-	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
-
 	struct RasterizationEntityData {
 		GameEntity* entity;
 		D3D12_CPU_DESCRIPTOR_HANDLE transformHandle;
@@ -492,10 +383,8 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 				*entityData.meshController->GetIndexView(), entityData.meshController->GetMesh()->GetIndexCount());
 		}
 
-		pipelines.push_back(pipeline);
+		m_mainRenderPass->AddPipeline(pipeline);
 	}
-
-	return pipelines;
 }
 
 std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSurfaceInstancePipelines()
@@ -602,18 +491,16 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 		}
 
 		pipelines.push_back(surfaceInstancePipeline);
+		m_mainRenderPass->AddPipeline(surfaceInstancePipeline);
 	}
 
 	return pipelines;
 }
 
 
-std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPipelineModule>> LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
+void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
 {
-	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
-
 	m_splines.clear();
-	m_splineUavHeap = nullptr;
 
 	struct SplineEntry {
 		GameEntity* entity;
@@ -641,13 +528,13 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 	}
 
 	if (splineEntries.empty())
-		return pipelines;
+		return;
 
 	auto computeProgram = GetInternalProgram("Bezier_Curve_Compute_Program");
 
 	if (computeProgram == nullptr) {
 		Logger::LogError("The spline compute program is not registered, the splines are not drawn");
-		return pipelines;
+		return;
 	}
 
 	// the unordered access views of the vertex buffers are the source of the descriptor copies of the compute modules
@@ -658,13 +545,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 		.NodeMask = 0,
 	};
 
-	if (FAILED(m_device->CreateDescriptorHeap(&uavHeapDesc, IID_PPV_ARGS(&m_splineUavHeap)))) {
-		Logger::LogError("Failed to create the spline descriptor heap, the splines are not drawn");
-		return pipelines;
-	}
-
 	auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	auto uavStart = m_splineUavHeap->GetCPUDescriptorHandleForHeapStart();
 
 	// the thread group size of the compute shader
 	constexpr UInt32 threadsPerGroup = 32;
@@ -740,10 +621,8 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 			spline.rasterModule = pipeline;
 		}
 
-		pipelines.push_back(pipeline);
+		m_mainRenderPass->AddPipeline(pipeline);
 	}
-
-	return pipelines;
 }
 
 void LuxonEngine::Rendering::DX12::DX12HybridContext::UpdateSplines()

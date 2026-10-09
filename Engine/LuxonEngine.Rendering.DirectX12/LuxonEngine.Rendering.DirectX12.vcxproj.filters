@@ -111,6 +111,12 @@
     <ClInclude Include="Core\DX12Texture.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX12Pass.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12RenderPass.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\DX12RenderTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -220,6 +226,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12Texture.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12Pass.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12RenderPass.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12GPUResourceManager.cpp">
