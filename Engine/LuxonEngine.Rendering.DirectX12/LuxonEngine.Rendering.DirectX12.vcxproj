@@ -225,6 +225,7 @@
     <ClInclude Include="RayTracing\DX12RayTracingPipelineModule.h" />
     <ClInclude Include="RayTracing\HLSLRayTracingProgram.h" />
     <ClInclude Include="RayTracing\RTStateObjectBuilder.h" />
+    <ClInclude Include="RayTracing\DXILRuntimeData.h" />
     <ClInclude Include="RayTracing\RTSceneAccelerationStructure.h" />
     <ClInclude Include="RayTracing\DX12RayTracingResourceTable.h" />
   </ItemGroup>
@@ -267,6 +268,7 @@
     <ClCompile Include="RayTracing\DX12RayTracingPipelineModule.cpp" />
     <ClCompile Include="RayTracing\HLSLRayTracingProgram.cpp" />
     <ClCompile Include="RayTracing\RTStateObjectBuilder.cpp" />
+    <ClCompile Include="RayTracing\DXILRuntimeData.cpp" />
     <ClCompile Include="RayTracing\RTSceneAccelerationStructure.cpp" />
     <ClCompile Include="RayTracing\DX12RayTracingResourceTable.cpp" />
     <ClCompile Include="DX12API.cpp">

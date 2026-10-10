@@ -52,8 +52,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		};
 
 		struct RayTracingPipelineProperties {
-			UInt32 maxPayloadSize = 6 * sizeof(Float); // TODO Get it from reflection. size of the payload of the shaders in bytes
-			UInt32 maxAttributeSize = 2 * sizeof(Float); // TODO Get it from reflection. size of the hit attributes in bytes. 8 for the built in triangle attributes
+			UInt32 maxPayloadSize = 6 * sizeof(Float); // size of the payload of the shaders in bytes. the default, used when the sizes cannot be read from the shader libraries
+			UInt32 maxAttributeSize = 2 * sizeof(Float); // size of the hit attributes in bytes. the default, used when the sizes cannot be read from the shader libraries. 8 for the built in triangle attributes
 			UInt32 maxRecursionDepth = 7;
 		};
 	}

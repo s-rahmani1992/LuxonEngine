@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RTStateObjectBuilder.h"
 #include "HLSLRayTracingProgram.h"
+#include <algorithm>
 
 namespace LuxonEngine::Rendering::DX12::RayTracing {
 	ComPtr<ID3D12StateObject> RTStateObjectBuilder::Create(ID3D12Device10* device, const RayTracingPipelineProperties& properties,
@@ -9,6 +10,26 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		if (globalProgram == nullptr || globalProgram->GetRootSignature() == nullptr) {
 			error = "The global ray tracing program has no root signature";
 			return nullptr;
+		}
+
+		UInt32 payloadSize = properties.maxPayloadSize;
+		UInt32 attributeSize = properties.maxAttributeSize;
+		bool sizesKnown = globalProgram->HasShaderSizes();
+		UInt32 maxPayloadSize = globalProgram->GetPayloadSize();
+		UInt32 maxAttributeSize = globalProgram->GetAttributeSize();
+
+		for (auto* program : localPrograms) {
+			if (program == nullptr)
+				continue;
+
+			sizesKnown = sizesKnown && program->HasShaderSizes();
+			maxPayloadSize = std::max(maxPayloadSize, program->GetPayloadSize());
+			maxAttributeSize = std::max(maxAttributeSize, program->GetAttributeSize());
+		}
+
+		if (sizesKnown) {
+			payloadSize = maxPayloadSize > 0 ? maxPayloadSize : payloadSize;
+			attributeSize = maxAttributeSize > 0 ? maxAttributeSize : attributeSize;
 		}
 
 		struct LocalProgramData {
@@ -44,8 +65,8 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		D3D12_STATE_SUBOBJECT* globalRootSignaturePtr = &subobjects.back();
 
 		D3D12_RAYTRACING_SHADER_CONFIG shaderConfig{
-			.MaxPayloadSizeInBytes = properties.maxPayloadSize,
-			.MaxAttributeSizeInBytes = properties.maxAttributeSize,
+			.MaxPayloadSizeInBytes = payloadSize,
+			.MaxAttributeSizeInBytes = attributeSize,
 		};
 
 		subobjects.push_back(D3D12_STATE_SUBOBJECT{

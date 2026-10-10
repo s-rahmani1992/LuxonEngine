@@ -2,6 +2,9 @@
 #include "HLSLRayTracingProgram.h"
 #include "StringUtilities.h"
 #include "../Core/HLSLVariableReflection.h"
+#include "DXILRuntimeData.h"
+#include "Core/Logger.h"
+#include <algorithm>
 
 UInt32 LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::m_programCounter = 0;
 
@@ -86,12 +89,64 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 	m_hitDesc.HitGroupExport = m_hitGroupExportName.c_str();
 	m_hitDesc.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
 
+	ReadShaderSizes(byteCode.Get());
+
 	m_dxilData.DXILLibrary = D3D12_SHADER_BYTECODE{
 		.pShaderBytecode = m_shaderCode->GetBufferPointer(),
 		.BytecodeLength = m_shaderCode->GetBufferSize(),
 	};
 	m_dxilData.NumExports = m_exportDescs.size();
 	m_dxilData.pExports = m_exportDescs.data();
+}
+
+void LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::ReadShaderSizes(IDxcBlob* library)
+{
+	std::vector<DXILFunctionData> functions;
+
+	if (ReadDXILFunctions(library, functions) == false) {
+		Logger::LogWarning("The runtime data of a ray tracing library cannot be read, the default payload and attribute sizes are used");
+		return;
+	}
+
+	struct Stage {
+		const std::wstring& entry;
+		DXILShaderKind kind;
+	};
+
+	const Stage stages[] = {
+		{ m_rayGenOriginalName, DXILShaderKind::RayGeneration },
+		{ m_intersectionOriginalName, DXILShaderKind::Intersection },
+		{ m_anyHitOriginalName, DXILShaderKind::AnyHit },
+		{ m_closestHitOriginalName, DXILShaderKind::ClosestHit },
+		{ m_missOriginalName, DXILShaderKind::Miss },
+	};
+
+	UInt32 payloadSize = 0;
+	UInt32 attributeSize = 0;
+
+	for (auto& stage : stages) {
+		if (stage.entry.empty())
+			continue;
+
+		std::string entry(stage.entry.begin(), stage.entry.end());
+
+		auto functionIt = std::find_if(functions.begin(), functions.end(), [&entry](const DXILFunctionData& function) {
+			return function.name == entry || function.mangledName.find("?" + entry + "@@") != std::string::npos;
+			});
+
+		// the shader kind confirms that the fields of the runtime data are read from the right place
+		if (functionIt == functions.end() || functionIt->shaderKind != (UInt32)stage.kind) {
+			Logger::LogWarning("The runtime data of a ray tracing library does not match its shaders, the default payload and attribute sizes are used");
+			return;
+		}
+
+		payloadSize = std::max(payloadSize, functionIt->payloadSize);
+		attributeSize = std::max(attributeSize, functionIt->attributeSize);
+	}
+
+	m_payloadSize = payloadSize;
+	m_attributeSize = attributeSize;
+	m_hasShaderSizes = true;
 }
 
 bool LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error)

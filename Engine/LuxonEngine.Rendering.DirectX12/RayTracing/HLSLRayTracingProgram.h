@@ -41,6 +41,21 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		UInt32 GetRecordArgumentSize() const { return m_recordArgumentSize; }
 
 		/// <summary>
+		/// Determines if the payload and attribute sizes of this program are known. They are read from the runtime data of the library
+		/// </summary>
+		bool HasShaderSizes() const { return m_hasShaderSizes; }
+
+		/// <summary>
+		/// Gets the largest payload size in bytes of the shaders of this program
+		/// </summary>
+		UInt32 GetPayloadSize() const { return m_payloadSize; }
+
+		/// <summary>
+		/// Gets the largest hit attribute size in bytes of the shaders of this program
+		/// </summary>
+		UInt32 GetAttributeSize() const { return m_attributeSize; }
+
+		/// <summary>
 		/// Gets pointer to DXIL data of this program
 		/// </summary>
 		/// <returns></returns>
@@ -87,6 +102,8 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		bool HasMissStage() { return m_missOriginalName.empty() == false; }
 
 	private:
+		void ReadShaderSizes(IDxcBlob* library);
+
 		static UInt32 m_programCounter;
 		ComPtr<IDxcBlob> m_shaderCode;
 
@@ -111,6 +128,10 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 
 		std::vector<UInt32> m_recordOffsets; // root parameter index -> offset of its argument in a shader record
 		UInt32 m_recordArgumentSize = 0;
+
+		bool m_hasShaderSizes = false;
+		UInt32 m_payloadSize = 0;
+		UInt32 m_attributeSize = 0;
 
 		D3D12_DXIL_LIBRARY_DESC m_dxilData;
 		std::vector<D3D12_EXPORT_DESC> m_exportDescs;
