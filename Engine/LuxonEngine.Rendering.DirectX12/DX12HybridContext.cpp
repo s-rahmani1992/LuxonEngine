@@ -3,7 +3,7 @@
 #include "Platform/GraphicWindow.h"
 #include "DX12Utilities.h"
 #include "DX12CommandExecuter.h"
-#include "RayTracing/Dx12RayTracingPipelineModule.h"
+#include "RayTracing/DX12RayTracingPipelineModule.h"
 #include "HLSLShaderProgram.h"
 #include <set>
 #include <map>
@@ -19,7 +19,6 @@
 #include "DX12SplineVertex.h"
 #include "Compute/DX12ComputePipelineModule.h"
 #include "DX12MaterialFactory.h"
-#include "RayTracing/DX12RayTracingMaterial.h"
 #include <Rendering/SpikeMeshRenderer.h>
 #include <Rendering/SurfaceInstanceRenderer.h>
 #include <Rendering/ShaderInternalNames.h>
@@ -85,7 +84,27 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 
 	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr) {
 		m_gBufferRenderPass->Execute(m_commandList.Get());
-		m_GBufferrayTracingPipeline->RenderCommand(m_commandList, m_camera);
+
+		if (m_GBufferrayTracingPipeline != nullptr && m_rtOutputTexture != nullptr) {
+			// the output is written by the ray tracing stage. the main render pass transitions it to be sampled
+			if (m_rtOutputTexture->GetState() != D3D12_RESOURCE_STATE_UNORDERED_ACCESS) {
+				D3D12_RESOURCE_BARRIER barrier{
+					.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+					.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+					.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+						.pResource = m_rtOutputTexture->GetResource(),
+						.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+						.StateBefore = m_rtOutputTexture->GetState(),
+						.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+					},
+				};
+
+				m_commandList->ResourceBarrier(1, &barrier);
+				m_rtOutputTexture->SetState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			}
+
+			m_GBufferrayTracingPipeline->Dispatch(m_commandList.Get());
+		}
 	}
 
 	UpdateSplines();
@@ -152,56 +171,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 		m_gBufferEntities.clear();
 	}
 
-	if (m_gBufferEntities.size() > 0) {
-		// Initialize Ray Tracing Stage of Reflection Renderer
-		std::vector<DX12RayTracingGPUData> rtEntityData;
-
-		for (auto& entity : m_entityGPUData) {
-			auto rtComponent = entity.gameEntity->GetRayTracingComponent();
-
-			if (rtComponent == nullptr)
-				continue;
-
-			rtEntityData.push_back(DX12RayTracingGPUData{
-				.meshController = std::dynamic_pointer_cast<DX12MeshController>(rtComponent->GetMesh()->GetGPUHandle()),
-				.material = rtComponent->GetRTMaterial(),
-				.transformResource = entity.transformResource,
-				.transform = entity.gameEntity->GetTransform(),
-				});
-		}
-		auto gBufferRTMaterial = DX12MaterialFactory::BuildMaterial(GetInternalProgram("G_Buffer_RT_Global_Program"));
-		gBufferRTMaterial->SetValue("missColor", m_hybridBackgroundColor, sizeof(m_hybridBackgroundColor));
-		m_GBufferrayTracingPipeline = std::make_shared<RayTracing::DX12RayTracingPipelineModule>();
-
-		m_commandAllocator->Reset();
-		m_commandList->Reset(m_commandAllocator.Get(), nullptr);
-		
-		m_GBufferrayTracingPipeline->Initialize(m_commandList, rtEntityData, m_window->GetWidth(), m_window->GetHeight(), gBufferRTMaterial, m_cameraBuffer, m_lightManager.GetResource());
-
-		m_commandExecuter->ExecuteAndWait(m_commandList.Get());
-
-		auto rtGlob = m_GBufferrayTracingPipeline->GetMaterialInterface();
-		rtGlob->SetCPUDescriptor("_PositionTexture", m_gBuffer.renderTextures[GBufferResources::Position]->GetSrvHandle());
-		rtGlob->SetCPUDescriptor("_NormalTexture", m_gBuffer.renderTextures[GBufferResources::Normal]->GetSrvHandle());
-		rtGlob->SetCPUDescriptor("_MaskTexture", m_gBuffer.renderTextures[GBufferResources::Mask]->GetSrvHandle());
-		
-		// the output of the ray tracing stage is read by the third stage. a non shader visible view is the source of the descriptor copy
-		D3D12_DESCRIPTOR_HEAP_DESC rtOutputHeapDesc{
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			.NumDescriptors = 1,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-			.NodeMask = 0,
-		};
-
-		if (SUCCEEDED(m_device->CreateDescriptorHeap(&rtOutputHeapDesc, IID_PPV_ARGS(&m_rtOutputCpuHeap)))) {
-			D3D12_SHADER_RESOURCE_VIEW_DESC outRTDesc = {};
-			outRTDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-			outRTDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			outRTDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			outRTDesc.Texture2D = D3D12_TEX2D_SRV{ .MipLevels = 1, };
-			m_device->CreateShaderResourceView(m_GBufferrayTracingPipeline->GetOutputBuffer().Get(), &outRTDesc, m_rtOutputCpuHeap->GetCPUDescriptorHandleForHeapStart());
-		}
-	}
+	if (m_gBufferEntities.size() > 0)
+		InitializeRayTracingStage();
 
 	CreateRasterizationPipelines();
 	CreateSplinePipelines();
@@ -212,6 +183,76 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 
 	// added to the pass by their own setup
 	CreateSurfaceInstancePipelines();
+}
+
+void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeRayTracingStage()
+{
+	// the output of the ray tracing stage. it is written as an unordered access view and sampled by the third stage
+	m_rtOutputTexture = m_resourceManager->CreateTexture(DX12TextureDesc{
+		.width = m_window->GetWidth(),
+		.height = m_window->GetHeight(),
+		.format = DXGI_FORMAT_R8G8B8A8_UNORM,
+		.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+		.name = L"Ray Tracing Output Texture",
+		});
+
+	m_gBufferRTMaterial = DX12MaterialFactory::BuildMaterial(GetInternalProgram("G_Buffer_RT_Global_Program"));
+
+	if (m_rtOutputTexture == nullptr || m_gBufferRTMaterial == nullptr) {
+		Logger::LogError("Failed to create the resources of the ray tracing stage, the reflections are not traced");
+		m_rtOutputTexture = nullptr;
+		return;
+	}
+
+	m_gBufferRTMaterial->SetValue("missColor", m_hybridBackgroundColor, sizeof(m_hybridBackgroundColor));
+
+	// the pipeline is created with all the entities at once
+	std::vector<RayTracing::RayTracingEntityDesc> entityDescs;
+
+	for (auto& entity : m_entityGPUData) {
+		auto rtComponent = entity.gameEntity->GetRayTracingComponent();
+
+		if (rtComponent != nullptr)
+			entityDescs.push_back(RayTracing::RayTracingEntityDesc{ rtComponent.get(), entity.gameEntity.get() });
+	}
+
+	std::string error;
+	m_GBufferrayTracingPipeline = m_pipelineFactory->CreateRayTracingPipeline(RayTracing::RayTracingPipelineProperties{}, m_gBufferRTMaterial.get(), entityDescs, error);
+
+	if (m_GBufferrayTracingPipeline == nullptr) {
+		Logger::LogError("Failed to create the ray tracing pipeline: " + error);
+		m_rtOutputTexture = nullptr;
+		return;
+	}
+
+	m_GBufferrayTracingPipeline->SetDimensions(m_window->GetWidth(), m_window->GetHeight());
+
+	// the views are in non shader visible heaps, so they can be the source of the descriptor copies
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraHeap->GetCPUDescriptorHandleForHeapStart());
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightManager.GetDescriptor()->GetCPUDescriptorHandleForHeapStart());
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Position]->GetSrvHandle());
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Normal]->GetSrvHandle());
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Mask]->GetSrvHandle());
+	m_GBufferrayTracingPipeline->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetUavHandle());
+
+	for (auto& entity : m_entityGPUData) {
+		auto rtComponent = entity.gameEntity->GetRayTracingComponent();
+
+		if (rtComponent == nullptr || rtComponent->GetMesh() == nullptr)
+			continue;
+
+		auto meshController = std::dynamic_pointer_cast<DX12MeshController>(rtComponent->GetMesh()->GetGPUHandle());
+
+		if (meshController == nullptr) // the mesh is not uploaded to the GPU, the entity is not traced
+			continue;
+
+		GameEntity* gameEntity = entity.gameEntity.get();
+		m_GBufferrayTracingPipeline->SetEntityDescriptor(gameEntity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, entity.transformHeap->GetCPUDescriptorHandleForHeapStart());
+		m_GBufferrayTracingPipeline->SetEntityDescriptor(gameEntity, INTERNAL_VERTEX_BUFFER_NAME, meshController->GetVertexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+		m_GBufferrayTracingPipeline->SetEntityDescriptor(gameEntity, INTERNAL_INDEX_BUFFER_NAME, meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
+	}
+
+	m_mainRenderPass->AddTransition(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
@@ -374,8 +415,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateRasterizationPipelin
 			pipeline->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBuffer.renderTextures[GBufferResources::Mask]->GetSrvHandle());
 		}
 
-		if (m_rtOutputCpuHeap != nullptr)
-			pipeline->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputCpuHeap->GetCPUDescriptorHandleForHeapStart());
+		if (m_rtOutputTexture != nullptr)
+			pipeline->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetSrvHandle());
 
 		for (auto& entityData : entityList) {
 			pipeline->SetEntityDescriptor(entityData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, entityData.transformHandle);

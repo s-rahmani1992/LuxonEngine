@@ -13,23 +13,6 @@ ref<Render::Material> Render::DX12::DX12MaterialFactory::CreateMaterial(const re
 
 ref<Render::Material> LuxonEngine::Rendering::DX12::DX12MaterialFactory::BuildMaterial(const ref<ShaderProgram>& program)
 {
-	// check if program is HLSL Rasterization Program
-	/*auto hlslProgram = std::dynamic_pointer_cast<Render::DX12::Rasterization::HLSLRasterizationProgram>(program);
-
-	if (hlslProgram != nullptr) {
-		MaterialReflection reflectionData = hlslProgram->GetReflectionData()->CreateMaterialReflection(false);
-
-		return std::make_shared<Render::Material>(program, &reflectionData);
-	}*/
-
-	auto hlslRTProgram = std::dynamic_pointer_cast<Render::DX12::RayTracing::HLSLRayTracingProgram>(program);
-
-	if (hlslRTProgram != nullptr) {
-		MaterialReflection reflectionData = hlslRTProgram->GetReflectionData()->CreateMaterialReflection(true);
-
-		return std::make_shared<Render::Material>(program, &reflectionData);
-	}
-
 	// programs using the shared reflection (e.g. mesh programs) create their fields from it
 	return std::make_shared<Render::Material>(program);
 }

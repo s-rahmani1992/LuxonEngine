@@ -34,10 +34,6 @@ namespace LuxonEngine::Rendering::DX12 {
 	struct EntityGBufferData;
 	class DX12PipelineFactory;
 
-	namespace RayTracing {
-		class RTAccelarationStructure;
-	}
-
 	namespace MeshShading {
 		class DX12MeshPipelineModule;
 	}
@@ -47,14 +43,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		ref<GameEntity> gameEntity;
 		ComPtr<ID3D12Resource2> transformResource;
 		ComPtr<ID3D12DescriptorHeap> transformHeap;
-	};
-
-	struct DX12RayTracingGPUData {
-	public:
-		ref<LuxonEngine::Rendering::DX12::DX12MeshController> meshController;
-		ref<Material> material;
-		ComPtr<ID3D12Resource2> transformResource;
-		ref<Transform> transform;
 	};
 
 	struct TransformGPU {

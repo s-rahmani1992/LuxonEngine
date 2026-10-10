@@ -5,7 +5,6 @@
 LuxonEngine::Rendering::DX12::Compute::HLSLComputeProgram::HLSLComputeProgram(ComPtr<IDxcBlob>& computeShader, ComPtr<ID3D12ShaderReflection>& shaderReflection)
     :m_computeShader(computeShader)
 {
-	m_reflection.AddShaderReflection(shaderReflection.Get());
 	AddShaderReflection(m_variableReflection, shaderReflection.Get());
 }
 

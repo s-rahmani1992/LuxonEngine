@@ -4,9 +4,14 @@
 #include <string>
 #include <vector>
 
+namespace LuxonEngine {
+	class GameEntity;
+}
+
 namespace LuxonEngine::Rendering {
 	class Material;
 	class ShaderProgram;
+	class RayTracingComponent;
 }
 
 namespace LuxonEngine::Rendering::DX12 {
@@ -22,6 +27,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	namespace Rasterization {
 		class DX12RasterizationPipelineModule;
 		class HLSLRasterizationProgram;
+		
 		struct RasterizationPipelineProperties {
 			bool enableDepthTest = true;
 			bool indexBufferEnabled = true;
@@ -37,6 +43,21 @@ namespace LuxonEngine::Rendering::DX12 {
 		class HLSLComputeProgram;
 	}
 
+	namespace RayTracing {
+		class DX12RayTracingPipelineModule;
+
+		struct RayTracingEntityDesc {
+			RayTracingComponent* component;
+			GameEntity* entity;
+		};
+
+		struct RayTracingPipelineProperties {
+			UInt32 maxPayloadSize = 6 * sizeof(Float); // TODO Get it from reflection. size of the payload of the shaders in bytes
+			UInt32 maxAttributeSize = 2 * sizeof(Float); // TODO Get it from reflection. size of the hit attributes in bytes. 8 for the built in triangle attributes
+			UInt32 maxRecursionDepth = 7;
+		};
+	}
+
 	class DX12PipelineFactory {
 	public:
 		DX12PipelineFactory(ID3D12Device10* device);
@@ -49,6 +70,9 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(Material* material, std::string& error);
 		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, std::string& error);
+
+		ref<RayTracing::DX12RayTracingPipelineModule> CreateRayTracingPipeline(const RayTracing::RayTracingPipelineProperties& properties, Material* globalMaterial,
+			const std::vector<RayTracing::RayTracingEntityDesc>& entities, std::string& error);
 
 	private:
 		ref<Compute::DX12ComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error);

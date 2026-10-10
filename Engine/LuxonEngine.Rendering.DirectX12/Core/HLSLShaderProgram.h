@@ -1,7 +1,7 @@
 #pragma once
 #include "Rendering\ShaderProgram.h"
 #include "HLSLShader.h"
-#include "HLSLReflection.h"
+#include <set>
 #include <unordered_map>
 
 using namespace Microsoft::WRL;
@@ -46,11 +46,6 @@ namespace LuxonEngine::Rendering::DX12 {
     public:
         HLSLShaderProgram() = default;
         
-        /// <summary>
-        /// Gets the parameter layout for this shader program
-        /// </summary>
-        /// <returns></returns>
-        inline HLSLReflection* GetReflectionData() { return &m_reflection; }
 
         /// <summary>
         /// Gets the root signature for this shader program
@@ -72,7 +67,6 @@ namespace LuxonEngine::Rendering::DX12 {
         virtual bool InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error) = 0;
 
     protected:
-        HLSLReflection m_reflection;
         ComPtr<ID3D12RootSignature> m_rootSignature;
         RootParameterLayout m_rootParameterLayout;
     };

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "HLSLRayTracingProgram.h"
 #include "StringUtilities.h"
+#include "../Core/HLSLVariableReflection.h"
 
 UInt32 LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::m_programCounter = 0;
 
@@ -78,7 +79,7 @@ LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::HLSLRayTracingP
 
     for (int i = 0; i < libDesc.FunctionCount; i++) {
         ID3D12FunctionReflection* funcReflection = libraryReflection->GetFunctionByIndex(i);
-		m_reflection.AddShaderReflection(funcReflection);
+		AddShaderReflection(m_variableReflection, funcReflection);
     }
 
 	m_hitGroupExportName = L"hit_group_" + std::to_wstring(m_programCounter);
@@ -97,11 +98,23 @@ bool LuxonEngine::Rendering::DX12::RayTracing::HLSLRayTracingProgram::Initialize
 {
 	std::string errorMessage;
 	D3D12_ROOT_SIGNATURE_FLAGS flag = m_rayGenOriginalName.empty() ? D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE : D3D12_ROOT_SIGNATURE_FLAG_NONE;
-	m_rootSignature = m_reflection.CreateRootSignature(device, flag, errorMessage);
+	m_rootSignature = CreateRootSignature(device, m_variableReflection, flag, m_rootParameterLayout, errorMessage);
 
 	if (m_rootSignature == nullptr) {
 		error = errorMessage;
 		return false;
+	}
+
+	m_recordOffsets.assign(m_rootParameterLayout.GetRootParameterCount(), 0);
+	m_recordArgumentSize = 0;
+
+	for (UInt32 rootIndex = 0; rootIndex < m_recordOffsets.size(); rootIndex++) {
+		bool isConstants = rootIndex == m_rootParameterLayout.GetConstantDataRootIndex();
+		UInt32 alignment = isConstants ? sizeof(UInt32) : sizeof(D3D12_GPU_DESCRIPTOR_HANDLE);
+		UInt32 size = isConstants ? m_variableReflection.constants.size : sizeof(D3D12_GPU_DESCRIPTOR_HANDLE);
+
+		m_recordOffsets[rootIndex] = (m_recordArgumentSize + alignment - 1) / alignment * alignment;
+		m_recordArgumentSize = m_recordOffsets[rootIndex] + size;
 	}
 	return true;
 }

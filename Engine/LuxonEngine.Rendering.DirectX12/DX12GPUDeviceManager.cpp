@@ -76,7 +76,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GP
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::DX12::DX12GPUDeviceManager::CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
 	ref<DX12CommandExecuter> cmdExecuter = CreateCommandExecuter();
-	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager);
+	ref<DX12GraphicContext> context = std::make_shared<DX12RayTracingContext>(2, cmdExecuter, window, m_assetManager, m_pipelineFactory);
 	context->RegisterShaderRegistery(m_shaderCompiler);
 
 	if (context->Initialize(m_device.Get(), m_factory))

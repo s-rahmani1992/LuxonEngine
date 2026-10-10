@@ -28,6 +28,19 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		bool InitializeRootSignature(const ComPtr<ID3D12Device10>& device, std::string& error) override;
 
 		/// <summary>
+		/// Gets the offset of the argument of a root parameter from the start of the arguments of a shader record. it is created along with the root signature
+		/// </summary>
+		/// <param name="rootParameterIndex"></param>
+		/// <returns></returns>
+		UInt32 GetRecordOffset(UInt32 rootParameterIndex) const { return m_recordOffsets[rootParameterIndex]; }
+
+		/// <summary>
+		/// Gets the size in bytes of all the arguments of a shader record, without the shader identifier
+		/// </summary>
+		/// <returns></returns>
+		UInt32 GetRecordArgumentSize() const { return m_recordArgumentSize; }
+
+		/// <summary>
 		/// Gets pointer to DXIL data of this program
 		/// </summary>
 		/// <returns></returns>
@@ -95,6 +108,9 @@ namespace LuxonEngine::Rendering::DX12::RayTracing {
 		std::wstring m_hitGroupExportName;
 
 		D3D12_HIT_GROUP_DESC m_hitDesc;
+
+		std::vector<UInt32> m_recordOffsets; // root parameter index -> offset of its argument in a shader record
+		UInt32 m_recordArgumentSize = 0;
 
 		D3D12_DXIL_LIBRARY_DESC m_dxilData;
 		std::vector<D3D12_EXPORT_DESC> m_exportDescs;

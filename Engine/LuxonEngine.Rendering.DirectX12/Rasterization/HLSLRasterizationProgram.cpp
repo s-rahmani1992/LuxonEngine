@@ -26,7 +26,6 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 				FillRenderTargetReflection(m_renderTargetReflection, shaderReflection);
 			}
 
-			m_reflection.AddShaderReflection(shaderReflection);
 			AddShaderReflection(m_variableReflection, shaderReflection);
 		}
 	}

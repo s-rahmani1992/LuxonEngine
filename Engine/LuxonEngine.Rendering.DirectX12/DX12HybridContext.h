@@ -66,6 +66,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		bool InitializeMainRenderPass();
 		void InitializePipelines();
 		bool InitializeGBuffer();
+		void InitializeRayTracingStage();
 
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 
@@ -110,7 +111,8 @@ namespace LuxonEngine::Rendering::DX12 {
 		GBufferResources m_gBuffer;
 		ref<Material> m_gBufferMaterial;
 		ref<Rasterization::DX12RasterizationPipelineModule> m_gBufferRasterization; // draws the g buffer renderers into the g buffer
-		ComPtr<ID3D12DescriptorHeap> m_rtOutputCpuHeap; // CPU only view of the ray tracing output, the source of the descriptor copies
+		ref<Material> m_gBufferRTMaterial; // the global material of the ray tracing pipeline, that points to it
+		Ptr<DX12Texture> m_rtOutputTexture; // written by the ray tracing stage, sampled by the third stage
 		ref<RayTracing::DX12RayTracingPipelineModule> m_GBufferrayTracingPipeline;
 		float m_hybridBackgroundColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
 

@@ -48,7 +48,13 @@
     <ClInclude Include="DX12Texture2DController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RayTracing\RTAccelarationStructure.h">
+    <ClInclude Include="RayTracing\RTStateObjectBuilder.h">
+      <Filter>RayTracing</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracing\RTSceneAccelerationStructure.h">
+      <Filter>RayTracing</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracing\DX12RayTracingResourceTable.h">
       <Filter>RayTracing</Filter>
     </ClInclude>
     <ClInclude Include="DX12Utilities.h">
@@ -78,16 +84,10 @@
     <ClInclude Include="Compute\HLSLComputeProgram.h">
       <Filter>Compute</Filter>
     </ClInclude>
-    <ClInclude Include="Core\HLSLReflection.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\HLSLVariableReflection.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="RayTracing\HLSLRayTracingProgram.h">
-      <Filter>RayTracing</Filter>
-    </ClInclude>
-    <ClInclude Include="RayTracing\DX12RayTracingMaterial.h">
       <Filter>RayTracing</Filter>
     </ClInclude>
     <ClInclude Include="Core\HLSLShaderProgram.h">
@@ -165,7 +165,13 @@
     <ClCompile Include="DX12Texture2DController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RayTracing\RTAccelarationStructure.cpp">
+    <ClCompile Include="RayTracing\RTStateObjectBuilder.cpp">
+      <Filter>RayTracing</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTracing\RTSceneAccelerationStructure.cpp">
+      <Filter>RayTracing</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTracing\DX12RayTracingResourceTable.cpp">
       <Filter>RayTracing</Filter>
     </ClCompile>
     <ClCompile Include="DX12Utilities.cpp">
@@ -192,16 +198,10 @@
     <ClCompile Include="Compute\HLSLComputeProgram.cpp">
       <Filter>Compute</Filter>
     </ClCompile>
-    <ClCompile Include="Core\HLSLReflection.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\HLSLVariableReflection.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="RayTracing\HLSLRayTracingProgram.cpp">
-      <Filter>RayTracing</Filter>
-    </ClCompile>
-    <ClCompile Include="RayTracing\DX12RayTracingMaterial.cpp">
       <Filter>RayTracing</Filter>
     </ClCompile>
     <ClCompile Include="Core\HLSLShaderProgram.cpp">

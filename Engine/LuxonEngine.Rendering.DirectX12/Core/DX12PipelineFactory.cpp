@@ -1,13 +1,21 @@
 #include "pch.h"
 #include "DX12PipelineFactory.h"
+
+#include "Core/GameEntity.h"
+#include "Rendering/Material.h"
+
 #include "../Mesh/DX12MeshPipelineModule.h"
 #include "../Mesh/HLSLMeshProgram.h"
+
 #include "../Rasterization/DX12RasterizationPipelineModule.h"
 #include "../Rasterization/HLSLRasterizationProgram.h"
+
 #include "../Compute/DX12ComputePipelineModule.h"
 #include "../Compute/HLSLComputeProgram.h"
-#include "Rendering/Material.h"
-#include <vector>
+
+#include "../RayTracing/DX12RayTracingPipelineModule.h"
+#include "../RayTracing/HLSLRayTracingProgram.h"
+#include "Rendering/RayTracingComponent.h"
 
 namespace LuxonEngine::Rendering::DX12 {
 	DX12PipelineFactory::DX12PipelineFactory(ID3D12Device10* device)
@@ -358,5 +366,45 @@ namespace LuxonEngine::Rendering::DX12 {
 		}
 
 		return std::make_shared<Compute::DX12ComputePipelineModule>(m_device, pipelineState, rootSignature, material);
+	}
+
+	ref<RayTracing::DX12RayTracingPipelineModule> DX12PipelineFactory::CreateRayTracingPipeline(const RayTracing::RayTracingPipelineProperties& properties, Material* globalMaterial,
+		const std::vector<RayTracing::RayTracingEntityDesc>& entities, std::string& error)
+	{
+		if (globalMaterial == nullptr) {
+			error = "Material is null";
+			return nullptr;
+		}
+
+		auto rayTracingProgram = std::dynamic_pointer_cast<RayTracing::HLSLRayTracingProgram>(globalMaterial->GetProgram());
+
+		if (rayTracingProgram == nullptr) {
+			error = "Program is not a ray tracing shader program";
+			return nullptr;
+		}
+
+		if (rayTracingProgram->GetRayGenExportName().empty()) {
+			error = "The global ray tracing program has no ray generation shader";
+			return nullptr;
+		}
+
+		if (rayTracingProgram->GetRootSignature() == nullptr) {
+			error = "Ray tracing program has no root signature";
+			return nullptr;
+		}
+
+		if (properties.maxRecursionDepth == 0 || properties.maxRecursionDepth > D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH) {
+			error = "Unsupported trace recursion depth of the ray tracing pipeline";
+			return nullptr;
+		}
+
+		auto rtPipeline = std::make_shared<RayTracing::DX12RayTracingPipelineModule>(m_device, properties);
+		
+		if(rtPipeline->Initialize(globalMaterial, entities) == false) {
+			error = "Failed to initialize the ray tracing pipeline";
+			return nullptr;
+		}
+		
+		return rtPipeline;
 	}
 }

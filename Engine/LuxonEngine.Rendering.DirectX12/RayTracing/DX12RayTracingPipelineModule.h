@@ -1,61 +1,58 @@
 #pragma once
 #include "pch.h"
 #include "BasicTypes.h"
+#include "DX12PipelineFactory.h"
+#include "DX12RayTracingResourceTable.h"
+#include "RTSceneAccelerationStructure.h"
 #include <memory>
 #include <vector>
-#include <map>
-
-namespace LuxonEngine {
-	class GameEntity;
-	class Transform;
-	class GPUAssetManager;
-	class ShaderProgram;
-	struct SceneLightData;
-	class Camera;
-
-	namespace Rendering {
-		class Material;
-	}
-}
 
 using namespace Microsoft::WRL;
 
+namespace LuxonEngine {
+	class GameEntity;
+}
+
+namespace LuxonEngine::Rendering {
+	class Material;
+}
+
 namespace LuxonEngine::Rendering::DX12 {
-	struct DX12RayTracingGPUData;
-	//class HLSLShaderProgram;
+	class DX12MeshController;
 }
 
 namespace LuxonEngine::Rendering::DX12::RayTracing {
-	class RTAccelarationStructure;
-	struct EntityBLASDesc;
 	class HLSLRayTracingProgram;
-	class DX12RayTracingMaterial;
 
-	class DX12RayTracingPipelineModule
-	{
+
+	class DX12RayTracingPipelineModule {
 	public:
-		bool Initialize(const ComPtr<ID3D12GraphicsCommandList7>& commandList, const std::vector<DX12RayTracingGPUData>& entities, UInt32 width, UInt32 height, const ref<Material> globalRTMaterial, const ComPtr<ID3D12Resource2>& camera, const ComPtr<ID3D12Resource2>& light);
-		void RenderCommand(ComPtr<ID3D12GraphicsCommandList7>& commandList, const ref<Camera>& camera);
-		ComPtr<ID3D12Resource2> GetOutputBuffer() const { return m_outputBuffer; }
-		ComPtr<ID3D12DescriptorHeap> GetOutputHeap() const { return m_outputHeap; }
-		ref<RayTracing::DX12RayTracingMaterial> GetMaterialInterface() { return m_globalRTMaterial; }
+		DX12RayTracingPipelineModule(ID3D12Device10* device, const RayTracingPipelineProperties& properties);
+
+		bool Initialize(Material* globalMaterial, std::vector<RayTracingEntityDesc> initialEntities = {});
+
+		bool SetDescriptor(const char* name, D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle);
+
+		bool SetEntityDescriptor(GameEntity* entity, const char* name, D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle);
+
+		void SetDimensions(UInt32 width, UInt32 height);
+
+		bool Dispatch(ID3D12GraphicsCommandList7* commandList);
+
 	private:
-		bool InitializeShaderTable(const std::vector<DX12RayTracingGPUData>& entities, UInt32 heapOffset);
-		bool InitializePipeline();
+		bool BuildInitialStructures();
 
 		ComPtr<ID3D12Device10> m_device;
-		ComPtr<ID3D12Resource2> m_outputBuffer;
-		ComPtr<ID3D12DescriptorHeap> m_outputHeap;
+		RayTracingPipelineProperties m_properties;
+		Material* m_globalMaterial;
+		HLSLRayTracingProgram* m_globalProgram;
+		std::vector<HLSLRayTracingProgram*> m_localPrograms; // distinct programs of the materials of the entities
+		std::vector<RayTracingEntityDesc> m_initialEntities;
 
-		ref<RayTracing::RTAccelarationStructure> m_TLASController;
-		ComPtr<ID3D12StateObject> m_rtStateObject;
-		ComPtr<ID3D12Resource2> m_shaderTableBuffer;
+		D3D12_DISPATCH_RAYS_DESC m_dispatchDesc = {};
 
-		ref<Material> m_rtglobalMaterial;
-		ref<RayTracing::HLSLRayTracingProgram> m_globalRTProgram;
-		ref<RayTracing::DX12RayTracingMaterial> m_globalRTMaterial;
-		ComPtr<ID3D12DescriptorHeap> m_rtHeap;
-		std::map<ref<Material>, ref<RayTracing::DX12RayTracingMaterial>> dxMaterialMap;
-		D3D12_DISPATCH_RAYS_DESC m_raytraceDesc;
+		ComPtr<ID3D12StateObject> m_stateObject;
+		Ptr<RTSceneAccelerationStructure> m_accelerationStructure;
+		Ptr<DX12RayTracingResourceTable> m_resourceTable;
 	};
 }
