@@ -145,6 +145,9 @@
     <ClInclude Include="Mesh\DX12MeshPipelineModule.h">
       <Filter>Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX12ComputePass.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -255,6 +258,9 @@
     </ClCompile>
     <ClCompile Include="Mesh\DX12MeshPipelineModule.cpp">
       <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12ComputePass.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

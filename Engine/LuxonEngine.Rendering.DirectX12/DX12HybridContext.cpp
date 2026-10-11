@@ -82,32 +82,13 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
-	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr) {
+	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr)
 		m_gBufferRenderPass->Execute(m_commandList.Get());
 
-		if (m_GBufferrayTracingPipeline != nullptr && m_rtOutputTexture != nullptr) {
-			// the output is written by the ray tracing stage. the main render pass transitions it to be sampled
-			if (m_rtOutputTexture->GetState() != D3D12_RESOURCE_STATE_UNORDERED_ACCESS) {
-				D3D12_RESOURCE_BARRIER barrier{
-					.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-					.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-					.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-						.pResource = m_rtOutputTexture->GetResource(),
-						.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-						.StateBefore = m_rtOutputTexture->GetState(),
-						.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-					},
-				};
+	UpdateSplineParameters();
 
-				m_commandList->ResourceBarrier(1, &barrier);
-				m_rtOutputTexture->SetState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-			}
-
-			m_GBufferrayTracingPipeline->Dispatch(m_commandList.Get());
-		}
-	}
-
-	UpdateSplines();
+	if (m_computePass != nullptr)
+		m_computePass->Execute(m_commandList.Get());
 
 	if (m_mainRenderPass != nullptr)
 		m_mainRenderPass->Execute(m_commandList.Get());
@@ -163,6 +144,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializePipelines()
 			.transformCpuHandle = entityGpu.transformHeap->GetCPUDescriptorHandleForHeapStart(),
 			});
 	}
+
+	// the pass points to the textures, the vertex buffers and the pipelines that are created again below, so it is replaced first
+	m_computePass = std::make_unique<DX12ComputePass>();
 
 	if (m_gBufferEntities.size() > 0 && InitializeGBuffer() == false) {
 		Logger::LogError("Failed to initialize the g buffer pipeline, the g buffer renderers are not drawn");
@@ -252,7 +236,14 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeRayTracingStage(
 		m_GBufferrayTracingPipeline->SetEntityDescriptor(gameEntity, INTERNAL_INDEX_BUFFER_NAME, meshController->GetIndexSRVHeap()->GetCPUDescriptorHandleForHeapStart());
 	}
 
-	m_mainRenderPass->AddTransition(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	constexpr D3D12_RESOURCE_STATES gBufferReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	m_computePass->AddResource(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	for (auto& gBufferTexture : m_gBuffer.renderTextures)
+		m_computePass->AddResource(gBufferTexture.get(), gBufferReadState);
+
+	m_computePass->AddPipeline(m_GBufferrayTracingPipeline);
 }
 
 bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
@@ -625,7 +616,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
 		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBufferData->GetWriteHandle());
 		spline.computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 
-		// the vertices are generated on the first render
+		m_computePass->AddResource(spline.vertexBufferData.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		m_computePass->AddPipeline(spline.computeModule);
+
 		spline.renderer->SetDirty();
 
 		materialMap[spline.renderer->GetMaterial()].push_back(m_splines.size());
@@ -666,7 +659,7 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
 	}
 }
 
-void LuxonEngine::Rendering::DX12::DX12HybridContext::UpdateSplines()
+void LuxonEngine::Rendering::DX12::DX12HybridContext::UpdateSplineParameters()
 {
 	for (auto& spline : m_splines) {
 		if (spline.renderer->IsDirty() == false)
@@ -685,24 +678,6 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::UpdateSplines()
 			float width = spline.renderer->GetWidth();
 			spline.rasterModule->SetEntityConstant(spline.entity, INTERNAL_SPLINE_WIDTH_NAME, width);
 		}
-
-		// the vertex buffer is a vertex buffer in the common state and an unordered access buffer while it is generated
-		D3D12_RESOURCE_BARRIER barrier{
-			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-				.pResource = spline.vertexBufferData->GetResource(),
-				.Subresource = 0,
-				.StateBefore = D3D12_RESOURCE_STATE_COMMON,
-				.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-			},
-		};
-
-		m_commandList->ResourceBarrier(1, &barrier);
-		spline.computeModule->Dispatch(m_commandList.Get());
-
-		std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
-		m_commandList->ResourceBarrier(1, &barrier);
 	}
 }
 

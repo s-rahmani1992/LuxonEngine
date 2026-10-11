@@ -4,6 +4,7 @@
 #include "Core/DX12RenderTexture.h"
 #include "Core/DX12DepthTexture.h"
 #include "Core/DX12RenderPass.h"
+#include "Core/DX12ComputePass.h"
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
@@ -70,20 +71,11 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		std::vector<ref<MeshShading::DX12MeshPipelineModule>> CreateSurfaceInstancePipelines();
 
-		/// <summary>
-		/// Creates one rasterization pipeline per material of the mesh renderers and g buffer renderers of the entities
-		/// </summary>
 		void CreateRasterizationPipelines();
 
-		/// <summary>
-		/// Creates the pipelines of the spline renderers: a compute module per spline that generates the vertices and one rasterization module per material that draws them.
-		/// </summary>
 		void CreateSplinePipelines();
 
-		/// <summary>
-		/// Regenerates the vertices of the splines that changed. it records commands, so it is called while the command list is open
-		/// </summary>
-		void UpdateSplines();
+		void UpdateSplineParameters();
 
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 
@@ -117,6 +109,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		float m_hybridBackgroundColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
 
 		Ptr<DX12RenderPass> m_gBufferRenderPass;
+		Ptr<DX12ComputePass> m_computePass;
 		Ptr<DX12RenderPass> m_mainRenderPass;
 	};
 }

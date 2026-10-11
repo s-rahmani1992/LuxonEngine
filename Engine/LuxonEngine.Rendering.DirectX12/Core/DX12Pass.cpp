@@ -18,6 +18,20 @@ namespace LuxonEngine::Rendering::DX12 {
 		m_transitions.push_back(Transition{ .buffer = buffer, .requiredState = requiredState });
 	}
 
+	D3D12_RESOURCE_BARRIER DX12Pass::CreateTransitionBarrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
+	{
+		return D3D12_RESOURCE_BARRIER{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
+				.pResource = resource,
+				.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+				.StateBefore = before,
+				.StateAfter = after,
+			},
+		};
+	}
+
 	void DX12Pass::Execute(ID3D12GraphicsCommandList7* commandList)
 	{
 		ApplyTransitions(commandList);

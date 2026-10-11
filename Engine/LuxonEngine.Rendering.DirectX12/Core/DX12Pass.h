@@ -22,6 +22,8 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		inline void ClearTransitions() { m_transitions.clear(); }
 
+		static D3D12_RESOURCE_BARRIER CreateTransitionBarrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
+
 	private:
 		struct Transition
 		{
