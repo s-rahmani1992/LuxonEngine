@@ -194,6 +194,8 @@
     <ClInclude Include="Core\DX12ComputePass.h" />
     <ClInclude Include="Core\DX12Texture.h" />
     <ClInclude Include="Core\DX12Pass.h" />
+    <ClInclude Include="Core\DX12PassSequence.h" />
+    <ClInclude Include="Core\DX12ResourceState.h" />
     <ClInclude Include="Core\DX12RenderPass.h" />
     <ClInclude Include="Core\DX12RenderTexture.h" />
     <ClInclude Include="Core\DX12DepthTexture.h" />
@@ -237,6 +239,7 @@
     <ClCompile Include="Core\DX12ComputePass.cpp" />
     <ClCompile Include="Core\DX12Texture.cpp" />
     <ClCompile Include="Core\DX12Pass.cpp" />
+    <ClCompile Include="Core\DX12PassSequence.cpp" />
     <ClCompile Include="Core\DX12RenderPass.cpp" />
     <ClCompile Include="Core\DX12GPUResourceManager.cpp" />
     <ClCompile Include="Core\DX12PipelineFactory.cpp" />

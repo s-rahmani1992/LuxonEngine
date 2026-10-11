@@ -70,7 +70,7 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::PrepareScene(const ref<Sce
 	InitializeEntityGPUData(scene->entities);
 	InitializePipelines();
 
-	return true;
+	return CompilePassSequence();
 }
 
 void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
@@ -82,16 +82,9 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::Render()
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.Get(), nullptr);
 
-	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr)
-		m_gBufferRenderPass->Execute(m_commandList.Get());
-
 	UpdateSplineParameters();
 
-	if (m_computePass != nullptr)
-		m_computePass->Execute(m_commandList.Get());
-
-	if (m_mainRenderPass != nullptr)
-		m_mainRenderPass->Execute(m_commandList.Get());
+	m_passSequence.Execute(m_commandList.Get());
 
 	m_commandExecuter->ExecuteAndWait(m_commandList.Get());
 	m_swapChain->Present(1, 0);
@@ -124,6 +117,25 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeMainRenderPass()
 	if (m_mainRenderPass->Initialize(m_swapChain.Get(), params) == false) {
 		Logger::LogError("Failed to initialize the main render pass");
 		m_mainRenderPass = nullptr;
+		return false;
+	}
+
+	return true;
+}
+
+bool LuxonEngine::Rendering::DX12::DX12HybridContext::CompilePassSequence()
+{
+	m_passSequence.Clear();
+	m_passSequence.SetSwapChain(m_swapChain.Get());
+
+	if (m_gBufferEntities.size() > 0 && m_gBufferRenderPass != nullptr)
+		m_passSequence.AddPass(m_gBufferRenderPass.get());
+
+	m_passSequence.AddPass(m_computePass.get());
+	m_passSequence.AddPass(m_mainRenderPass.get());
+
+	if (m_passSequence.Compile() == false) {
+		Logger::LogError("Failed to create the resource barriers of the passes");
 		return false;
 	}
 
@@ -238,10 +250,11 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeRayTracingStage(
 
 	constexpr D3D12_RESOURCE_STATES gBufferReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
-	m_computePass->AddResource(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_computePass->Use(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_mainRenderPass->Use(m_rtOutputTexture.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	for (auto& gBufferTexture : m_gBuffer.renderTextures)
-		m_computePass->AddResource(gBufferTexture.get(), gBufferReadState);
+		m_computePass->Use(gBufferTexture.get(), gBufferReadState);
 
 	m_computePass->AddPipeline(m_GBufferrayTracingPipeline);
 }
@@ -304,7 +317,6 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 	std::vector<DX12RenderTexture*> gBufferTargets;
 	DX12RenderPassParams gBufferPassParams;
 	gBufferPassParams.depthTarget = g.depthTexture.get();
-	gBufferPassParams.renderTargetFinalState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
 	for (UInt32 i = 0; i < GBufferResources::TargetCount; i++) {
 		gBufferTargets.push_back(g.renderTextures[i].get());
@@ -330,6 +342,9 @@ bool LuxonEngine::Rendering::DX12::DX12HybridContext::InitializeGBuffer()
 		m_gBufferRasterization->SetEntityDescriptor(entityData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, entityData.transformCpuHandle);
 		m_gBufferRasterization->SetEntityGeometry(entityData.entity, *meshController->GetVertexView(), *meshController->GetIndexView(), meshController->GetMesh()->GetIndexCount());
 	}
+
+	for (auto& gBufferTexture : g.renderTextures)
+		m_mainRenderPass->Use(gBufferTexture.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	return true;
 }
@@ -529,7 +544,6 @@ std::vector<ref<LuxonEngine::Rendering::DX12::MeshShading::DX12MeshPipelineModul
 	return pipelines;
 }
 
-
 void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
 {
 	m_splines.clear();
@@ -616,7 +630,8 @@ void LuxonEngine::Rendering::DX12::DX12HybridContext::CreateSplinePipelines()
 		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBufferData->GetWriteHandle());
 		spline.computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 
-		m_computePass->AddResource(spline.vertexBufferData.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		m_computePass->Use(spline.vertexBufferData.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		m_mainRenderPass->Use(spline.vertexBufferData.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 		m_computePass->AddPipeline(spline.computeModule);
 
 		spline.renderer->SetDirty();

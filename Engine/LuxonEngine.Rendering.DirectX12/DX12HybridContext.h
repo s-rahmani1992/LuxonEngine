@@ -5,6 +5,7 @@
 #include "Core/DX12DepthTexture.h"
 #include "Core/DX12RenderPass.h"
 #include "Core/DX12ComputePass.h"
+#include "Core/DX12PassSequence.h"
 
 namespace LuxonEngine::Rendering {
 	class SplineRenderer;
@@ -65,6 +66,7 @@ namespace LuxonEngine::Rendering::DX12 {
 	private:
 		bool InitializeDepthBuffer();
 		bool InitializeMainRenderPass();
+		bool CompilePassSequence();
 		void InitializePipelines();
 		bool InitializeGBuffer();
 		void InitializeRayTracingStage();
@@ -111,5 +113,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		Ptr<DX12RenderPass> m_gBufferRenderPass;
 		Ptr<DX12ComputePass> m_computePass;
 		Ptr<DX12RenderPass> m_mainRenderPass;
+
+		DX12PassSequence m_passSequence;
 	};
 }

@@ -21,20 +21,6 @@ namespace LuxonEngine::Rendering::DX12 {
 			return storeOp == DX12StoreOp::Store ? D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE : D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
 		}
 
-		D3D12_RESOURCE_BARRIER CreateTransitionBarrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
-		{
-			return D3D12_RESOURCE_BARRIER{
-				.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-				.Transition = D3D12_RESOURCE_TRANSITION_BARRIER{
-					.pResource = resource,
-					.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-					.StateBefore = before,
-					.StateAfter = after,
-				},
-			};
-		}
-
 		bool HasStencil(DXGI_FORMAT depthFormat)
 		{
 			return depthFormat == DXGI_FORMAT_D24_UNORM_S8_UINT || depthFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
@@ -65,15 +51,12 @@ namespace LuxonEngine::Rendering::DX12 {
 		m_swapChain = nullptr;
 		m_device = nullptr;
 		m_rtvHeap.Reset();
-		m_beginBarriers.clear();
-		m_endBarriers.clear();
-		m_renderTargetTextures.clear();
-		m_renderTargetFinalState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		m_renderTargetCount = 0;
 		m_currentBackBuffer = 0;
 		m_viewport = {};
 		m_scissor = {};
 		m_inRenderPass = false;
+		ClearUsages();
 	}
 
 	bool DX12RenderPass::Initialize(IDXGISwapChain3* swapChain, const DX12RenderPassParams& params)
@@ -121,19 +104,11 @@ namespace LuxonEngine::Rendering::DX12 {
 
 			// every back buffer is cleared with the first clear color
 			m_renderTargetDescs.push_back(BuildRenderTargetDesc(rtvHandle, swapChainDesc.Format, params, 0));
-
-			// the barriers of this back buffer, the swap chain keeps the buffer alive so the pointer stays valid
-			auto& beginBarriers = m_beginBarriers.emplace_back();
-			if (params.backBufferInitialState != D3D12_RESOURCE_STATE_RENDER_TARGET)
-				beginBarriers.push_back(CreateTransitionBarrier(backBuffer.Get(), params.backBufferInitialState, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-			auto& endBarriers = m_endBarriers.emplace_back();
-			if (params.backBufferFinalState != D3D12_RESOURCE_STATE_RENDER_TARGET)
-				endBarriers.push_back(CreateTransitionBarrier(backBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, params.backBufferFinalState));
 		}
 
 		m_swapChain = swapChain;
 		m_renderTargetCount = 1;
+		UseBackBuffer(D3D12_RESOURCE_STATE_RENDER_TARGET);
 		SetDefaultViewport(swapChainDesc.Width, swapChainDesc.Height);
 		BuildDepthDesc(params);
 		return true;
@@ -150,16 +125,7 @@ namespace LuxonEngine::Rendering::DX12 {
 				SetDefaultViewport(target->GetWidth(), target->GetHeight());
 
 			m_renderTargetDescs.push_back(BuildRenderTargetDesc(target->GetRtvHandle(), target->GetFormat(), params, m_renderTargetDescs.size()));
-			AddTransition(target, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			m_renderTargetTextures.push_back(target);
-		}
-
-		// the barriers that leave the targets in their final state, filled once
-		if (params.renderTargetFinalState != D3D12_RESOURCE_STATE_RENDER_TARGET && !m_renderTargetTextures.empty()) {
-			m_renderTargetFinalState = params.renderTargetFinalState;
-			auto& endBarriers = m_endBarriers.emplace_back();
-			for (DX12RenderTexture* target : m_renderTargetTextures)
-				endBarriers.push_back(CreateTransitionBarrier(target->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, m_renderTargetFinalState));
+			Use(target, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		}
 
 		m_renderTargetCount = static_cast<UInt32>(m_renderTargetDescs.size());
@@ -176,7 +142,7 @@ namespace LuxonEngine::Rendering::DX12 {
 			return;
 
 		m_hasDepth = true;
-		AddTransition(depthTarget, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		Use(depthTarget, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 		if (m_renderTargetDescs.empty())
 			SetDefaultViewport(depthTarget->GetWidth(), depthTarget->GetHeight());
@@ -228,23 +194,12 @@ namespace LuxonEngine::Rendering::DX12 {
 			m_meshPipelines.push_back(pipeline);
 	}
 
-	void DX12RenderPass::SetViewport(const D3D12_VIEWPORT& viewport, const D3D12_RECT& scissor)
-	{
-		m_viewport = viewport;
-		m_scissor = scissor;
-	}
-
 	void DX12RenderPass::BeginRenderPass(ID3D12GraphicsCommandList7* commandList)
 	{
 		const D3D12_RENDER_PASS_RENDER_TARGET_DESC* renderTargetDescs = m_renderTargetDescs.data();
 
 		if (m_swapChain != nullptr) {
 			m_currentBackBuffer = m_swapChain->GetCurrentBackBufferIndex();
-
-			auto& barriers = m_beginBarriers[m_currentBackBuffer];
-			if (!barriers.empty())
-				commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
-
 			renderTargetDescs = &m_renderTargetDescs[m_currentBackBuffer];
 		}
 
@@ -263,21 +218,9 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		commandList->EndRenderPass();
 		m_inRenderPass = false;
-
-		if (m_swapChain != nullptr) {
-			auto& barriers = m_endBarriers[m_currentBackBuffer];
-			if (!barriers.empty())
-				commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
-		}
-		else if (!m_endBarriers.empty()) {
-			commandList->ResourceBarrier(static_cast<UINT>(m_endBarriers[0].size()), m_endBarriers[0].data());
-
-			for (DX12RenderTexture* target : m_renderTargetTextures)
-				target->SetState(m_renderTargetFinalState);
-		}
 	}
 
-	void DX12RenderPass::Record(ID3D12GraphicsCommandList7* commandList)
+	void DX12RenderPass::Execute(ID3D12GraphicsCommandList7* commandList)
 	{
 		BeginRenderPass(commandList);
 
