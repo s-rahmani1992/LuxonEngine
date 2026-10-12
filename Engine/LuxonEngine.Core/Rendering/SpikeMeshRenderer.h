@@ -12,6 +12,8 @@ namespace LuxonEngine::Rendering {
 	class SpikeMeshRenderer : public Renderer
 	{
 	public:
+		LUXON_RENDERER_TYPE(SpikeMeshRenderer)
+
 		SpikeMeshRenderer(const ref<Mesh>& mesh, const ref<Material>& material, float spikeHeight = 1.0f)
 			: Renderer(mesh, material), m_spikeHeight(spikeHeight) { }
 

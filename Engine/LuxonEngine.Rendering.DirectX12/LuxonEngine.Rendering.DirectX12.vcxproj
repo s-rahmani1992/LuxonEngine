@@ -195,6 +195,13 @@
     <ClInclude Include="Core\DX12Texture.h" />
     <ClInclude Include="Core\DX12Pass.h" />
     <ClInclude Include="Core\DX12PassSequence.h" />
+    <ClInclude Include="Core\DX12RendererSetup.h" />
+    <ClInclude Include="Core\DX12RendererSetupRegistry.h" />
+    <ClInclude Include="RendererSetup\DX12MeshRendererSetup.h" />
+    <ClInclude Include="RendererSetup\DX12GBufferRendererSetup.h" />
+    <ClInclude Include="RendererSetup\DX12SplineRendererSetup.h" />
+    <ClInclude Include="RendererSetup\DX12SpikeMeshRendererSetup.h" />
+    <ClInclude Include="RendererSetup\DX12SurfaceInstanceRendererSetup.h" />
     <ClInclude Include="Core\DX12ResourceState.h" />
     <ClInclude Include="Core\DX12RenderPass.h" />
     <ClInclude Include="Core\DX12RenderTexture.h" />
@@ -240,6 +247,12 @@
     <ClCompile Include="Core\DX12Texture.cpp" />
     <ClCompile Include="Core\DX12Pass.cpp" />
     <ClCompile Include="Core\DX12PassSequence.cpp" />
+    <ClCompile Include="Core\DX12RendererSetupRegistry.cpp" />
+    <ClCompile Include="RendererSetup\DX12MeshRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\DX12GBufferRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\DX12SplineRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\DX12SpikeMeshRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\DX12SurfaceInstanceRendererSetup.cpp" />
     <ClCompile Include="Core\DX12RenderPass.cpp" />
     <ClCompile Include="Core\DX12GPUResourceManager.cpp" />
     <ClCompile Include="Core\DX12PipelineFactory.cpp" />

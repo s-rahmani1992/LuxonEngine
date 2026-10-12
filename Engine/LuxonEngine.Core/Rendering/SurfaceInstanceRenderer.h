@@ -13,6 +13,8 @@ namespace LuxonEngine::Rendering {
 	class SurfaceInstanceRenderer : public Renderer
 	{
 	public:
+		LUXON_RENDERER_TYPE(SurfaceInstanceRenderer)
+
 		SurfaceInstanceRenderer(const ref<Mesh>& nearMesh, const ref<Mesh>& farMesh, const ref<Material>& material, const ref<Texture2D>& maskTexture = nullptr,
 			float instanceScale = 1.0f, float density = 1.0f, float nearDistance = 5.0f)
 			: Renderer(material), m_nearMesh(nearMesh), m_farMesh(farMesh), m_nearDistance(nearDistance), m_maskTexture(maskTexture), m_instanceScale(instanceScale), m_density(density) { }

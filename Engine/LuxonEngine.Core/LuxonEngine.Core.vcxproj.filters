@@ -104,6 +104,12 @@
     <ClInclude Include="Rendering\Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\RendererType.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RendererRegistry.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\SpikeMeshRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -150,6 +156,12 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Logger.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TypeId.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TypeRegistry.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\AssetRegistry.h">
@@ -224,7 +236,13 @@
     <ClCompile Include="Rendering\ShaderRegistery.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RendererRegistry.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Logger.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TypeRegistry.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\SerializationStream.cpp">

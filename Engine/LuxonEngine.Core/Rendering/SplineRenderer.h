@@ -11,6 +11,8 @@ namespace LuxonEngine::Rendering {
 	class SplineRenderer : public Renderer
 	{
 	public: // Constructors
+		LUXON_RENDERER_TYPE(SplineRenderer)
+
 
 		SplineRenderer(const ref<Material>& material, const std::vector<Vector3>& points, const float width, const int segments, const float tileFactor)
 			: Renderer(material), m_curve(points[0], points[1], points[2]),

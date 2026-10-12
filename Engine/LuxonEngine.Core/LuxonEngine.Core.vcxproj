@@ -127,6 +127,8 @@
     <ClInclude Include="Core\GUIDUtility.h" />
     <ClInclude Include="Core\Light\Lights.h" />
     <ClInclude Include="Core\Logger.h" />
+    <ClInclude Include="Core\TypeId.h" />
+    <ClInclude Include="Core\TypeRegistry.h" />
     <ClInclude Include="Core\Matrix4.h" />
     <ClInclude Include="Core\Mesh.h" />
     <ClInclude Include="Core\Model3DAsset.h" />
@@ -155,6 +157,8 @@
     <ClInclude Include="Rendering\MeshRenderer.h" />
     <ClInclude Include="Rendering\RayTracingComponent.h" />
     <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\RendererType.h" />
+    <ClInclude Include="Rendering\RendererRegistry.h" />
     <ClInclude Include="Rendering\Shader.h" />
     <ClInclude Include="Rendering\ShaderProgram.h" />
     <ClInclude Include="Rendering\ShaderCompiler.h" />
@@ -173,6 +177,7 @@
     <ClCompile Include="Core\Camera\PerspectiveCamera.cpp" />
     <ClCompile Include="Core\Color.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
+    <ClCompile Include="Core\TypeRegistry.cpp" />
     <ClCompile Include="Core\Matrix4.cpp" />
     <ClCompile Include="Core\Mesh.cpp" />
     <ClCompile Include="Core\Model3DAsset.cpp" />
@@ -190,6 +195,7 @@
     <ClCompile Include="Platform\GraphicWindow.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\ShaderRegistery.cpp" />
+    <ClCompile Include="Rendering\RendererRegistry.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

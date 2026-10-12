@@ -13,6 +13,8 @@ namespace LuxonEngine::Rendering {
 	class GBufferRTReflectionRenderer : public Renderer
 	{
 	public:
+		LUXON_RENDERER_TYPE(GBufferRTReflectionRenderer)
+
 		GBufferRTReflectionRenderer(const ref<Mesh>& mesh, const ref<Material>& material)
 			: Renderer(mesh, material) {
 		}

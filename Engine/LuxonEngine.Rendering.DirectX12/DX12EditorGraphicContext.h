@@ -2,6 +2,10 @@
 #include "DX12GraphicContext.h"
 #include "DX12HybridContext.h"
 
+namespace LuxonEngine::Rendering {
+	class SplineRenderer;
+}
+
 namespace LuxonEngine::Rendering::DX12 {
 
 	namespace Rasterization {

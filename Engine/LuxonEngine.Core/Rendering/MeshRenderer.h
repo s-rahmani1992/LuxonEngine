@@ -12,6 +12,8 @@ namespace LuxonEngine::Rendering {
 	class MeshRenderer : public Renderer 
 	{
 	public:
+		LUXON_RENDERER_TYPE(MeshRenderer)
+
 		MeshRenderer(const ref<Mesh>& mesh, const ref<Material>& material)
 			: Renderer(mesh, material) { }
 	};

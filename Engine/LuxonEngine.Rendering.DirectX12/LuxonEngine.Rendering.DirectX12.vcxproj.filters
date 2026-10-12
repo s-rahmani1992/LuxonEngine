@@ -18,6 +18,9 @@
     <Filter Include="Compute">
       <UniqueIdentifier>{f9536bdf-bd4c-42cf-bb76-ab52b063bb48}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RendererSetup">
+      <UniqueIdentifier>{91ecd3e0-dc62-4132-968d-2df4571a9f77}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{3bace6d7-9425-4bff-8caf-b70f6c0322d6}</UniqueIdentifier>
     </Filter>
@@ -119,6 +122,27 @@
     </ClInclude>
     <ClInclude Include="Core\DX12PassSequence.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12RendererSetup.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX12RendererSetupRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\DX12MeshRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\DX12GBufferRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\DX12SplineRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\DX12SpikeMeshRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\DX12SurfaceInstanceRendererSetup.h">
+      <Filter>RendererSetup</Filter>
     </ClInclude>
     <ClInclude Include="Core\DX12ResourceState.h">
       <Filter>Core</Filter>
@@ -248,6 +272,24 @@
     </ClCompile>
     <ClCompile Include="Core\DX12PassSequence.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX12RendererSetupRegistry.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\DX12MeshRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\DX12GBufferRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\DX12SplineRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\DX12SpikeMeshRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\DX12SurfaceInstanceRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
     </ClCompile>
     <ClCompile Include="Core\DX12RenderPass.cpp">
       <Filter>Core</Filter>
