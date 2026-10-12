@@ -16,12 +16,6 @@ namespace LuxonEngine::Rendering::DX12 {
 			m_rayTracingSteps.push_back(pipeline);
 	}
 
-	void DX12ComputePass::Reset()
-	{
-		m_computeSteps.clear();
-		m_rayTracingSteps.clear();
-		ClearUsages();
-	}
 	void DX12ComputePass::Execute(ID3D12GraphicsCommandList7* commandList)
 	{
 		for (auto& step : m_computeSteps) {

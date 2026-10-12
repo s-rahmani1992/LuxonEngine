@@ -200,7 +200,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		if (!CreateTextureResource(desc, desc.flags, desc.format, desc.format, clearValue, resource, srvHandle, uavHandle))
 			return nullptr;
 
-		auto texture = std::make_unique<DX12Texture>(resource, desc.width, desc.height, desc.mipLevels, desc.format, srvHandle, uavHandle);
+		auto texture = std::make_unique<DX12Texture>(resource, desc.width, desc.height, desc.format, srvHandle, uavHandle);
 		texture->SetState(desc.initialState);
 		return texture;
 	}
@@ -235,7 +235,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		};
 		m_device->CreateRenderTargetView(resource.Get(), &rtvDesc, rtvHandle);
 
-		auto texture = std::make_unique<DX12RenderTexture>(resource, desc.width, desc.height, desc.mipLevels, desc.format, srvHandle, uavHandle, rtvHandle);
+		auto texture = std::make_unique<DX12RenderTexture>(resource, desc.width, desc.height, desc.format, srvHandle, uavHandle, rtvHandle);
 		texture->SetState(desc.initialState);
 		return texture;
 	}
@@ -279,7 +279,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		};
 		m_device->CreateDepthStencilView(resource.Get(), &dsvDesc, dsvHandle);
 
-		auto texture = std::make_unique<DX12DepthTexture>(resource, desc.width, desc.height, desc.mipLevels, desc.format, srvHandle, dsvHandle);
+		auto texture = std::make_unique<DX12DepthTexture>(resource, desc.width, desc.height, desc.format, srvHandle, dsvHandle);
 		texture->SetState(desc.initialState);
 		return texture;
 	}

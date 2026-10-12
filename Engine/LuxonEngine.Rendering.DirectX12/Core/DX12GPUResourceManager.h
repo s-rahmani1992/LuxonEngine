@@ -40,9 +40,9 @@ namespace LuxonEngine::Rendering::DX12 {
 
 		void BeginFrame();
 
+	private:
 		void FlushPendingReleases();
 
-	private:
 		struct PendingRelease
 		{
 			UInt64 frameIndex;

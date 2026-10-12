@@ -22,9 +22,9 @@ namespace LuxonEngine::Rendering::DX12 {
 	class DX12Texture
 	{
 	public:
-		DX12Texture(ComPtr<ID3D12Resource2> resource, UInt32 width, UInt32 height, UInt16 mipLevels, DXGI_FORMAT format,
+		DX12Texture(ComPtr<ID3D12Resource2> resource, UInt32 width, UInt32 height, DXGI_FORMAT format,
 			D3D12_CPU_DESCRIPTOR_HANDLE cpuSrvHandle, D3D12_CPU_DESCRIPTOR_HANDLE cpuUavHandle)
-			: m_resource(resource), m_width(width), m_height(height), m_mipLevels(mipLevels), m_format(format),
+			: m_resource(resource), m_width(width), m_height(height), m_format(format),
 			m_cpuSrvHandle(cpuSrvHandle), m_cpuUavHandle(cpuUavHandle) {}
 		virtual ~DX12Texture();
 
@@ -36,12 +36,9 @@ namespace LuxonEngine::Rendering::DX12 {
 		inline ID3D12Resource2* GetResource() const { return m_resource.Get(); }
 		inline UInt32 GetWidth() const { return m_width; }
 		inline UInt32 GetHeight() const { return m_height; }
-		inline UInt16 GetMipLevels() const { return m_mipLevels; }
 		inline DXGI_FORMAT GetFormat() const { return m_format; }
 		inline D3D12_CPU_DESCRIPTOR_HANDLE GetSrvHandle() const { return m_cpuSrvHandle; }
 		inline D3D12_CPU_DESCRIPTOR_HANDLE GetUavHandle() const { return m_cpuUavHandle; }
-		inline bool HasSrvHandle() const { return m_cpuSrvHandle.ptr != 0; }
-		inline bool HasUavHandle() const { return m_cpuUavHandle.ptr != 0; }
 
 		// State as last recorded by the user of this texture. The texture never issues barriers itself.
 		inline D3D12_RESOURCE_STATES GetState() const { return m_state; }
@@ -51,7 +48,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		ComPtr<ID3D12Resource2> m_resource;
 		UInt32 m_width = 0;
 		UInt32 m_height = 0;
-		UInt16 m_mipLevels = 0;
 		DXGI_FORMAT m_format = DXGI_FORMAT_UNKNOWN;
 		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuSrvHandle = {};
 		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuUavHandle = {};

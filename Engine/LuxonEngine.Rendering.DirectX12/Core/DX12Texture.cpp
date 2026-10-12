@@ -14,7 +14,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		m_cpuUavHandle = {};
 		m_width = 0;
 		m_height = 0;
-		m_mipLevels = 0;
 		m_format = DXGI_FORMAT_UNKNOWN;
 		m_state = D3D12_RESOURCE_STATE_COMMON;
 	}

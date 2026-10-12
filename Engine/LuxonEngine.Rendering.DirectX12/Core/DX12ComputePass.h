@@ -17,8 +17,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		void AddPipeline(const ref<Compute::DX12ComputePipelineModule>& pipeline);
 		void AddPipeline(const ref<RayTracing::DX12RayTracingPipelineModule>& pipeline);
 
-		void Reset();
-
 		virtual void Execute(ID3D12GraphicsCommandList7* commandList) override;
 
 	private:

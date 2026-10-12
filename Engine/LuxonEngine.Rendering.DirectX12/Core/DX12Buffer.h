@@ -35,15 +35,9 @@ namespace LuxonEngine::Rendering::DX12 {
 		void Release();
 
 		inline ID3D12Resource2* GetResource() const { return m_resource.Get(); }
-		inline D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return m_resource->GetGPUVirtualAddress(); }
 		
-		inline UInt32 GetCount() const { return m_count; }
-		inline UInt32 GetStride() const { return m_stride; }
-		inline UInt64 GetSize() const { return static_cast<UInt64>(m_count) * m_stride; }
 		inline D3D12_CPU_DESCRIPTOR_HANDLE GetReadHandle() const { return m_cpuReadHandle; }
 		inline D3D12_CPU_DESCRIPTOR_HANDLE GetWriteHandle() const { return m_cpuWriteHandle; }
-		inline bool HasReadHandle() const { return m_cpuReadHandle.ptr != 0; }
-		inline bool HasWriteHandle() const { return m_cpuWriteHandle.ptr != 0; }
 
 		D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const;
 		

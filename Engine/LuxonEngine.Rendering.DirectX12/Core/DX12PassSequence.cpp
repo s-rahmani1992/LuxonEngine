@@ -263,15 +263,6 @@ namespace LuxonEngine::Rendering::DX12 {
 			}
 		}
 
-		if (m_logPlan) {
-			std::string plan = "Pass sequence: " + std::to_string(passCount) + " passes, " + std::to_string(m_prologueBarriers.size()) + " prologue barriers, barriers before each pass:";
-
-			for (UInt32 passIndex = 0; passIndex < passCount; passIndex++)
-				plan += " " + std::to_string(m_passBarriers[0][passIndex].size());
-
-			Logger::Log(plan);
-		}
-
 		m_compiled = true;
 		return true;
 	}
