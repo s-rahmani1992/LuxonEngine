@@ -8,7 +8,6 @@
 #include <filesystem>
 #include <algorithm>
 
-#include "SPIRVShader.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "RayTracing/SPIRVRayTracingProgram.h"
 #include "Compute/SPIRVComputeProgram.h"
@@ -77,32 +76,36 @@ namespace LuxonEngine::Rendering::Vulkan
 		SPIRVShaderProgram* finalProgram;
 
 		if (compileProperties.type == ShaderProgramType::Rasterization) {
-			std::vector<ref<SPIRVShader>> shaders;
+			std::vector<SPIRVShaderData> shaders;
 
 			for (auto& [stage, entryPoint] : foundStages) {
-				Vulkan_Shader_Type shaderType = Vulkan_Fragment;
-
-				if (stage == SPV_REFLECT_SHADER_STAGE_VERTEX_BIT)
-					shaderType = Vulkan_Vertex;
-				else if (stage == SPV_REFLECT_SHADER_STAGE_GEOMETRY_BIT)
-					shaderType = Vulkan_Geometry;
-
 				std::string stageError;
 				auto options = baseOptions;
 				options.entryPoint = CharToString(entryPoint.c_str());
 				options.targetProfile = s_validStages.at(ShaderProgramType::Rasterization).at(stage);
 
-				auto shader = CompileShaderStage(shaderCode, codeLength, options, shaderType, stageError);
+				auto spirvShader = CompileShaderStageData(shaderCode, codeLength, options, stageError);
 
-				if (shader == nullptr) {
+				if (spirvShader.byteCode == nullptr) {
 					error = std::string("Error in compiling ") + SPIRVVariableReflection::ShaderStageToString(stage) + " Stage: " + stageError;
 					return nullptr;
 				}
 
-				shaders.push_back(shader);
+				spirvShader.shaderType = (VkShaderStageFlagBits)stage;
+				spirvShader.entryPoint = entryPoint;
+				shaders.push_back(spirvShader);
 			}
 
-			finalProgram = new Rasterization::SPIRVRasterizationProgram(shaders, m_device);
+			auto rasterProgram = new Rasterization::SPIRVRasterizationProgram(shaders, m_device);
+			std::string layoutError;
+
+			if (rasterProgram->InitializePipelineLayout(layoutError) == false) {
+				error = "Error in Creating Pipeline Layout: " + layoutError;
+				delete rasterProgram;
+				return nullptr;
+			}
+
+			finalProgram = rasterProgram;
 		}
 
 		else if (compileProperties.type == ShaderProgramType::RayTracing) {
@@ -259,18 +262,6 @@ namespace LuxonEngine::Rendering::Vulkan
 		}
 
 		return success;
-	}
-
-	ref<SPIRVShader> VulkanShaderCompiler::CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error)
-	{
-		ComPtr<IDxcBlob> pshaderObjectData;
-
-		if (m_compiler->Compile(source, size, options, pshaderObjectData, error) == false) {
-			return nullptr;
-		}
-
-		ref<SPIRVShader> shader = std::make_shared<SPIRVShader>((Byte*)pshaderObjectData->GetBufferPointer(), pshaderObjectData->GetBufferSize(), shaderType, m_device, WStringToString(options.entryPoint));
-		return shader;
 	}
 
 	SPIRVShaderData VulkanShaderCompiler::CompileShaderStageData(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error)

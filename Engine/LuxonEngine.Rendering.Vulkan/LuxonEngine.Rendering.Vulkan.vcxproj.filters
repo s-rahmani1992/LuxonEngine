@@ -23,9 +23,6 @@
     <ClInclude Include="Rasterization\SPIRVRasterizationProgram.h">
       <Filter>Rasterization</Filter>
     </ClInclude>
-    <ClInclude Include="Core\SPIRVShader.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\VulkanAssetManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -109,9 +106,6 @@
     </ClCompile>
     <ClCompile Include="Rasterization\SPIRVRasterizationProgram.cpp">
       <Filter>Rasterization</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\SPIRVShader.cpp">
-      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\spirv_reflect.c">
       <Filter>Core</Filter>

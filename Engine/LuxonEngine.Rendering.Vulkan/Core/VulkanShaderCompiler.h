@@ -14,10 +14,8 @@ namespace LuxonEngine::Rendering::DXC {
 }
 
 namespace LuxonEngine::Rendering::Vulkan {
-	class SPIRVShader;
 	class SPIRVShaderProgram;
 	struct SPIRVShaderData;
-	enum Vulkan_Shader_Type;
 
 	class VulkanShaderCompiler : public ShaderCompiler
 	{
@@ -38,7 +36,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		bool DiscoverStages(const void* source, size_t size, const DXC::DXCCompileOptions& baseOptions, ShaderProgramType shaderType,
 			std::map<SpvReflectShaderStageFlagBits, std::string>& outStages, std::string& error);
-		ref<SPIRVShader> CompileShaderStage(const void* source, size_t size, const DXC::DXCCompileOptions& options, Vulkan_Shader_Type shaderType, std::string& error);
 		SPIRVShaderData CompileShaderStageData(const void* source, size_t size, const DXC::DXCCompileOptions& options, std::string& error);
 		VkDevice m_device;
 

@@ -512,7 +512,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanGBufferPipelineModule::CreateDescript
 		.pSetLayouts = nullptr,
 	};
 
-	auto& descLayouts = gBufferProgram->GetDiscriptorLayouts();
+	auto& descLayouts = gBufferProgram->GetDescriptorSetLayouts();
 
 	for (UInt32 i = 0; i < descLayouts.size(); i++) {
 		descSetAlloc.pSetLayouts = descLayouts.data() + i;

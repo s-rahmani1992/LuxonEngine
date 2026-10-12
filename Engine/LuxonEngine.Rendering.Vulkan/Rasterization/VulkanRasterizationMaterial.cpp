@@ -56,7 +56,7 @@ LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Vulk
 
 bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationMaterial::Initialize(const VkDescriptorPool pool)
 {
-	auto& layouts = m_program->GetDiscriptorLayouts();
+	auto& layouts = m_program->GetDescriptorSetLayouts();
 	m_descriptorSets.resize(layouts.size());
 	m_descriptorData.resize(m_material->GetTextureFields()->size());
 

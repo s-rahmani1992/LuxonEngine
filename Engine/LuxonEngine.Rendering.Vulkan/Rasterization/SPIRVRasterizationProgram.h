@@ -1,31 +1,48 @@
 #pragma once
 
 #include "vulkan-pch.h"
+#include <string>
+#include <vector>
 #include "Core/SPIRVShaderProgram.h"
-#include "../Core/SPIRVReflection.h"
-
-namespace LuxonEngine::Rendering::Vulkan {
-	class SPIRVShader;
-}
 
 namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	class SPIRVRasterizationProgram : public SPIRVShaderProgram
 	{
 	public:
-		SPIRVRasterizationProgram(const std::vector<ref<SPIRVShader>>& spirvShaders, const VkDevice device);
+		static constexpr UInt32 GlobalSetIndex = 0;
+		static constexpr UInt32 EntitySetIndex = 1;
+		static constexpr VkShaderStageFlags StageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
+
+		SPIRVRasterizationProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device);
 		virtual ~SPIRVRasterizationProgram() override;
+
+		SPIRVRasterizationProgram(const SPIRVRasterizationProgram&) = delete;
+		SPIRVRasterizationProgram& operator=(const SPIRVRasterizationProgram&) = delete;
+
 		virtual ShaderProgramType GetType() override { return ShaderProgramType::Rasterization; }
 
-		inline std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() { return m_stageInfos; }
+		bool InitializePipelineLayout(std::string& error);
+
+		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_stageInfos; }
 		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
-		inline std::vector<VkDescriptorSetLayout>& GetDiscriptorLayouts() { return m_descriptorSetLayout; }
+		inline const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+
 	private:
-		ref<SPIRVShader> m_vertexShader;
-		ref<SPIRVShader> m_geometryShader;
-		ref<SPIRVShader> m_pixelShader;
+		VkShaderModule CreateStage(const SPIRVShaderData& shader, std::string& entryPoint);
+
+		static bool RemapDescriptorSets(SpvReflectShaderModule& reflectionModule);
+
+		VkShaderModule m_vertexShader = VK_NULL_HANDLE;
+		VkShaderModule m_geometryShader = VK_NULL_HANDLE;
+		VkShaderModule m_pixelShader = VK_NULL_HANDLE;
+
+		std::string m_vertexEntryPoint;
+		std::string m_geometryEntryPoint;
+		std::string m_pixelEntryPoint;
 
 		std::vector<VkPipelineShaderStageCreateInfo> m_stageInfos;
-		VkPipelineLayout m_pipelineLayout;
-		std::vector<VkDescriptorSetLayout> m_descriptorSetLayout;
+
+		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
 	};
 }

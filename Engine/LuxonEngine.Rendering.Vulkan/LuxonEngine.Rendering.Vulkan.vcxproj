@@ -178,7 +178,6 @@
   <ItemGroup>
     <ClInclude Include="Compute\SPIRVComputeProgram.h" />
     <ClInclude Include="Core\SPIRVReflection.h" />
-    <ClInclude Include="Core\SPIRVShader.h" />
     <ClInclude Include="Core\SPIRVShaderProgram.h" />
     <ClInclude Include="Core\VulkanAssetManager.h" />
     <ClInclude Include="Core\VulkanBufferFactory.h" />
@@ -211,7 +210,6 @@
   <ItemGroup>
     <ClCompile Include="Compute\SPIRVComputeProgram.cpp" />
     <ClCompile Include="Core\SPIRVReflection.cpp" />
-    <ClCompile Include="Core\SPIRVShader.cpp" />
     <ClCompile Include="Core\SPIRVShaderProgram.cpp" />
     <ClCompile Include="Core\spirv_reflect.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
