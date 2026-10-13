@@ -139,7 +139,7 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
-		auto pipeline = std::make_shared<MeshShading::DX12MeshPipelineModule>(m_device, pipelineState, meshProgram->GetRootSignature().Get(), material);
+		auto pipeline = std::make_shared<MeshShading::DX12MeshPipelineModule>(m_device, pipelineState, meshProgram->GetRootSignature().Get(), meshProgram, material);
 
 		return pipeline;
 	}
@@ -310,7 +310,7 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
-		return std::make_shared<Rasterization::DX12RasterizationPipelineModule>(m_device, pipelineState, rootSignature, material, properties.topologyType, properties.stripTopology);
+		return std::make_shared<Rasterization::DX12RasterizationPipelineModule>(m_device, pipelineState, rootSignature, rasterizationProgram, material, properties.topologyType, properties.stripTopology);
 	}
 
 	ref<Compute::DX12ComputePipelineModule> DX12PipelineFactory::CreateComputePipeline(Material* material, std::string& error)
@@ -365,7 +365,7 @@ namespace LuxonEngine::Rendering::DX12 {
 			return nullptr;
 		}
 
-		return std::make_shared<Compute::DX12ComputePipelineModule>(m_device, pipelineState, rootSignature, material);
+		return std::make_shared<Compute::DX12ComputePipelineModule>(m_device, pipelineState, rootSignature, computeProgram, material);
 	}
 
 	ref<RayTracing::DX12RayTracingPipelineModule> DX12PipelineFactory::CreateRayTracingPipeline(const RayTracing::RayTracingPipelineProperties& properties, Material* globalMaterial,

@@ -4,13 +4,11 @@
 #include "Rendering/Material.h"
 
 namespace LuxonEngine::Rendering::DX12::Compute {
-	DX12ComputePipelineModule::DX12ComputePipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, Material* material)
+	DX12ComputePipelineModule::DX12ComputePipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, const HLSLComputeProgram* program, Material* material)
 		:m_pipelineState(pipelineState), m_rootSignature(rootSignature)
 	{
-		auto* computeProgram = dynamic_cast<HLSLComputeProgram*>(material->GetProgram().get());
-
-		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, computeProgram->GetVariableReflection(),
-			computeProgram->GetRootParameterLayout(), DescriptorBindPoint::Compute);
+		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, program->GetVariableReflection(),
+			program->GetRootParameterLayout(), DescriptorBindPoint::Compute);
 	}
 
 	DX12ComputePipelineModule::~DX12ComputePipelineModule() = default;

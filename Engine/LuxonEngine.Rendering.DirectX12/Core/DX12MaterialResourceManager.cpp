@@ -135,6 +135,9 @@ namespace LuxonEngine::Rendering::DX12 {
 			m_heapValues.push_back(heapData);
 		}
 
+		if (m_material == nullptr)
+			return;
+
 		// lookup table from the texture field index of the material to the heap value of this pipeline
 		auto textureFields = m_material->GetTextureFields();
 		m_textureHeapIndices = std::vector<UInt32>(textureFields->size(), ShaderVariableReflection::InvalidIndex);
@@ -164,7 +167,7 @@ namespace LuxonEngine::Rendering::DX12 {
 
 			// material block: the variables are consecutive in the material data, starting from the first one
 			if (block.isInternal == false) {
-				constantData.data = m_material->GetValueLocation(block.variables[0].name);
+				constantData.data = m_material == nullptr ? nullptr : m_material->GetValueLocation(block.variables[0].name);
 				m_rootConstants.push_back(constantData);
 				continue;
 			}

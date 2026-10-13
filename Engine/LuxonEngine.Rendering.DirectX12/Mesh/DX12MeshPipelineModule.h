@@ -17,10 +17,12 @@ namespace LuxonEngine::Rendering {
 }
 
 namespace LuxonEngine::Rendering::DX12::MeshShading {
+	class HLSLMeshProgram;
+
 	class DX12MeshPipelineModule {
 	public:
 		DX12MeshPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState,
-			ID3D12RootSignature* rootSignature, Material* material);
+			ID3D12RootSignature* rootSignature, const HLSLMeshProgram* program, Material* material);
 
 		~DX12MeshPipelineModule();
 

@@ -63,8 +63,6 @@ namespace LuxonEngine::Rendering::DX12 {
 			D3D12_CPU_DESCRIPTOR_HANDLE transformHandle = {};
 			ComPtr<ID3D12Resource2> vertexBuffer;
 			D3D12_VERTEX_BUFFER_VIEW vertexView = {};
-			ref<Material> computeMaterial; // holds the curve parameters of the spline
-			ref<Compute::DX12ComputePipelineModule> computeModule;
 			ref<Rasterization::DX12RasterizationPipelineModule> rasterModule;
 		};
 
@@ -80,6 +78,7 @@ namespace LuxonEngine::Rendering::DX12 {
 		std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> m_rasterizationModules;
 
 		std::vector<SplineGPUData> m_splines;
+		ref<Compute::DX12ComputePipelineModule> m_splineComputeModule; // generates the vertices of all the splines
 		ComPtr<ID3D12DescriptorHeap> m_splineUavHeap; // non shader visible, the source of the vertex buffer descriptor copies
 
 		ref<Material> m_overrideMaterial;

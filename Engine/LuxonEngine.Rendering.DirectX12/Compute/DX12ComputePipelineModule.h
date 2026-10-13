@@ -17,10 +17,12 @@ namespace LuxonEngine::Rendering {
 }
 
 namespace LuxonEngine::Rendering::DX12::Compute {
+	class HLSLComputeProgram;
+
 	class DX12ComputePipelineModule {
 	public:
 		DX12ComputePipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState,
-			ID3D12RootSignature* rootSignature, Material* material);
+			ID3D12RootSignature* rootSignature, const HLSLComputeProgram* program, Material* material);
 
 		~DX12ComputePipelineModule();
 

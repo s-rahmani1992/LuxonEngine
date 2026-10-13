@@ -6,7 +6,6 @@
 #include "Core/DX12ComputePass.h"
 #include "Compute/DX12ComputePipelineModule.h"
 #include "Rasterization/DX12RasterizationPipelineModule.h"
-#include "DX12MaterialFactory.h"
 #include "DX12SplineVertex.h"
 #include <Core/GameEntity.h>
 #include <Core/Logger.h>
@@ -58,9 +57,21 @@ namespace LuxonEngine::Rendering::DX12 {
 			return;
 		}
 
+		std::string error;
+		m_computeModule = context.pipelineFactory->CreateComputePipeline(computeProgram.get(), error);
+
+		if (m_computeModule == nullptr) {
+			Logger::LogError("Failed to create the spline compute pipeline: " + error);
+			return;
+		}
+
+		if (m_computeModule->Initialize((UInt32)splineEntries.size()) == false) {
+			m_computeModule = nullptr;
+			return;
+		}
+
 		// the thread group size of the compute shader
 		constexpr UInt32 threadsPerGroup = 32;
-		std::string error;
 		std::map<ref<Material>, std::vector<size_t>> materialMap; // material of the spline renderer -> indices in m_splines
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> transformHandles; // by index in m_splines
 
@@ -80,36 +91,27 @@ namespace LuxonEngine::Rendering::DX12 {
 				continue;
 			}
 
-			// every spline has its own compute material, because the curve parameters are material values
-			spline.computeMaterial = DX12MaterialFactory::BuildMaterial(computeProgram);
-			auto computeModule = spline.computeMaterial != nullptr ? context.pipelineFactory->CreateComputePipeline(spline.computeMaterial.get(), error) : nullptr;
-
-			if (computeModule == nullptr) {
-				Logger::LogError("Failed to create the spline compute pipeline: " + error);
-				m_resourceManager->Destroy(spline.vertexBuffer);
-				continue;
-			}
-
-			if (computeModule->Initialize(1) == false) {
-				m_resourceManager->Destroy(spline.vertexBuffer);
-				continue;
-			}
-
-			computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBuffer->GetWriteHandle());
-			computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
+			m_computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBuffer->GetWriteHandle());
+			m_computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 
 			// the vertices are generated every frame: written as a UAV, then read as a vertex buffer by the main render pass
 			context.computePass->Use(spline.vertexBuffer.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			context.mainRenderPass->Use(spline.vertexBuffer.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-			context.computePass->AddPipeline(computeModule);
 
-			// the curve parameters are copied to the compute material on the first update
+			// the curve parameters are copied to the compute module on the first update
 			spline.renderer->SetDirty();
 
 			materialMap[spline.renderer->GetMaterial()].push_back(m_splines.size());
 			transformHandles.push_back(entry.transformHandle);
 			m_splines.push_back(std::move(spline));
 		}
+
+		if (m_splines.empty()) {
+			m_computeModule = nullptr;
+			return;
+		}
+
+		context.computePass->AddPipeline(m_computeModule);
 
 		// the geometry shader turns every line of the strip into a quad, so the quads do not have a fixed winding
 		Rasterization::RasterizationPipelineProperties properties;
@@ -153,12 +155,14 @@ namespace LuxonEngine::Rendering::DX12 {
 
 			auto& curve = spline.renderer->GetCurve();
 
-			// the curve parameters are the material values of the compute program
-			spline.computeMaterial->SetValue("startPoint", curve.m_point1);
-			spline.computeMaterial->SetValue("midPoint", curve.m_point2);
-			spline.computeMaterial->SetValue("endPoint", curve.m_point3);
-			spline.computeMaterial->SetValue("tileFactor", spline.renderer->GetTileFactor());
-			spline.computeMaterial->SetValue("length", curve.InterpolateLength(1.0f));
+			float tileFactor = spline.renderer->GetTileFactor();
+			float length = curve.InterpolateLength(1.0f);
+
+			m_computeModule->SetEntityConstant(spline.entity, "_startPoint", curve.m_point1);
+			m_computeModule->SetEntityConstant(spline.entity, "_midPoint", curve.m_point2);
+			m_computeModule->SetEntityConstant(spline.entity, "_endPoint", curve.m_point3);
+			m_computeModule->SetEntityConstant(spline.entity, "_tileFactor", tileFactor);
+			m_computeModule->SetEntityConstant(spline.entity, "_length", length);
 
 			if (spline.rasterModule != nullptr) {
 				float width = spline.renderer->GetWidth();
@@ -175,5 +179,6 @@ namespace LuxonEngine::Rendering::DX12 {
 		}
 
 		m_splines.clear();
+		m_computeModule = nullptr;
 	}
 }

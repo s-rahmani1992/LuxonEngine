@@ -4,13 +4,11 @@
 #include "Rendering/Material.h"
 
 namespace LuxonEngine::Rendering::DX12::MeshShading {
-	DX12MeshPipelineModule::DX12MeshPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, Material* material)
+	DX12MeshPipelineModule::DX12MeshPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, const HLSLMeshProgram* program, Material* material)
 		:m_pipelineState(pipelineState), m_rootSignature(rootSignature)
 	{
-		auto* meshProgram = dynamic_cast<HLSLMeshProgram*>(material->GetProgram().get());
-
-		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, meshProgram->GetVariableReflection(),
-			meshProgram->GetRootParameterLayout(), DescriptorBindPoint::Graphics);
+		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, program->GetVariableReflection(),
+			program->GetRootParameterLayout(), DescriptorBindPoint::Graphics);
 	}
 
 	DX12MeshPipelineModule::~DX12MeshPipelineModule() = default;

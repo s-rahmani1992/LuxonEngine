@@ -16,10 +16,12 @@ namespace LuxonEngine::Rendering {
 }
 
 namespace LuxonEngine::Rendering::DX12::Rasterization {
+	class HLSLRasterizationProgram;
+
 	class DX12RasterizationPipelineModule {
 	public:
 		DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState,
-			ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, bool stripTopology = false);
+			ID3D12RootSignature* rootSignature, const HLSLRasterizationProgram* program, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, bool stripTopology = false);
 
 		~DX12RasterizationPipelineModule();
 

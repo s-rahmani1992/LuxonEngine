@@ -422,6 +422,7 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 	std::vector<ref<Rasterization::DX12RasterizationPipelineModule>> pipelines;
 
 	m_splines.clear();
+	m_splineComputeModule = nullptr;
 	m_splineUavHeap = nullptr;
 
 	struct SplineEntry {
@@ -475,9 +476,21 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 	auto incrementSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	auto uavStart = m_splineUavHeap->GetCPUDescriptorHandleForHeapStart();
 
+	std::string error;
+	m_splineComputeModule = m_pipelineFactory->CreateComputePipeline(computeProgram.get(), error);
+
+	if (m_splineComputeModule == nullptr) {
+		Logger::LogError("Failed to create the spline compute pipeline: " + error);
+		return pipelines;
+	}
+
+	if (m_splineComputeModule->Initialize((UInt32)splineEntries.size()) == false) {
+		m_splineComputeModule = nullptr;
+		return pipelines;
+	}
+
 	// the thread group size of the compute shader
 	constexpr UInt32 threadsPerGroup = 32;
-	std::string error;
 	std::map<ref<Material>, std::vector<size_t>> materialMap; // material of the spline renderer -> indices in m_splines
 
 	for (UInt32 i = 0; i < splineEntries.size(); i++) {
@@ -518,20 +531,8 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 			.StrideInBytes = sizeof(SplineVertex),
 		};
 
-		// every spline has its own compute material, because the curve parameters are material values
-		spline.computeMaterial = DX12MaterialFactory::BuildMaterial(computeProgram);
-		spline.computeModule = spline.computeMaterial != nullptr ? m_pipelineFactory->CreateComputePipeline(spline.computeMaterial.get(), error) : nullptr;
-
-		if (spline.computeModule == nullptr) {
-			Logger::LogError("Failed to create the spline compute pipeline: " + error);
-			continue;
-		}
-
-		if (spline.computeModule->Initialize(1) == false)
-			continue;
-
-		spline.computeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, uavHandle);
-		spline.computeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
+		m_splineComputeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, uavHandle);
+		m_splineComputeModule->SetEntityThreadGroupCount(spline.entity, (vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 
 		// the vertices are generated on the first render
 		spline.renderer->SetDirty();
@@ -578,18 +579,21 @@ std::vector<ref<LuxonEngine::Rendering::DX12::Rasterization::DX12RasterizationPi
 
 void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::UpdateSplines()
 {
+	bool computeBound = false;
+
 	for (auto& spline : m_splines) {
 		if (spline.renderer->IsDirty() == false)
 			continue;
 
 		auto& curve = spline.renderer->GetCurve();
+		float tileFactor = spline.renderer->GetTileFactor();
+		float length = curve.InterpolateLength(1.0f);
 
-		// the curve parameters are the material values of the compute program
-		spline.computeMaterial->SetValue("startPoint", curve.m_point1);
-		spline.computeMaterial->SetValue("midPoint", curve.m_point2);
-		spline.computeMaterial->SetValue("endPoint", curve.m_point3);
-		spline.computeMaterial->SetValue("tileFactor", spline.renderer->GetTileFactor());
-		spline.computeMaterial->SetValue("length", curve.InterpolateLength(1.0f));
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_startPoint", curve.m_point1);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_midPoint", curve.m_point2);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_endPoint", curve.m_point3);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_tileFactor", tileFactor);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_length", length);
 
 		if (spline.rasterModule != nullptr) {
 			float width = spline.renderer->GetWidth();
@@ -609,7 +613,13 @@ void LuxonEngine::Rendering::DX12::DX12EditorGraphicContext::UpdateSplines()
 		};
 
 		m_commandList->ResourceBarrier(1, &barrier);
-		spline.computeModule->Dispatch(m_commandList.Get());
+
+		if (computeBound == false) {
+			m_splineComputeModule->BindGlobal(m_commandList.Get());
+			computeBound = true;
+		}
+
+		m_splineComputeModule->DispatchEntity(m_commandList.Get(), spline.entity);
 
 		std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
 		m_commandList->ResourceBarrier(1, &barrier);

@@ -4,7 +4,7 @@
 #include "Rendering/Material.h"
 
 namespace LuxonEngine::Rendering::DX12::Rasterization {
-	DX12RasterizationPipelineModule::DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, bool stripTopology)
+	DX12RasterizationPipelineModule::DX12RasterizationPipelineModule(ID3D12Device10* device, const ComPtr<ID3D12PipelineState>& pipelineState, ID3D12RootSignature* rootSignature, const HLSLRasterizationProgram* program, Material* material, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, bool stripTopology)
 		:m_pipelineState(pipelineState), m_rootSignature(rootSignature)
 	{
 		switch (topologyType) {
@@ -19,10 +19,8 @@ namespace LuxonEngine::Rendering::DX12::Rasterization {
 			break;
 		}
 
-		auto* rasterizationProgram = dynamic_cast<HLSLRasterizationProgram*>(material->GetProgram().get());
-
-		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, rasterizationProgram->GetVariableReflection(),
-			rasterizationProgram->GetRootParameterLayout(), DescriptorBindPoint::Graphics);
+		m_resourceManager = std::make_unique<DX12MaterialResourceManager>(device, material, program->GetVariableReflection(),
+			program->GetRootParameterLayout(), DescriptorBindPoint::Graphics);
 	}
 
 	DX12RasterizationPipelineModule::~DX12RasterizationPipelineModule() = default;
