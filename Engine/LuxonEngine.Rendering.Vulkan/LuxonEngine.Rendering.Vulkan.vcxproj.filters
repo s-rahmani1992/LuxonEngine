@@ -47,6 +47,9 @@
     <ClInclude Include="Core\VulkanMaterialFactory.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanBuffer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanBufferFactory.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -133,6 +136,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanMaterialFactory.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanBuffer.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanBufferFactory.cpp">

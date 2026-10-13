@@ -181,6 +181,7 @@
     <ClInclude Include="Core\SPIRVReflection.h" />
     <ClInclude Include="Core\SPIRVShaderProgram.h" />
     <ClInclude Include="Core\VulkanAssetManager.h" />
+    <ClInclude Include="Core\VulkanBuffer.h" />
     <ClInclude Include="Core\VulkanBufferFactory.h" />
     <ClInclude Include="Core\VulkanDeviceManager.h" />
     <ClInclude Include="Core\VulkanEditorGraphicContext.h" />
@@ -219,6 +220,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Core\VulkanAssetManager.cpp" />
+    <ClCompile Include="Core\VulkanBuffer.cpp" />
     <ClCompile Include="Core\VulkanBufferFactory.cpp" />
     <ClCompile Include="Core\VulkanDeviceManager.cpp" />
     <ClCompile Include="Core\VulkanEditorGraphicContext.cpp" />

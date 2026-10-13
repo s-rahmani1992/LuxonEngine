@@ -952,13 +952,17 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(
 		spline.transformIndex = entityGPU.index;
 		spline.vertexCount = (UInt32)splineRenderer->GetSegments() + 1;
 
-		if (m_bufferFactory->CreateBuffer(sizeof(SplineVertex) * spline.vertexCount, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &spline.vertexBuffer, &spline.vertexMemory) == false) {
+		spline.vertexBuffer = m_bufferFactory->CreateStructuredBuffer<SplineVertex>(VulkanBufferDesc{
+			.memoryType = VulkanMemoryType::GPUOnly,
+			.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		}, (int)spline.vertexCount);
+
+		if (spline.vertexBuffer == nullptr) {
 			Logger::LogError("Failed to create the vertex buffer of " + entityGPU.gameEntity->GetName());
 			continue;
 		}
 
-		m_splines.push_back(spline);
+		m_splines.push_back(std::move(spline));
 	}
 
 	if (m_splines.empty())
@@ -994,7 +998,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(
 	for (size_t i = 0; i < m_splines.size(); i++) {
 		auto& spline = m_splines[i];
 
-		m_splineComputeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBuffer);
+		m_splineComputeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBuffer->GetBuffer());
 		m_splineComputeModule->SetEntityThreadGroupCount(spline.entity, (spline.vertexCount + threadsPerGroup - 1) / threadsPerGroup);
 		spline.renderer->SetDirty();
 
@@ -1025,7 +1029,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(
 			auto& spline = m_splines[splineIndex];
 
 			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[spline.transformIndex].buffer);
-			pipeline->SetEntityGeometry(spline.entity, spline.vertexBuffer, spline.vertexCount);
+			pipeline->SetEntityGeometry(spline.entity, spline.vertexBuffer->GetBuffer(), spline.vertexCount);
 			spline.rasterModule = pipeline;
 		}
 
@@ -1058,11 +1062,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateSplines()
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroySplineBuffers()
 {
-	for (auto& spline : m_splines) {
-		vkDestroyBuffer(m_logicDevice, spline.vertexBuffer, nullptr);
-		vkFreeMemory(m_logicDevice, spline.vertexMemory, nullptr);
-	}
-
 	m_splines.clear();
 }
 

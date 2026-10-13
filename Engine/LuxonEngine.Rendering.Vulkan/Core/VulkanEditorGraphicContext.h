@@ -63,8 +63,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 			GameEntity* entity = nullptr;
 			UInt32 transformIndex = 0;
 			UInt32 vertexCount = 0;
-			VkBuffer vertexBuffer = VK_NULL_HANDLE;
-			VkDeviceMemory vertexMemory = VK_NULL_HANDLE;
+			Ptr<VulkanBuffer> vertexBuffer;
 			ref<Rasterization::VulkanRasterizationPipelineModule> rasterModule;
 		};
 

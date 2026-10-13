@@ -139,6 +139,24 @@ bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateImage(const VkIm
 	return true;
 }
 
+Ptr<LuxonEngine::Rendering::Vulkan::VulkanBuffer> LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateBuffer(const VulkanBufferDesc& desc, UInt32 size, VkBufferUsageFlags usage)
+{
+	VkMemoryPropertyFlags memoryProperties = desc.memoryType == VulkanMemoryType::Upload
+		? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		: VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	VkBuffer buffer = VK_NULL_HANDLE;
+	VkDeviceMemory memory = VK_NULL_HANDLE;
+
+	if (!CreateBuffer(size, usage, memoryProperties, &buffer, &memory)) {
+		if (buffer != VK_NULL_HANDLE)
+			vkDestroyBuffer(m_device, buffer, nullptr);
+		return nullptr;
+	}
+
+	return std::make_unique<VulkanBuffer>(m_device, buffer, memory);
+}
+
 UInt32 LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::GetMemoryTypeIndex(const VkMemoryRequirements* memoryRequirement, VkMemoryPropertyFlags targetFlags, const VkPhysicalDeviceMemoryProperties* memoryProperties)
 {
 	for (UInt32 i = 0; i < memoryProperties->memoryTypeCount; i++) {
