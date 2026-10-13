@@ -82,9 +82,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSurfaceInstancePipelines();
 		void DestroyMeshStorageBuffers();
-		UInt32 m_transformStride;
-		VkBuffer m_transformBuffer;
-		VkDeviceMemory m_transformBufferMemory;
+		std::vector<EntityTransformBuffer> m_transformBuffers;
 		TransformGPU m_transformData;
 
 		VkRenderPass m_renderPass;

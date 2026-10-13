@@ -21,6 +21,12 @@ namespace LuxonEngine::Rendering::Vulkan {
 		Matrix4 modelViewMatrix;
 	};
 
+	struct EntityTransformBuffer {
+		VkBuffer buffer = VK_NULL_HANDLE;
+		VkDeviceMemory memory = VK_NULL_HANDLE;
+		void* mapped = nullptr;
+	};
+
 	class VulkanGraphicContext : public GraphicContext
 	{
 	public:
@@ -49,6 +55,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool InitializeCameraBuffer(const ref<Camera>& camera);
 		bool InitializeLightBuffer(const SceneLightData& lightData);
 		void UpdateCameraBuffer();
+		bool CreateEntityTransformBuffers(UInt32 count, std::vector<EntityTransformBuffer>& transformBuffers);
+		void DestroyEntityTransformBuffers(std::vector<EntityTransformBuffer>& transformBuffers);
 
 		VkDevice m_logicDevice;
 

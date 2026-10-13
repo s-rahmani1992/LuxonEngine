@@ -27,7 +27,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		VulkanRayTracingPipelineModule();
 		~VulkanRayTracingPipelineModule();
 
-		bool Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, VkBuffer transformBuffer, const VkExtent2D& extent);
+		bool Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, const std::vector<VkBuffer>& transformBuffers, const VkExtent2D& extent);
 		void RenderCommand(VkCommandBuffer commandBuffer);
 		void UpdateTLAS(VkCommandBuffer commandBuffer);
 		void SetImage(const std::string& name, const VkImageView imageView);

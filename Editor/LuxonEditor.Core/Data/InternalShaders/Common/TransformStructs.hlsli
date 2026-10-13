@@ -18,8 +18,8 @@ struct CameraData
 
 #if defined(_VULKAN)
     #ifdef _VK_RAY_TRACING
-        #define OBJECT_TRANSFORM_VAR(x)    StructuredBuffer<TransformData> _ObjectTransformDataArray;
-        #define transformData _ObjectTransformDataArray[InstanceIndex()]
+        #define OBJECT_TRANSFORM_VAR(x)    StructuredBuffer<TransformData> _ObjectTransformDataArray[];
+        #define transformData _ObjectTransformDataArray[InstanceIndex()][0]
     #else
 #define OBJECT_TRANSFORM_VAR(x)    StructuredBuffer<TransformData> _ObjectTransformData;    \
         static const TransformData transformData = _ObjectTransformData[0];

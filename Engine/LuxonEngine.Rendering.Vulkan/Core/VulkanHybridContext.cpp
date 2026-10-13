@@ -51,8 +51,7 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 	m_splineComputeModule.reset();
 	DestroySplineBuffers();
 
-	vkDestroyBuffer(m_logicDevice, m_transformBuffer, nullptr);
-	vkFreeMemory(m_logicDevice, m_transformBufferMemory, nullptr);
+	DestroyEntityTransformBuffers(m_transformBuffers);
 
 	vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
 	vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
@@ -127,9 +126,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	m_clearValues[1].depthStencil = { 1.0f, 0 };
 	
 	// Create Uniform Buffers for Transforms
-	m_bufferFactory->CreateBuffer(sizeof(TransformGPU), scene->entities.size()
-		, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &m_transformBuffer, &m_transformBufferMemory, &m_transformStride);
+	if (CreateEntityTransformBuffers((UInt32)scene->entities.size(), m_transformBuffers) == false)
+		return false;
 
 
 	std::map<ref<Material>, std::vector<VKEntityGPUData>> rasterizationEntityMap;
@@ -184,7 +182,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
 		m_gbufferModule = std::make_shared<VulkanGBufferPipelineModule>();
 		m_gbufferModule->InitializePipeline(m_gBufferEntityGPUList, gBufferProgram, m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, m_depthImageView);
-		m_gbufferModule->WriteBuffer(HLSL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer, m_transformStride);
 		m_gbufferModule->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
 
 		auto gBufferGlobalProgram = GetInternalProgram("G_Buffer_RT_Global_Program");
@@ -193,7 +190,12 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		auto gBufferGlobalMaterial = materialFactory->CreateMaterial(gBufferGlobalProgram);
 		gBufferGlobalMaterial->SetValue("missColor", &m_clearValues[0], 4 * sizeof(Float));
 		m_rayTracingModule = std::make_shared<RayTracing::VulkanRayTracingPipelineModule>();
-		if (m_rayTracingModule->Initialize(scene->entities, gBufferGlobalMaterial, m_cameraBuffer, m_lightBuffer, m_transformBuffer, m_swapChainCapability.currentExtent) == false)
+		std::vector<VkBuffer> transformBuffers;
+
+		for (auto& transformBuffer : m_transformBuffers)
+			transformBuffers.push_back(transformBuffer.buffer);
+
+		if (m_rayTracingModule->Initialize(scene->entities, gBufferGlobalMaterial, m_cameraBuffer, m_lightBuffer, transformBuffers, m_swapChainCapability.currentExtent) == false)
 			return false;
 
 		m_rayTracingModule->SetImage("_PositionTexture", m_gbufferModule->GetPositionImageView());
@@ -641,18 +643,13 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms()
 {
-	void* data;
-	vkMapMemory(m_logicDevice, m_transformBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
-
 	for (auto& entityGPU : m_entityGPUList) {
 		m_transformData.modelMatrix = entityGPU.gameEntity->GetTransform()->Matrix();
 		m_transformData.modelViewMatrix = m_cameraGPU.viewMatrix * m_transformData.modelMatrix;
 		m_transformData.rotationMatrix = entityGPU.gameEntity->GetTransform()->RotateMatrix();
 
-		std::memcpy((Byte*)data + entityGPU.index * m_transformStride, &m_transformData, sizeof(TransformGPU));
+		std::memcpy(m_transformBuffers[entityGPU.index].mapped, &m_transformData, sizeof(TransformGPU));
 	}
-
-	vkUnmapMemory(m_logicDevice, m_transformBufferMemory);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
@@ -690,8 +687,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationMod
 
 			GameEntity* entity = entityGPU.gameEntity.get();
 
-			rasterizationModule->SetEntityDescriptor(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
-				(VkDeviceSize)entityGPU.index * m_transformStride, m_transformStride);
+			rasterizationModule->SetEntityDescriptor(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[entityGPU.index].buffer);
 			rasterizationModule->SetEntityGeometry(entity, meshController->GetVertexBuffer(), meshController->GetIndexBuffer(), mesh->GetIndexCount());
 		}
 
@@ -790,8 +786,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(
 		for (auto splineIndex : splineIndices) {
 			auto& spline = m_splines[splineIndex];
 
-			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
-				(VkDeviceSize)spline.transformIndex * m_transformStride, m_transformStride);
+			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[spline.transformIndex].buffer);
 			pipeline->SetEntityGeometry(spline.entity, spline.vertexBuffer, spline.vertexCount);
 			spline.rasterModule = pipeline;
 		}
@@ -904,8 +899,7 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 
 		for (auto& spikeData : spikeList) {
 			// every entity points to its own range of the shared transform buffer, no dynamic offset is needed
-			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
-				(VkDeviceSize)spikeData.index * m_transformStride, m_transformStride);
+			spikeMeshPipeline->SetEntityDescriptor(spikeData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[spikeData.index].buffer);
 
 			// the mesh buffers are not created with the storage usage, so storage buffers sharing their memory are bound instead
 			VkBuffer vertexStorageBuffer = spikeData.meshController->CreateVertexStorageBuffer();
@@ -1017,8 +1011,7 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 			m_meshStorageBuffers.insert(m_meshStorageBuffers.end(), { nearVertexBuffer, nearIndexBuffer, farVertexBuffer, farIndexBuffer });
 
 			// every entity points to its own range of the shared transform buffer, no dynamic offset is needed
-			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
-				(VkDeviceSize)surfaceInstanceData.index * m_transformStride, m_transformStride);
+			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[surfaceInstanceData.index].buffer);
 			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_MASK_TEXTURE_NAME, surfaceInstanceData.maskTexture->GetImageView());
 			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_VERTEX_BUFFER_NAME, nearVertexBuffer);
 			surfaceInstancePipeline->SetEntityDescriptor(surfaceInstanceData.entity, INTERNAL_NEAR_INDEX_BUFFER_NAME, nearIndexBuffer);

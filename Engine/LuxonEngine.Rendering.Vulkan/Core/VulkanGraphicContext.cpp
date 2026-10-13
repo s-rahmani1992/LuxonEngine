@@ -53,6 +53,36 @@ void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::RegisterShaderRegiste
 	m_shaderRegistery = std::dynamic_pointer_cast<VulkanShaderCompiler>(shaderRegistery);
 }
 
+bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::CreateEntityTransformBuffers(UInt32 count, std::vector<EntityTransformBuffer>& transformBuffers)
+{
+	DestroyEntityTransformBuffers(transformBuffers);
+	transformBuffers.resize(count);
+
+	for (auto& transformBuffer : transformBuffers) {
+		if (m_bufferFactory->CreateBuffer(sizeof(TransformGPU), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &transformBuffer.buffer, &transformBuffer.memory) == false)
+			return false;
+
+		if (vkMapMemory(m_logicDevice, transformBuffer.memory, 0, VK_WHOLE_SIZE, 0, &transformBuffer.mapped) != VK_SUCCESS)
+			return false;
+	}
+
+	return true;
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::DestroyEntityTransformBuffers(std::vector<EntityTransformBuffer>& transformBuffers)
+{
+	for (auto& transformBuffer : transformBuffers) {
+		if (transformBuffer.buffer != VK_NULL_HANDLE)
+			vkDestroyBuffer(m_logicDevice, transformBuffer.buffer, nullptr);
+
+		if (transformBuffer.memory != VK_NULL_HANDLE)
+			vkFreeMemory(m_logicDevice, transformBuffer.memory, nullptr);
+	}
+
+	transformBuffers.clear();
+}
+
 bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuffer(const SceneLightData& lightData)
 {
 	UInt32 lightSize = 10 * (sizeof(DirectionalLight) + sizeof(PointLight)) + 2 * sizeof(UInt32);

@@ -42,7 +42,7 @@ LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::~Vul
 	vkFreeMemory(m_device, m_SBTMemory, nullptr);
 }
 
-bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, VkBuffer transformBuffer, const VkExtent2D& extent)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, const std::vector<VkBuffer>& transformBuffers, const VkExtent2D& extent)
 {
 	m_extent = extent;
 	VkCommandPool commandPool;
@@ -134,13 +134,18 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	std::map<ref<VulkanMeshController>, VulkanBLASBuildInfo> meshbuildInfos;
 
 	UInt32 index = 0;
+	UInt32 sceneIndex = 0;
+	std::vector<VkBuffer> rtTransformBuffers;
+
 	for(auto& entityData : entities) {
+		UInt32 entitySceneIndex = sceneIndex++;
 		auto rtComponent = entityData->GetRayTracingComponent();
 
 		if(rtComponent == nullptr)
 			continue;
 
 		m_entities.push_back({ entityData, index });
+		rtTransformBuffers.push_back(transformBuffers[entitySceneIndex]);
 		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(rtComponent->GetMesh()->GetGPUHandle());
 		
 		auto it = meshbuildInfos.emplace(meshController, VulkanBLASBuildInfo{});
@@ -361,7 +366,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 
 	WriteBuffers(HLSL_CAMERA_DATA_NAME, camBuffer);
 	WriteBuffers(HLSL_LIGHT_DATA_NAME, lightBuffer);
-	WriteBuffers(HLSL_TRANSFORM_ARRAY, transformBuffer);
+	WriteArrayBuffer(HLSL_TRANSFORM_ARRAY, rtTransformBuffers);
 
 	auto descriptorData = m_reflection.GetDescriptorData(HLSL_RT_TLAS_SCENE_NAME);
 	

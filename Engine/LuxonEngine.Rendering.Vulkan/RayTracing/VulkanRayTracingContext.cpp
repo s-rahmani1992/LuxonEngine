@@ -21,6 +21,7 @@ LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTr
 LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::~VulkanRayTracingContext()
 {
     DestroyOutputImage();
+    DestroyEntityTransformBuffers(m_transformBuffers);
 }
 
 bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Initialize()
@@ -52,10 +53,8 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Prepar
 	if (InitializeLightBuffer(scene->lightData) == false)
 		return false;
 
-    auto bufferFactory = VulkanDeviceManager::Instance()->GetBufferFactory();
-    bufferFactory->CreateBuffer(sizeof(TransformGPU) * scene->entities.size()
-        , VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &m_transformBuffer, &m_transformBufferMemory);
+    if (CreateEntityTransformBuffers((UInt32)scene->entities.size(), m_transformBuffers) == false)
+        return false;
 
     UInt32 index = 0;
     m_entityGPUList.reserve(scene->entities.size());
@@ -65,7 +64,12 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Prepar
         index++;
     }
 
-	if(m_rayTracingModule->Initialize(scene->entities, scene->rtGlobalMaterial, m_cameraBuffer, m_lightBuffer, m_transformBuffer, m_swapChainCapability.currentExtent) == false)
+    std::vector<VkBuffer> transformBuffers;
+
+    for (auto& transformBuffer : m_transformBuffers)
+        transformBuffers.push_back(transformBuffer.buffer);
+
+	if(m_rayTracingModule->Initialize(scene->entities, scene->rtGlobalMaterial, m_cameraBuffer, m_lightBuffer, transformBuffers, m_swapChainCapability.currentExtent) == false)
 		return false;
 
 	m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
@@ -263,18 +267,13 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Upload
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UpdateTransforms()
 {
-    void* data;
-    vkMapMemory(m_logicDevice, m_transformBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
-
     for (auto& entityGPU : m_entityGPUList) {
         m_transformData.modelMatrix = entityGPU.gameEntity->GetTransform()->Matrix();
         m_transformData.modelViewMatrix = m_cameraGPU.viewMatrix * m_transformData.modelMatrix;
         m_transformData.rotationMatrix = entityGPU.gameEntity->GetTransform()->RotateMatrix();
 
-        std::memcpy((Byte*)data + entityGPU.index * sizeof(TransformGPU), &m_transformData, sizeof(TransformGPU));
+        std::memcpy(m_transformBuffers[entityGPU.index].mapped, &m_transformData, sizeof(TransformGPU));
     }
-
-    vkUnmapMemory(m_logicDevice, m_transformBufferMemory);
 }
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::CreateOutputImage()

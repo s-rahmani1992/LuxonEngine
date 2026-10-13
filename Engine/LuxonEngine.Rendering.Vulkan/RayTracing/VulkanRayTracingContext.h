@@ -25,8 +25,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		void CreateOutputImage();
 		void DestroyOutputImage();
 
-		VkBuffer m_transformBuffer;
-		VkDeviceMemory m_transformBufferMemory;
+		std::vector<EntityTransformBuffer> m_transformBuffers;
 		TransformGPU m_transformData;
 
 		VkImage m_outputImage;
