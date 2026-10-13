@@ -10,10 +10,12 @@
 #include "Core/VulkanDeviceManager.h"
 #include "Core/Transform.h"
 #include "Core/VulkanUtilities.h"
+#include "Core/VulkanPipelineFactory.h"
+#include "Core/Logger.h"
 
-LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTracingContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window)
+LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::VulkanRayTracingContext(const VkInstance vkInstance, UInt32 surfaceQueueFamilyIndex, const ref<Platform::GraphicWindow>& window, const ref<VulkanPipelineFactory>& pipelineFactory)
     : VulkanGraphicContext(vkInstance, surfaceQueueFamilyIndex, window),
-    m_rayTracingModule(std::make_shared<RayTracing::VulkanRayTracingPipelineModule>())
+    m_pipelineFactory(pipelineFactory)
 {
     m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 }
@@ -22,6 +24,9 @@ LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::~VulkanRayT
 {
     DestroyOutputImage();
     DestroyEntityTransformBuffers(m_transformBuffers);
+
+    for (auto& storageBuffer : m_meshStorageBuffers)
+        vkDestroyBuffer(m_logicDevice, storageBuffer, nullptr);
 }
 
 bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Initialize()
@@ -64,13 +69,17 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Prepar
         index++;
     }
 
-    std::vector<VkBuffer> transformBuffers;
+	std::string error;
+	m_rayTracingModule = m_pipelineFactory->CreateRayTracingPipeline(scene->rtGlobalMaterial, scene->entities, error);
 
-    for (auto& transformBuffer : m_transformBuffers)
-        transformBuffers.push_back(transformBuffer.buffer);
-
-	if(m_rayTracingModule->Initialize(scene->entities, scene->rtGlobalMaterial, m_cameraBuffer, m_lightBuffer, transformBuffers, m_swapChainCapability.currentExtent) == false)
+	if (m_rayTracingModule == nullptr) {
+		Logger::LogError("Failed to create the ray tracing pipeline: " + error);
 		return false;
+	}
+
+	m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
+
+	BindRayTracingBuffers(*m_rayTracingModule, scene->entities, m_transformBuffers, m_meshStorageBuffers);
 
 	m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
 
@@ -247,8 +256,10 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Resize
 
     CreateOutputImage();
 
-    m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
-    m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
+    if (m_rayTracingModule != nullptr) {
+        m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
+        m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
+    }
 }
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::UploadMeshes(const std::vector<ref<GameEntity>>& entities)

@@ -6,6 +6,8 @@
 #include "Core/VulkanUtilities.h"
 #include "Rendering/Material.h"
 #include "Core/VulkanBufferFactory.h"
+#include "Core/GameEntity.h"
+#include "Rendering/RayTracingComponent.h"
 
 bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingPipeline(const ref<SPIRVRayTracingProgram>& globalRTProgram, const std::vector<ref<SPIRVRayTracingProgram>>& localPrograms, RayTracePipelineBuildResult& pipelineResult)
 {
@@ -194,7 +196,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	return true;
 }
 
-bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(const ref<Material>& globalRTMaterial, const std::vector<ref<Material>>& localMaterials, const RayTracePipelineBuildResult& pipelineData, RayTraceSBTBuildResult& sbtResult)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(const ref<Material>& globalRTMaterial, const std::vector<ref<GameEntity>>& entities, const RayTracePipelineBuildResult& pipelineData, RayTraceSBTBuildResult& sbtResult)
 {
 	auto device = VulkanDeviceManager::Instance()->GetGraphicDevice();
 
@@ -209,30 +211,46 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	auto getShaderGroupHandlesPtr = (PFN_vkGetRayTracingShaderGroupHandlesKHR)vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR");
 	getShaderGroupHandlesPtr(device, pipelineData.rtPipeline, 0, pipelineData.groupCount, dataHandleSize, shaderHandleStorage.data());
 
+	struct EntityRecord {
+		GameEntity* entity;
+		ref<Material> material;
+		ref<SPIRVRayTracingProgram> program;
+	};
 
+	std::vector<EntityRecord> entityRecords;
+
+	for (auto& entity : entities) {
+		auto rtComponent = entity->GetRayTracingComponent();
+
+		if (rtComponent == nullptr)
+			continue;
+
+		auto material = rtComponent->GetRTMaterial();
+
+		entityRecords.push_back(EntityRecord{
+			.entity = entity.get(),
+			.material = material,
+			.program = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(material->GetProgram()),
+			});
+	}
 
 	UInt32 missSBTCount = 1;
 	sbtResult.globalEntryIndex.missEntryIndex = 0;
-	UInt32 hitSBTCount = globalRtProgram->HasHitGroup() ? 1 : 0;
-	sbtResult.globalEntryIndex.hitEntryIndex = 0;
+	UInt32 globalHitCount = globalRtProgram->HasHitGroup() ? 1 : 0;
+	sbtResult.firstEntityHitRecord = globalHitCount;
+	UInt32 hitSBTCount = globalHitCount + (UInt32)entityRecords.size();
 
-	for (auto& material : localMaterials) {
-		auto it = sbtResult.materialSBTBlueprintMap.emplace(material, MaterialSBTData{});
-		
+	for (auto& record : entityRecords) {
+		auto it = sbtResult.materialSBTBlueprintMap.emplace(record.material, MaterialSBTData{});
+
 		if (it.second == false)
 			continue;
 
-		auto localProgram = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(material->GetProgram());
-		it.first->second.datalocations.resize(material->GetValueFields()->size());
+		it.first->second.datalocations.resize(record.material->GetValueFields()->size());
 
-		if (localProgram->HasMissStage()) {
+		if (record.program->HasMissStage()) {
 			it.first->second.missEntryIndex = missSBTCount;
 			missSBTCount++;
-		}
-
-		if (localProgram->HasHitGroup()) {
-			it.first->second.hitEntryIndex = hitSBTCount;
-			hitSBTCount++;
 		}
 	}
 
@@ -242,34 +260,37 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 
 	UInt32 raygenSize = ALIGN(groupHandleSize + globalRtProgram->GetShaderRecordSize(), groupHandleAlignment);
 
-
 	UInt32 missEntrySize = groupHandleSize + globalRtProgram->GetShaderRecordSize();
 	UInt32 hitEntrySize = globalRtProgram->HasHitGroup() ? groupHandleSize + globalRtProgram->GetShaderRecordSize() : 0;
 
 	for (auto& [material, matSBTData] : sbtResult.materialSBTBlueprintMap) {
+		if (matSBTData.missEntryIndex == VK_SHADER_UNUSED_KHR)
+			continue;
+
 		auto localProgram = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(material->GetProgram());
+		UInt32 entrySize = groupHandleSize + localProgram->GetShaderRecordSize();
 
-		if (matSBTData.missEntryIndex != VK_SHADER_UNUSED_KHR) {
-			UInt32 entrySize = groupHandleSize + localProgram->GetShaderRecordSize();
-			if (entrySize > missEntrySize)
-				missEntrySize = entrySize;
-		}
-
-		if (matSBTData.hitEntryIndex != VK_SHADER_UNUSED_KHR) {
-			UInt32 entrySize = groupHandleSize + localProgram->GetShaderRecordSize();
-			if (entrySize > hitEntrySize)
-				hitEntrySize = entrySize;
-		}
+		if (entrySize > missEntrySize)
+			missEntrySize = entrySize;
 	}
 
-	missEntrySize = ALIGN(missEntrySize, groupHandleAlignment);;
+	for (auto& record : entityRecords) {
+		if (record.program->HasHitGroup() == false)
+			continue;
+
+		UInt32 entrySize = groupHandleSize + record.program->GetShaderRecordSize();
+
+		if (entrySize > hitEntrySize)
+			hitEntrySize = entrySize;
+	}
+
+	missEntrySize = ALIGN(missEntrySize, groupHandleAlignment);
 	UInt32 missSize = missSBTCount * missEntrySize;
 
 	hitEntrySize = ALIGN(hitEntrySize, groupHandleAlignment);
 	UInt32 hitSize = hitSBTCount * hitEntrySize;
-	UInt32 callableSize = 0;  // No callable shaders for now
+	UInt32 callableSize = 0;
 
-	// Ensure each region starts at a baseAlignment boundary
 	UInt32 raygenOffset = 0;
 	UInt32 missOffset = ALIGN(raygenSize, baseAlignment);
 	UInt32 hitOffset = ALIGN(missOffset + missSize, baseAlignment);
@@ -287,66 +308,78 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	bufferFactory->CreateBuffer(SBTBufferSize, VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocFlags, &sbtResult.sbtBuffer, &sbtResult.sbtMemory);
 
-	// map and copy handles at aligned offset
-	
-	void* mapped;
-	vkMapMemory(device, sbtResult.sbtMemory, 0, VK_WHOLE_SIZE, 0, &mapped);
+	void* mapped = nullptr;
+
+	if (vkMapMemory(device, sbtResult.sbtMemory, 0, VK_WHOLE_SIZE, 0, &mapped) != VK_SUCCESS)
+		return false;
+
+	std::memset(mapped, 0, SBTBufferSize);
+	sbtResult.sbtMapped = (Byte*)mapped;
 
 	UInt8* dst = (UInt8*)(mapped);
 
-	auto copyToEntry = [&shaderHandleStorage, &groupHandleSize, &sbtResult](const ref<Material>& rtMaterial, UInt8* sectionStart, UInt32 groupIndex, UInt32 missEntryIndex) {
-		std::memcpy(sectionStart, shaderHandleStorage.data() + groupHandleSize * groupIndex, groupHandleSize);
+	auto writeRecord = [&shaderHandleStorage, &groupHandleSize, &sbtResult](const ref<Material>& rtMaterial, UInt8* sectionStart, UInt32 groupIndex, UInt32 missEntryIndex, EntitySBTData* entityData) {
+		if (groupIndex != VK_SHADER_UNUSED_KHR)
+			std::memcpy(sectionStart, shaderHandleStorage.data() + groupHandleSize * groupIndex, groupHandleSize);
+
 		auto program = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(rtMaterial->GetProgram());
 		auto& shaderRecordVariables = program->GetShaderRecordVariables();
 		auto materialFields = rtMaterial->GetValueFields();
 
 		for (auto& recordVar : shaderRecordVariables) {
+			UInt8* location = sectionStart + groupHandleSize + recordVar.offset;
+
 			if (recordVar.name == "_missIndex") {
-				std::memcpy(sectionStart + groupHandleSize + recordVar.offset, &missEntryIndex, sizeof(UInt32));
+				std::memcpy(location, &missEntryIndex, sizeof(UInt32));
+				continue;
+			}
+
+			if (ShaderVariableReflection::IsInternalName(recordVar.name)) {
+				if (entityData != nullptr)
+					entityData->constants[recordVar.name] = EntitySBTConstant{ location, recordVar.size };
+
 				continue;
 			}
 
 			auto d = materialFields->find(recordVar.name);
 
-			if (d != materialFields->end()) {				
-				if(program->IsGlobal() == false)
-					sbtResult.materialSBTBlueprintMap[rtMaterial].datalocations[d->second.fieldIndex].emplace(sectionStart + groupHandleSize + recordVar.offset);
+			if (d != materialFields->end()) {
+				if (program->IsGlobal() == false)
+					sbtResult.materialSBTBlueprintMap[rtMaterial].datalocations[d->second.fieldIndex].emplace(location);
 				else
-					std::memcpy(sectionStart + groupHandleSize + recordVar.offset, (*d).second.data, recordVar.size);
+					std::memcpy(location, (*d).second.data, recordVar.size);
 			}
 		}
 	};
 
-	// Copy Ray Generation
+	writeRecord(globalRTMaterial, dst + raygenOffset, pipelineData.globalProgramPipelineBlueprint.rayGenIndex, sbtResult.globalEntryIndex.missEntryIndex, nullptr);
 
-	copyToEntry(globalRTMaterial, dst + raygenOffset, pipelineData.globalProgramPipelineBlueprint.rayGenIndex, sbtResult.globalEntryIndex.missEntryIndex);
-
-	// Copy Miss Entries
-	copyToEntry(globalRTMaterial, dst + missOffset + missEntrySize * sbtResult.globalEntryIndex.missEntryIndex, pipelineData.globalProgramPipelineBlueprint.missIndex, sbtResult.globalEntryIndex.missEntryIndex);
+	writeRecord(globalRTMaterial, dst + missOffset + missEntrySize * sbtResult.globalEntryIndex.missEntryIndex, pipelineData.globalProgramPipelineBlueprint.missIndex, sbtResult.globalEntryIndex.missEntryIndex, nullptr);
 
 	for (auto& matPair : sbtResult.materialSBTBlueprintMap) {
 		if (matPair.second.missEntryIndex == VK_SHADER_UNUSED_KHR)
 			continue;
 
 		auto localProgram = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(matPair.first->GetProgram());
-		copyToEntry(matPair.first, dst + missOffset + missEntrySize * matPair.second.missEntryIndex, pipelineData.programPipelineBlueprintMap.at(localProgram).missIndex, matPair.second.missEntryIndex);
+		writeRecord(matPair.first, dst + missOffset + missEntrySize * matPair.second.missEntryIndex, pipelineData.programPipelineBlueprintMap.at(localProgram).missIndex, matPair.second.missEntryIndex, nullptr);
 	}
 
-	// Copy Hitgroup
+	if (globalRtProgram->HasHitGroup())
+		writeRecord(globalRTMaterial, dst + hitOffset, pipelineData.globalProgramPipelineBlueprint.hitGroupIndex, sbtResult.globalEntryIndex.missEntryIndex, nullptr);
 
-	if (globalRtProgram->HasHitGroup()) {
-		copyToEntry(globalRTMaterial, dst + hitOffset + hitEntrySize * sbtResult.globalEntryIndex.hitEntryIndex, pipelineData.globalProgramPipelineBlueprint.hitGroupIndex, sbtResult.globalEntryIndex.missEntryIndex);
-	}
+	for (UInt32 i = 0; i < entityRecords.size(); i++) {
+		auto& record = entityRecords[i];
+		UInt32 hitRecordIndex = globalHitCount + i;
 
-	for (auto& [material, matSBTData] : sbtResult.materialSBTBlueprintMap) {
-		if (matSBTData.hitEntryIndex == VK_SHADER_UNUSED_KHR)
+		auto& entityData = sbtResult.entitySBTBlueprintMap[record.entity];
+		entityData.hitRecordIndex = hitRecordIndex;
+
+		if (record.program->HasHitGroup() == false)
 			continue;
 
-		auto localProgram = std::dynamic_pointer_cast<SPIRVRayTracingProgram>(material->GetProgram());
-		copyToEntry(material, dst + hitOffset + hitEntrySize * matSBTData.hitEntryIndex, pipelineData.programPipelineBlueprintMap.at(localProgram).hitGroupIndex, matSBTData.missEntryIndex);
+		writeRecord(record.material, dst + hitOffset + hitEntrySize * hitRecordIndex, pipelineData.programPipelineBlueprintMap.at(record.program).hitGroupIndex,
+			sbtResult.materialSBTBlueprintMap[record.material].missEntryIndex, &entityData);
 	}
-
-	vkUnmapMemory(device,sbtResult.sbtMemory);
 
 	VkBufferDeviceAddressInfo addrInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
@@ -358,7 +391,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	sbtResult.rayGenRegion.deviceAddress = sbtAddress + raygenOffset;
 	sbtResult.rayGenRegion.stride = raygenSize;
 	sbtResult.rayGenRegion.size = raygenSize;
-	
+
 	sbtResult.missRegion.deviceAddress = sbtAddress + missOffset;
 	sbtResult.missRegion.stride = missEntrySize;
 	sbtResult.missRegion.size = missSize;
@@ -367,6 +400,5 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	sbtResult.hitRegion.stride = hitEntrySize;
 	sbtResult.hitRegion.size = hitSize;
 
-	int h = 0;
 	return true;
 }

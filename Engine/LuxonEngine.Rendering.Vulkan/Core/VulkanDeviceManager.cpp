@@ -298,7 +298,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateRayTracingContextForWindows(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
-	ref<RayTracing::VulkanRayTracingContext> context = std::make_shared<RayTracing::VulkanRayTracingContext>(m_instance, m_surfaceQueueFamilyIndex, window);
+	ref<RayTracing::VulkanRayTracingContext> context = std::make_shared<RayTracing::VulkanRayTracingContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_pipelineFactory);
 
 	if (context->Initialize() == false)
 		return nullptr;

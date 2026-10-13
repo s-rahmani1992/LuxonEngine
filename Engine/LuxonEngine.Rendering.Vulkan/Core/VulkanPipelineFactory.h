@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+namespace LuxonEngine {
+	class GameEntity;
+}
+
 namespace LuxonEngine::Rendering {
 	class Material;
 	class ShaderProgram;
@@ -36,6 +40,10 @@ namespace LuxonEngine::Rendering::Vulkan {
 		class SPIRVComputeProgram;
 	}
 
+	namespace RayTracing {
+		class VulkanRayTracingPipelineModule;
+	}
+
 	class VulkanPipelineFactory {
 	public:
 		VulkanPipelineFactory(VkDevice device);
@@ -48,6 +56,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		ref<MeshShading::VulkanMeshPipelineModule> CreateMeshPipeline(Material* material, VkRenderPass renderPass, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 		ref<MeshShading::VulkanMeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, VkRenderPass renderPass, const MeshShading::MeshPipelineProperties& properties, std::string& error);
+
+		ref<RayTracing::VulkanRayTracingPipelineModule> CreateRayTracingPipeline(const ref<Material>& globalMaterial, const std::vector<ref<GameEntity>>& entities, std::string& error);
 
 	private:
 		ref<Compute::VulkanComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error);

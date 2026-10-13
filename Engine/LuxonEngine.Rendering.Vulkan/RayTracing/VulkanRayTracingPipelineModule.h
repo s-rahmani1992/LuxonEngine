@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 #include "Core/SPIRVReflection.h"
+#include "VulkanRayTracingPipelineBuilder.h"
 #include <map>
 
 namespace LuxonEngine {
@@ -27,14 +28,23 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		VulkanRayTracingPipelineModule();
 		~VulkanRayTracingPipelineModule();
 
-		bool Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, const std::vector<VkBuffer>& transformBuffers, const VkExtent2D& extent);
+		bool Initialize(const std::vector<ref<GameEntity>>& entities, const ref<Material>& rtMaterial);
 		void RenderCommand(VkCommandBuffer commandBuffer);
 		void UpdateTLAS(VkCommandBuffer commandBuffer);
-		void SetImage(const std::string& name, const VkImageView imageView);
+		bool SetBuffer(const char* name, VkBuffer buffer, VkDeviceSize offset = 0, VkDeviceSize range = VK_WHOLE_SIZE);
+		bool SetImage(const char* name, VkImageView imageView, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_GENERAL);
+		bool SetEntityBuffer(GameEntity* entity, const char* name, VkBuffer buffer, VkDeviceSize offset = 0, VkDeviceSize range = VK_WHOLE_SIZE);
+		bool SetEntityImage(GameEntity* entity, const char* name, VkImageView imageView, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_GENERAL);
 		void SetExtent(const VkExtent2D& extent);
+		bool SetEntityConstantData(GameEntity* entity, const char* name, const void* data, UInt32 size);
+
+		template<typename T>
+		bool SetEntityConstant(GameEntity* entity, const char* name, const T& value) {
+			return SetEntityConstantData(entity, name, &value, sizeof(T));
+		}
 	private:
-		void WriteBuffers(const std::string name, const VkBuffer buffer);
-		void WriteArrayBuffer(const std::string name, const std::vector<VkBuffer>& buffers);
+		bool WriteDescriptor(const DescriptableBufferData& descriptorData, UInt32 arrayElement, const VkDescriptorBufferInfo* bufferInfo, const VkDescriptorImageInfo* imageInfo);
+		const DescriptableBufferData* FindEntityDescriptor(GameEntity* entity, const char* name, UInt32& instanceIndex);
 		struct VKEntityGPUData {
 		public:
 			ref<GameEntity> gameEntity;
@@ -76,7 +86,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 
 		std::map<ref<VulkanMeshController>, ref<VulkanBLAS>> m_blasMap;
 		VkQueue m_graphicsQueue;
-		VkExtent2D m_extent;
+		VkExtent2D m_extent = {};
 		VkAccelerationStructureKHR m_tlas;
 		VkDeviceAddress m_tlasAddress;
 		VkBuffer m_tlasBuffer;
@@ -92,6 +102,8 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 
 		VkAccelerationStructureGeometryKHR m_asGeom;
 		VkAccelerationStructureBuildGeometryInfoKHR m_TLASBuildInfo;
+
+		std::map<GameEntity*, EntitySBTData> m_entitySBTData;
 
 		VkBuffer m_SBT;
 		VkDeviceMemory m_SBTMemory;
@@ -112,9 +124,6 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		VkSampler m_sampler;
 		ref<Material> m_globalMaterial;
 		SPIRVReflection m_reflection;
-
-		std::vector<VkBuffer> m_indexStorageBuffers;
-		std::vector<VkBuffer> m_vertexStorageBuffers;
 
 		std::map<ref<SPIRVRayTracingProgramVariant>, ProgramResourceData> m_resourceMaps;
 	};

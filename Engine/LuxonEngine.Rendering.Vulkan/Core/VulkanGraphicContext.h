@@ -9,7 +9,15 @@ namespace LuxonEngine {
 	}
 }
 
+namespace LuxonEngine {
+	class GameEntity;
+}
+
 namespace LuxonEngine::Rendering::Vulkan {
+	namespace RayTracing {
+		class VulkanRayTracingPipelineModule;
+	}
+
 	class VulkanBufferFactory;
 	class VulkanAssetManager;
 	class VulkanShaderCompiler;
@@ -57,6 +65,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void UpdateCameraBuffer();
 		bool CreateEntityTransformBuffers(UInt32 count, std::vector<EntityTransformBuffer>& transformBuffers);
 		void DestroyEntityTransformBuffers(std::vector<EntityTransformBuffer>& transformBuffers);
+		void BindRayTracingBuffers(RayTracing::VulkanRayTracingPipelineModule& rayTracingModule, const std::vector<ref<GameEntity>>& entities,
+			const std::vector<EntityTransformBuffer>& transformBuffers, std::vector<VkBuffer>& meshStorageBuffers);
 
 		VkDevice m_logicDevice;
 

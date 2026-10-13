@@ -42,9 +42,8 @@ LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::~Vul
 	vkFreeMemory(m_device, m_SBTMemory, nullptr);
 }
 
-bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(std::vector<ref<GameEntity>>& entities, const ref<Material> rtMaterial, VkBuffer camBuffer, VkBuffer lightBuffer, const std::vector<VkBuffer>& transformBuffers, const VkExtent2D& extent)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::Initialize(const std::vector<ref<GameEntity>>& entities, const ref<Material>& rtMaterial)
 {
-	m_extent = extent;
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
 
@@ -97,17 +96,10 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 
 	// Create SBT
 	RayTraceSBTBuildResult sbtBuildResult;
-	std::vector<ref<Material>> localRTMaterials;
 
-	for(auto& entity : entities) {
-		auto rtComponent = entity->GetRayTracingComponent();
-		if(rtComponent == nullptr)
-			continue;
-		localRTMaterials.push_back(rtComponent->GetRTMaterial());
-	}
+	VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(m_globalMaterial, entities, pipelineResult, sbtBuildResult);
 
-	VulkanRayTracingPipelineBuilder::BuildRayTracingSBT(m_globalMaterial, localRTMaterials, pipelineResult, sbtBuildResult);
-
+	m_entitySBTData = sbtBuildResult.entitySBTBlueprintMap;
 	m_SBT = sbtBuildResult.sbtBuffer;
 	m_SBTMemory = sbtBuildResult.sbtMemory;
 	m_rayGenRegion = sbtBuildResult.rayGenRegion;
@@ -134,18 +126,14 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	std::map<ref<VulkanMeshController>, VulkanBLASBuildInfo> meshbuildInfos;
 
 	UInt32 index = 0;
-	UInt32 sceneIndex = 0;
-	std::vector<VkBuffer> rtTransformBuffers;
 
 	for(auto& entityData : entities) {
-		UInt32 entitySceneIndex = sceneIndex++;
 		auto rtComponent = entityData->GetRayTracingComponent();
 
 		if(rtComponent == nullptr)
 			continue;
 
 		m_entities.push_back({ entityData, index });
-		rtTransformBuffers.push_back(transformBuffers[entitySceneIndex]);
 		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(rtComponent->GetMesh()->GetGPUHandle());
 		
 		auto it = meshbuildInfos.emplace(meshController, VulkanBLASBuildInfo{});
@@ -216,7 +204,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 		std::memcpy(&blasInstance.transform, &m, 12 * sizeof(Float));
 		blasInstance.instanceCustomIndex = m_resourceMaps[pipelineResult.programPipelineBlueprintMap[program].variant].materialIndexMap[rtComponent->GetRTMaterial()].textureArrayIndex;
 		blasInstance.mask = 0xFF;
-		blasInstance.instanceShaderBindingTableRecordOffset = sbtBuildResult.materialSBTBlueprintMap[rtComponent->GetRTMaterial()].hitEntryIndex;
+		blasInstance.instanceShaderBindingTableRecordOffset = sbtBuildResult.entitySBTBlueprintMap[entityData.gameEntity.get()].hitRecordIndex;
 		blasInstance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 		blasInstance.accelerationStructureReference = blas->GetBLASAddress();
 	}
@@ -364,10 +352,6 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 			return false;
 	}
 
-	WriteBuffers(HLSL_CAMERA_DATA_NAME, camBuffer);
-	WriteBuffers(HLSL_LIGHT_DATA_NAME, lightBuffer);
-	WriteArrayBuffer(HLSL_TRANSFORM_ARRAY, rtTransformBuffers);
-
 	auto descriptorData = m_reflection.GetDescriptorData(HLSL_RT_TLAS_SCENE_NAME);
 	
 	if (descriptorData != nullptr) {
@@ -386,20 +370,6 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 
 		vkUpdateDescriptorSets(m_device, 1, &writeAS, 0, nullptr);
 	}
-
-	m_vertexStorageBuffers.reserve(m_entities.size());
-	m_indexStorageBuffers.reserve(m_entities.size());
-
-	for (auto& entityData : m_entities) {
-		auto rtComponent = entityData.gameEntity->GetRayTracingComponent();
-		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(rtComponent->GetMesh()->GetGPUHandle());
-		
-		m_vertexStorageBuffers.push_back(meshController->CreateVertexStorageBuffer());
-		m_indexStorageBuffers.push_back(meshController->CreateIndexStorageBuffer());
-	}
-
-	WriteArrayBuffer(HLSL_RT_VERTEX_BUFFER_ARRAY, m_vertexStorageBuffers);
-	WriteArrayBuffer(HLSL_RT_INDEX_BUFFER_ARRAY, m_indexStorageBuffers);
 
 	for (auto& [variantProgram, matResourceData] : m_resourceMaps) {
 		auto& material = matResourceData.materialIndexMap.begin()->first;
@@ -559,86 +529,147 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule:
 	buildAccelerationStructurePtr(commandBuffer, 1, &buildCmdInfo, &pRangeInfo);
 }
 
-void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetImage(const std::string& name, const VkImageView imageView)
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteDescriptor(const DescriptableBufferData& descriptorData, UInt32 arrayElement, const VkDescriptorBufferInfo* bufferInfo, const VkDescriptorImageInfo* imageInfo)
 {
-	auto descriptorData = m_reflection.GetDescriptorData(name);
-
-	if (descriptorData != nullptr) {
-		VkDescriptorImageInfo imgDesc{};
-		imgDesc.imageView = imageView;
-		imgDesc.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-		VkWriteDescriptorSet write{};
-		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		write.dstSet = m_descriptorSets[descriptorData->data.set];
-		write.dstBinding = descriptorData->data.binding;
-		write.descriptorType = descriptorData->descriptorType;
-		write.descriptorCount = 1;
-		write.pImageInfo = &imgDesc;
-
-		vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+	switch (descriptorData.descriptorType) {
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+		if (bufferInfo == nullptr)
+			return false;
+		break;
+	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		if (imageInfo == nullptr)
+			return false;
+		break;
+	default:
+		return false;
 	}
-}
 
-void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteBuffers(const std::string name, const VkBuffer buffer)
-{
-	auto descriptorData = m_reflection.GetDescriptorData(name);
-
-	if (descriptorData == nullptr)
-		return;
-
-	VkDescriptorBufferInfo descBufferInfo{
-		.buffer = buffer,
-		.offset = 0,
-		.range = VK_WHOLE_SIZE,
-	};
-
-	VkWriteDescriptorSet writeDescriptor{
+	VkWriteDescriptorSet write{
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.pNext = nullptr,
-		.dstSet = m_descriptorSets[descriptorData->data.set],
-		.dstBinding = descriptorData->data.binding,
-		.dstArrayElement = 0,
+		.dstSet = m_descriptorSets[descriptorData.data.set],
+		.dstBinding = descriptorData.data.binding,
+		.dstArrayElement = arrayElement,
 		.descriptorCount = 1,
-		.descriptorType = descriptorData->descriptorType,
-		.pImageInfo = nullptr,
-		.pBufferInfo = &descBufferInfo,
+		.descriptorType = descriptorData.descriptorType,
+		.pImageInfo = imageInfo,
+		.pBufferInfo = bufferInfo,
 		.pTexelBufferView = nullptr,
 	};
 
-	vkUpdateDescriptorSets(m_device, 1, &writeDescriptor, 0, nullptr);
+	vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+	return true;
 }
 
-void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::WriteArrayBuffer(const std::string name, const std::vector<VkBuffer>& buffers)
+const LuxonEngine::Rendering::Vulkan::DescriptableBufferData* LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::FindEntityDescriptor(GameEntity* entity, const char* name, UInt32& instanceIndex)
+{
+	if (entity == nullptr || name == nullptr)
+		return nullptr;
+
+	auto entityIT = std::find_if(m_entities.begin(), m_entities.end(), [entity](const VKEntityGPUData& entityData) {
+		return entityData.gameEntity.get() == entity;
+		});
+
+	if (entityIT == m_entities.end())
+		return nullptr;
+
+	auto descriptorData = m_reflection.GetDescriptorData(std::string(name) + "Array");
+
+	if (descriptorData == nullptr || descriptorData->isDynamicArray == false)
+		return nullptr;
+
+	instanceIndex = (UInt32)(entityIT - m_entities.begin());
+	return descriptorData;
+}
+
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetBuffer(const char* name, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
 {
 	auto descriptorData = m_reflection.GetDescriptorData(name);
 
 	if (descriptorData == nullptr)
-		return;
+		return false;
 
-	std::vector<VkDescriptorBufferInfo> bufferInfos;
-	bufferInfos.reserve(buffers.size());
+	VkDescriptorBufferInfo bufferInfo{
+		.buffer = buffer,
+		.offset = offset,
+		.range = range,
+	};
 
-	for (auto& buffer : buffers) {
-		bufferInfos.push_back(VkDescriptorBufferInfo{
-			.buffer = buffer,
-			.offset = 0,
-			.range = VK_WHOLE_SIZE,
-			});
-	}
+	return WriteDescriptor(*descriptorData, 0, &bufferInfo, nullptr);
+}
 
-	VkWriteDescriptorSet write{};
-	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	write.dstSet = m_descriptorSets[descriptorData->data.set];
-	write.dstBinding = descriptorData->data.binding;
-	write.descriptorType = descriptorData->descriptorType;
-	write.descriptorCount = (UInt32)(bufferInfos.size()); // Current dynamic size
-	write.pBufferInfo = bufferInfos.data();
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetImage(const char* name, VkImageView imageView, VkImageLayout imageLayout)
+{
+	auto descriptorData = m_reflection.GetDescriptorData(name);
 
-	vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+	if (descriptorData == nullptr)
+		return false;
+
+	VkDescriptorImageInfo imageInfo{
+		.sampler = VK_NULL_HANDLE,
+		.imageView = imageView,
+		.imageLayout = imageLayout,
+	};
+
+	return WriteDescriptor(*descriptorData, 0, nullptr, &imageInfo);
+}
+
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetEntityBuffer(GameEntity* entity, const char* name, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+{
+	UInt32 instanceIndex = 0;
+	auto descriptorData = FindEntityDescriptor(entity, name, instanceIndex);
+
+	if (descriptorData == nullptr)
+		return false;
+
+	VkDescriptorBufferInfo bufferInfo{
+		.buffer = buffer,
+		.offset = offset,
+		.range = range,
+	};
+
+	return WriteDescriptor(*descriptorData, instanceIndex, &bufferInfo, nullptr);
+}
+
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetEntityImage(GameEntity* entity, const char* name, VkImageView imageView, VkImageLayout imageLayout)
+{
+	UInt32 instanceIndex = 0;
+	auto descriptorData = FindEntityDescriptor(entity, name, instanceIndex);
+
+	if (descriptorData == nullptr)
+		return false;
+
+	VkDescriptorImageInfo imageInfo{
+		.sampler = VK_NULL_HANDLE,
+		.imageView = imageView,
+		.imageLayout = imageLayout,
+	};
+
+	return WriteDescriptor(*descriptorData, instanceIndex, nullptr, &imageInfo);
 }
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetExtent(const VkExtent2D& extent)
 {
 	m_extent = extent;
+}
+
+bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineModule::SetEntityConstantData(GameEntity* entity, const char* name, const void* data, UInt32 size)
+{
+	if (entity == nullptr || name == nullptr)
+		return false;
+
+	auto entityIT = m_entitySBTData.find(entity);
+
+	if (entityIT == m_entitySBTData.end())
+		return false;
+
+	auto constantIT = entityIT->second.constants.find(name);
+
+	if (constantIT == entityIT->second.constants.end() || constantIT->second.size != size)
+		return false;
+
+	std::memcpy(constantIT->second.location, data, size);
+	return true;
 }

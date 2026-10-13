@@ -21,9 +21,12 @@ LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTrac
 	vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &m_rtModule);
 	
 	spvReflectCreateShaderModule(m_codeSize, m_bytecode, &m_reflectionModule);
-	m_reflection.AddShaderReflection(&m_reflectionModule);
+	SPIRVVariableReflection::AddShaderReflection(m_variableReflection, &m_reflectionModule);
 
-	m_reflection.Initializes();
+	for (auto& resource : m_variableReflection.resources) {
+		if (resource.isUnbounded && resource.isInternal == false && resource.kind == ShaderResourceKind::Texture && resource.name.ends_with("Array"))
+			resource.name.resize(resource.name.size() - 5);
+	}
 
 	UInt32 inputCount;
 
@@ -39,6 +42,8 @@ LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTrac
 	
 	if (m_shaderRecord != nullptr) {
 		UInt32 varOffset = 0;
+		auto& constants = m_variableReflection.constants;
+		constants.name = m_shaderRecord->name == nullptr ? "" : m_shaderRecord->name;
 		auto typeDescription = m_shaderRecord->members[0].type_description;
 		for (UInt32 i = 0; i < typeDescription->member_count; i++) {
 			auto member = typeDescription->members[i];
@@ -50,6 +55,39 @@ LuxonEngine::Rendering::Vulkan::RayTracing::SPIRVRayTracingProgram::SPIRVRayTrac
 					.offset = varOffset,
 					.size = varSize,
 				});
+
+			bool isInternal = ShaderVariableReflection::IsInternalName(m_shaderRecordVariables.back().name);
+
+			if (constants.blocks.empty() || constants.blocks.back().isInternal != isInternal) {
+				constants.blocks.push_back(ShaderConstantBlock{
+					.offset = varOffset,
+					.size = 0,
+					.isInternal = isInternal,
+					});
+			}
+
+			UInt32 rows = 1;
+			UInt32 columns = numeric.vector.component_count == 0 ? 1 : numeric.vector.component_count;
+
+			if ((member.type_flags & SPV_REFLECT_TYPE_FLAG_MATRIX) != 0) {
+				rows = numeric.matrix.row_count;
+				columns = numeric.matrix.column_count;
+			}
+
+			auto& block = constants.blocks.back();
+
+			block.variables.push_back(ShaderConstantVariable{
+				.name = m_shaderRecordVariables.back().name,
+				.index = i,
+				.offset = varOffset,
+				.size = varSize,
+				.type = SPIRVVariableReflection::ToScalarType(member.type_flags, numeric),
+				.rows = rows,
+				.columns = columns,
+				});
+
+			block.size += varSize;
+			constants.size += varSize;
 
 			varOffset += varSize;
 		}

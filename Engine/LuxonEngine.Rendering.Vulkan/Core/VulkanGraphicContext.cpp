@@ -1,5 +1,11 @@
 #include "vulkan-pch.h"
 #include "VulkanGraphicContext.h"
+#include "VulkanMeshController.h"
+#include "RayTracing/VulkanRayTracingPipelineModule.h"
+#include "Core/GameEntity.h"
+#include "Core/Mesh.h"
+#include "Rendering/RayTracingComponent.h"
+#include "Rendering/ShaderInternalNames.h"
 #include "Platform/GraphicWindow.h"
 #include "Core/Scene.h"
 #include "VulkanBufferFactory.h"
@@ -81,6 +87,36 @@ void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::DestroyEntityTransfor
 	}
 
 	transformBuffers.clear();
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::BindRayTracingBuffers(RayTracing::VulkanRayTracingPipelineModule& rayTracingModule, const std::vector<ref<GameEntity>>& entities,
+	const std::vector<EntityTransformBuffer>& transformBuffers, std::vector<VkBuffer>& meshStorageBuffers)
+{
+	rayTracingModule.SetBuffer(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer);
+	rayTracingModule.SetBuffer(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer);
+
+	for (UInt32 i = 0; i < entities.size(); i++) {
+		auto rtComponent = entities[i]->GetRayTracingComponent();
+
+		if (rtComponent == nullptr)
+			continue;
+
+		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(rtComponent->GetMesh()->GetGPUHandle());
+
+		if (meshController == nullptr)
+			continue;
+
+		GameEntity* entity = entities[i].get();
+
+		VkBuffer vertexStorageBuffer = meshController->CreateVertexStorageBuffer();
+		VkBuffer indexStorageBuffer = meshController->CreateIndexStorageBuffer();
+		meshStorageBuffers.push_back(vertexStorageBuffer);
+		meshStorageBuffers.push_back(indexStorageBuffer);
+
+		rayTracingModule.SetEntityBuffer(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, transformBuffers[i].buffer);
+		rayTracingModule.SetEntityBuffer(entity, INTERNAL_VERTEX_BUFFER_NAME, vertexStorageBuffer);
+		rayTracingModule.SetEntityBuffer(entity, INTERNAL_INDEX_BUFFER_NAME, indexStorageBuffer);
+	}
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanGraphicContext::InitializeLightBuffer(const SceneLightData& lightData)

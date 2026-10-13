@@ -6,6 +6,8 @@
 #include "Rasterization/SPIRVRasterizationProgram.h"
 #include "Compute/VulkanComputePipelineModule.h"
 #include "Compute/SPIRVComputeProgram.h"
+#include "RayTracing/VulkanRayTracingPipelineModule.h"
+#include "RayTracing/SPIRVRayTracingProgram.h"
 #include "Rendering/Material.h"
 #include <vector>
 
@@ -14,6 +16,30 @@ namespace LuxonEngine::Rendering::Vulkan {
 		:m_device(device)
 	{
 
+	}
+
+	ref<RayTracing::VulkanRayTracingPipelineModule> VulkanPipelineFactory::CreateRayTracingPipeline(const ref<Material>& globalMaterial, const std::vector<ref<GameEntity>>& entities, std::string& error)
+	{
+		if (globalMaterial == nullptr) {
+			error = "Material is null";
+			return nullptr;
+		}
+
+		auto globalProgram = std::dynamic_pointer_cast<RayTracing::SPIRVRayTracingProgram>(globalMaterial->GetProgram());
+
+		if (globalProgram == nullptr || globalProgram->IsGlobal() == false) {
+			error = "Program is not a global ray tracing shader program";
+			return nullptr;
+		}
+
+		auto rayTracingPipeline = std::make_shared<RayTracing::VulkanRayTracingPipelineModule>();
+
+		if (rayTracingPipeline->Initialize(entities, globalMaterial) == false) {
+			error = "Failed to initialize the ray tracing pipeline";
+			return nullptr;
+		}
+
+		return rayTracingPipeline;
 	}
 
 	ref<Compute::VulkanComputePipelineModule> VulkanPipelineFactory::CreateComputePipeline(Material* material, std::string& error)

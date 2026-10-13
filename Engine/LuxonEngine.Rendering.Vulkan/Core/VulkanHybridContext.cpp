@@ -194,14 +194,17 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		auto materialFactory = VulkanDeviceManager::Instance()->CreateMaterialFactory();
 		auto gBufferGlobalMaterial = materialFactory->CreateMaterial(gBufferGlobalProgram);
 		gBufferGlobalMaterial->SetValue("missColor", &m_clearValues[0], 4 * sizeof(Float));
-		m_rayTracingModule = std::make_shared<RayTracing::VulkanRayTracingPipelineModule>();
-		std::vector<VkBuffer> transformBuffers;
+		std::string rayTracingError;
+		m_rayTracingModule = m_pipelineFactory->CreateRayTracingPipeline(gBufferGlobalMaterial, scene->entities, rayTracingError);
 
-		for (auto& transformBuffer : m_transformBuffers)
-			transformBuffers.push_back(transformBuffer.buffer);
-
-		if (m_rayTracingModule->Initialize(scene->entities, gBufferGlobalMaterial, m_cameraBuffer, m_lightBuffer, transformBuffers, m_swapChainCapability.currentExtent) == false)
+		if (m_rayTracingModule == nullptr) {
+			Logger::LogError("Failed to create the ray tracing pipeline: " + rayTracingError);
 			return false;
+		}
+
+		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
+
+		BindRayTracingBuffers(*m_rayTracingModule, scene->entities, m_transformBuffers, m_meshStorageBuffers);
 
 		m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition].view);
 		m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal].view);
