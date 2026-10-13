@@ -2,81 +2,19 @@
 #include "SPIRVReflection.h"
 #include <algorithm>
 
-void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const SpvReflectShaderModule* shaderReflectionModule, bool isRayTracing)
+void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const SpvReflectShaderModule* shaderReflectionModule)
 {
-	UInt32 pc_count = 0;
-	spvReflectEnumeratePushConstantBlocks(shaderReflectionModule, &pc_count, nullptr);
-	std::vector<SpvReflectBlockVariable*> pushConstants(pc_count);
-	spvReflectEnumeratePushConstantBlocks(shaderReflectionModule, &pc_count, pushConstants.data());
-
-	for(auto& pushConstant : pushConstants)
-	{
-		if(m_pushConstant.blocks.size() > 0)//checking if the push constant is processed because it can exist in multiple shaders
-			continue;
-
-		m_pushConstant.name = pushConstant->name;
-		m_pushConstant.data = *pushConstant;
-		
-		UInt32 i = 0;
-
-		do {
-			if (pushConstant->members[i].name[0] == '_') {
-				auto& blockItem = m_pushConstant.blocks.emplace_back(PushConstantBlockData{
-				.offset = pushConstant->members[i].offset,
-				.size = 0,
-				.isDynamic = true,
-					});
-				UInt32 size = 0;
-
-				while (pushConstant->members[i].name[0] == '_') {
-					blockItem.variables.push_back(PushConstantVariableData{
-						.name = pushConstant->members[i].name,
-						.variableDesc = pushConstant->members[i],
-						});
-					blockItem.size += pushConstant->members[i].size;
-
-					i++;
-
-					if (i >= pushConstant->member_count)
-						break;
-				}
-			}
-
-			else {
-				auto& blockItem = m_pushConstant.blocks.emplace_back(PushConstantBlockData{
-				.offset = pushConstant->members[i].offset,
-				.size = 0,
-				.isDynamic = false,
-					});
-
-				while (pushConstant->members[i].name[0] != '_') {
-					blockItem.variables.push_back(PushConstantVariableData{
-						.name = pushConstant->members[i].name,
-						.variableDesc = pushConstant->members[i],
-						});
-
-					blockItem.size += pushConstant->members[i].size;
-					i++;
-
-					if (i >= pushConstant->member_count)
-						break;
-				}
-			}
-		} while (i < pushConstant->member_count);
-	}
-
-	// Extract Descriptors
 	uint32_t binding_count = 0;
 	spvReflectEnumerateDescriptorBindings(shaderReflectionModule, &binding_count, nullptr);
-	
+
 	std::vector<SpvReflectDescriptorBinding*> descriptorBindings(binding_count);
 	spvReflectEnumerateDescriptorBindings(shaderReflectionModule, &binding_count, descriptorBindings.data());
-	
+
 	for (auto& descriptor : descriptorBindings) {
 		auto it = std::find_if(m_descripters.begin(), m_descripters.end(),
 			[descriptor](const DescriptableBufferData& data) { return data.data.binding == descriptor->binding && data.data.set == descriptor->set; });
 
-		if (it != m_descripters.end())//checking if the resource is already processed because it can exist in multiple shaders
+		if (it != m_descripters.end())
 			continue;
 
 		VkDescriptorType desType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
@@ -84,7 +22,6 @@ void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const 
 		if (descriptor->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER) {
 			m_samplers.push_back(DescriptableBufferData{
 				.name = std::string(descriptor->name),
-				.offsetIndex = UINT32_MAX,
 				.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
 				.data = *descriptor,
 			});
@@ -93,13 +30,13 @@ void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const 
 
 		switch (descriptor->descriptor_type) {
 		case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-			desType = (isRayTracing || descriptor->name[0] != '_') ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+			desType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			break;
 		case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 			desType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 			break;
 		case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-			desType = (isRayTracing || descriptor->name[0] != '_') ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+			desType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			break;
 		case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 			desType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -115,12 +52,10 @@ void LuxonEngine::Rendering::Vulkan::SPIRVReflection::AddShaderReflection(const 
 		m_descripters.push_back(DescriptableBufferData{
 			.name = std::string(descriptor->name),
 			.isDynamicArray = isDynamic,
-			.offsetIndex = UINT32_MAX,
 			.descriptorType = desType,
 			.data = *descriptor,
 		});
 	}
-
 }
 
 UInt32 LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorLayoutCount()
@@ -133,27 +68,8 @@ UInt32 LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorLayoutCount
 	return (*h).data.set + 1;
 }
 
-UInt32 LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDynamicDescriptorCount()
-{
-	auto h = std::count_if(m_descripters.begin(), m_descripters.end(), [](const DescriptableBufferData& desc) {
-		return (desc.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC || desc.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
-		});
-	return UInt32(h);
-}
-
 void LuxonEngine::Rendering::Vulkan::SPIRVReflection::CreatePipelineLayout(const VkDevice device, VkShaderStageFlags stageFlags, const VkSampler sampler, VkPipelineLayout* pipelineLayout, VkDescriptorSetLayout* descriptorSetLayout)
 {
-	std::vector<VkPushConstantRange> pushConstantRanges;
-	pushConstantRanges.reserve(1);
-
-	pushConstantRanges.push_back(VkPushConstantRange{
-			.stageFlags = stageFlags,
-			.offset = m_pushConstant.data.offset,
-			.size = m_pushConstant.data.size,
-		});
-
-	VkDescriptorType desType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-
 	std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorLayoutBindings(GetDescriptorLayoutCount());
 	std::vector<std::vector<VkDescriptorBindingFlags>> bindingFlags(GetDescriptorLayoutCount());
 
@@ -204,73 +120,17 @@ void LuxonEngine::Rendering::Vulkan::SPIRVReflection::CreatePipelineLayout(const
 		vkCreateDescriptorSetLayout(device, &descriptorCreateInfo, nullptr, descriptorSetLayout + i);
 	}
 
-	UInt32 pcCount = m_pushConstant.blocks.size() == 0 ? 0 : 1;
-
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = nullptr,
 		.flags = 0,
 		.setLayoutCount = (UInt32)descriptorLayoutBindings.size(),
 		.pSetLayouts = descriptorSetLayout,
-		.pushConstantRangeCount = pcCount,
-		.pPushConstantRanges = m_pushConstant.blocks.size() == 0 ? nullptr : pushConstantRanges.data(),
+		.pushConstantRangeCount = 0,
+		.pPushConstantRanges = nullptr,
 	};
 
 	vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, pipelineLayout);
-}
-
-LuxonEngine::Rendering::MaterialReflection LuxonEngine::Rendering::Vulkan::SPIRVReflection::CreateMaterialReflection()
-{
-	UInt32 fieldIndex = 0;
-	MaterialReflection reflectionData;
-
-	for (auto& pushConstBlock : m_pushConstant.blocks) {
-		if (pushConstBlock.isDynamic) {// Skip internal root constants
-			fieldIndex++;
-			continue;
-		}
-
-		for (auto& rootVar : pushConstBlock.variables) {
-			MaterialValueFieldInfo valueFieldInfo{
-				.name = rootVar.name,
-				.fieldIndex = fieldIndex,
-				.size = rootVar.variableDesc.size,
-			};
-			reflectionData.valueFields.push_back(valueFieldInfo);
-			fieldIndex++;
-		}
-	}
-
-	UInt32 textureIndex = 0;
-	for (auto& descriptor : m_descripters) {
-		if (descriptor.name[0] == '_') {// Skip internal variables
-			textureIndex++;
-			continue;
-		}
-
-		MaterialTextureFieldInfo textureFieldInfo{
-			.name = descriptor.isDynamicArray ? descriptor.name.substr(0, descriptor.name.size() - 5) : descriptor.name,
-			.fieldIndex = textureIndex,
-		};
-
-		reflectionData.textureFields.push_back(textureFieldInfo);
-		textureIndex++;
-	}
-
-	return reflectionData;
-}
-
-LuxonEngine::Rendering::Vulkan::PushConstantBlockData* LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetPushConstantBlockData(const std::string& name)
-{
-	for (auto& block : m_pushConstant.blocks) {
-		auto varIt = std::find_if(block.variables.begin(), block.variables.end(), [name](const PushConstantVariableData& var) {
-			return var.name == name;
-			});
-
-		if (varIt != block.variables.end())
-			return &block;
-	}
-	return nullptr;
 }
 
 LuxonEngine::Rendering::Vulkan::DescriptableBufferData* LuxonEngine::Rendering::Vulkan::SPIRVReflection::GetDescriptorData(const std::string name)
@@ -283,41 +143,6 @@ LuxonEngine::Rendering::Vulkan::DescriptableBufferData* LuxonEngine::Rendering::
 		return nullptr;
 
 	return &(*it);
-}
-
-void LuxonEngine::Rendering::Vulkan::SPIRVReflection::Initializes()
-{
-	if (m_descripters.size() == 0)
-		return;
-
-	auto h = std::max_element(m_descripters.begin(), m_descripters.end()
-		, [](const DescriptableBufferData& desc1, const DescriptableBufferData& desc2) {
-			return desc1.data.set < desc2.data.set;
-		});
-
-	std::vector<UInt32> offsets((*h).data.set + 1, 0);
-	std::vector<UInt32> finalOffsets((*h).data.set + 1, 0);
-
-	UInt32 offsetIndex = UINT32_MAX;
-
-	for (auto& descriptor : m_descripters) {
-		if (descriptor.name[0] != '_' || (descriptor.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC && descriptor.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC))
-			continue;
-
-		descriptor.offsetIndex = offsets[descriptor.data.set];
-		offsets[descriptor.data.set]++;
-	}
-
-	for (int i = 1; i < finalOffsets.size(); i++)
-		finalOffsets[i] = finalOffsets[i - 1] + offsets[i - 1];
-
-	for (auto& descriptor : m_descripters) {
-
-		if (descriptor.name[0] != '_' || (descriptor.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC && descriptor.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC))
-			continue;
-
-		descriptor.offsetIndex += finalOffsets[descriptor.data.set];
-	}
 }
 
 LuxonEngine::Rendering::ShaderStageFlags LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToShaderStage(SpvReflectShaderStageFlagBits stage)

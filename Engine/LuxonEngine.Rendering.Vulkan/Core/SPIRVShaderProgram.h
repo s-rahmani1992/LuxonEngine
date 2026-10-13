@@ -20,12 +20,10 @@ namespace LuxonEngine::Rendering::Vulkan {
 		static constexpr UInt32 EntitySetIndex = 1;
 
 		virtual ~SPIRVShaderProgram() = default;
-		inline SPIRVReflection& GetReflection() { return m_reflection; }
 	protected:
 		void InitializeSampler();
 		static bool RemapDescriptorSets(SpvReflectShaderModule& reflectionModule);
 		VkDevice m_device;
 		VkSampler m_sampler;
-		SPIRVReflection m_reflection;
 	};
 }

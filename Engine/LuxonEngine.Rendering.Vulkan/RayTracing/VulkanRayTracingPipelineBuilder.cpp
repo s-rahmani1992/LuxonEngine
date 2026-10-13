@@ -42,7 +42,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 	UInt32 bindingOffset = 0;
 	pipelineResult.globalProgramPipelineBlueprint.variant = globalRTProgram->CreateVariantForRT(bindingOffset);
 
-	pipelineResult.reflection.AddShaderReflection(pipelineResult.globalProgramPipelineBlueprint.variant->GetReflectionModule(), true);
+	pipelineResult.reflection.AddShaderReflection(pipelineResult.globalProgramPipelineBlueprint.variant->GetReflectionModule());
 
 	for (auto& localProgram : localPrograms) {
 
@@ -54,7 +54,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingPipelineBuilder
 		auto variantProgram = localProgram->CreateVariantForRT(bindingOffset);
 
 		it.first->second.variant = variantProgram;
-		pipelineResult.reflection.AddShaderReflection(variantProgram->GetReflectionModule(), true);
+		pipelineResult.reflection.AddShaderReflection(variantProgram->GetReflectionModule());
 	}
 
 	pipelineResult.rtDescriptorLayouts.resize(pipelineResult.reflection.GetDescriptorLayoutCount());
