@@ -311,7 +311,7 @@ ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::Vulk
 
 ref<LuxonEngine::Rendering::GraphicContext> LuxonEngine::Rendering::Vulkan::VulkanDeviceManager::CreateEditorContext(ref<LuxonEngine::Platform::GraphicWindow>& window)
 {
-	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_pipelineFactory);
+	ref<VulkanEditorGraphicContext> context = std::make_shared<VulkanEditorGraphicContext>(m_instance, m_surfaceQueueFamilyIndex, window, m_pipelineFactory, m_shaderRegistery);
 	if (context->Initialize() == false)
 		return nullptr;
 
