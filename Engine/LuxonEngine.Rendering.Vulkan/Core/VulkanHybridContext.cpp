@@ -18,7 +18,6 @@
 #include "Compute/VulkanComputePipelineModule.h"
 #include "VulkanSplineVertex.h"
 #include "Compute/SPIRVComputeProgram.h"
-#include "VulkanGBufferPipelineModule.h"
 #include "RayTracing/VulkanRayTracingPipelineModule.h"
 #include "Core/VulkanDeviceManager.h"
 #include "Core/VulkanMaterialFactory.h"
@@ -50,6 +49,13 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 	m_gBufferRasterizationModules.clear();
 	m_splineComputeModule.reset();
 	DestroySplineBuffers();
+
+	DestroyEntityTransformBuffers(m_transformBuffers);
+	m_gBufferPipeline.reset();
+	DestroyGBufferTargets();
+
+	if (m_gBufferRenderPass != VK_NULL_HANDLE)
+		vkDestroyRenderPass(m_logicDevice, m_gBufferRenderPass, nullptr);
 
 	DestroyEntityTransformBuffers(m_transformBuffers);
 
@@ -180,9 +186,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 	if (m_gBufferEntityGPUList.size() > 0) {
 		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
-		m_gbufferModule = std::make_shared<VulkanGBufferPipelineModule>();
-		m_gbufferModule->InitializePipeline(m_gBufferEntityGPUList, gBufferProgram, m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, m_depthImageView);
-		m_gbufferModule->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
+		if (InitializeGBufferPass() == false)
+			return false;
 
 		auto gBufferGlobalProgram = GetInternalProgram("G_Buffer_RT_Global_Program");
 
@@ -198,15 +203,15 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		if (m_rayTracingModule->Initialize(scene->entities, gBufferGlobalMaterial, m_cameraBuffer, m_lightBuffer, transformBuffers, m_swapChainCapability.currentExtent) == false)
 			return false;
 
-		m_rayTracingModule->SetImage("_PositionTexture", m_gbufferModule->GetPositionImageView());
-		m_rayTracingModule->SetImage("_NormalTexture", m_gbufferModule->GetNormalImageView());
-		m_rayTracingModule->SetImage("_MaskTexture", m_gbufferModule->GetMaskImageView());
+		m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition].view);
+		m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal].view);
+		m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask].view);
 		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 
 		for (auto& rasterModule : m_gBufferRasterizationModules) {
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gbufferModule->GetPositionImageView());
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gbufferModule->GetNormalImageView());
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gbufferModule->GetMaskImageView());
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition].view);
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal].view);
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask].view);
 			rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 		}
 	}
@@ -259,8 +264,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 			0, 1, &splineBarrier, 0, nullptr, 0, nullptr);
 	}
 
-	if (m_gbufferModule != nullptr) {
-		m_gbufferModule->RenderCommand(m_commandBuffer);
+	if (m_gBufferPipeline != nullptr) {
+		RenderGBuffer(m_commandBuffer);
 
 		// Transition G-Buffer images from SHADER_READ_ONLY_OPTIMAL -> GENERAL for ray tracing usage.
 		// The ray tracing descriptors were created with VK_IMAGE_LAYOUT_GENERAL, so we must match that layout before tracing.
@@ -274,7 +279,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 		gBufferBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
 		gBufferBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		gBufferBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		gBufferBarriers[0].image = m_gbufferModule->GetPositionImage();
+		gBufferBarriers[0].image = m_gBufferTargets[GBufferPosition].image;
 		gBufferBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		gBufferBarriers[0].subresourceRange.baseMipLevel = 0;
 		gBufferBarriers[0].subresourceRange.levelCount = 1;
@@ -283,11 +288,11 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 		// Normal image
 		gBufferBarriers[1] = gBufferBarriers[0];
-		gBufferBarriers[1].image = m_gbufferModule->GetNormalImage();
+		gBufferBarriers[1].image = m_gBufferTargets[GBufferNormal].image;
 
 		// Mask image
 		gBufferBarriers[2] = gBufferBarriers[0];
-		gBufferBarriers[2].image = m_gbufferModule->GetMaskImage();
+		gBufferBarriers[2].image = m_gBufferTargets[GBufferMask].image;
 
 		vkCmdPipelineBarrier(
 			m_commandBuffer,
@@ -459,8 +464,9 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, &m_swapChainFramebuffers[i]);
 	}
 
-	if (m_gbufferModule != nullptr) {
-		m_gbufferModule->Resize(m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, m_depthImageView);
+	if (m_gBufferPipeline != nullptr) {
+		DestroyGBufferTargets();
+		CreateGBufferTargets();
 	}
 
 	if (m_rayTracingModule != nullptr) {
@@ -496,16 +502,16 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
 		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 	
-		if (m_gbufferModule != nullptr) {
-			m_rayTracingModule->SetImage("_PositionTexture", m_gbufferModule->GetPositionImageView());
-			m_rayTracingModule->SetImage("_NormalTexture", m_gbufferModule->GetNormalImageView());
-			m_rayTracingModule->SetImage("_MaskTexture", m_gbufferModule->GetMaskImageView());
+		if (m_gBufferPipeline != nullptr) {
+			m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition].view);
+			m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal].view);
+			m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask].view);
 		
 		
 			for (auto& rasterModule : m_gBufferRasterizationModules) {
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gbufferModule->GetPositionImageView());
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gbufferModule->GetNormalImageView());
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gbufferModule->GetMaskImageView());
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition].view);
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal].view);
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask].view);
 				rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 			}
 		}
@@ -693,6 +699,235 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationMod
 
 		modules.push_back(rasterizationModule);
 	}
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeGBufferPass()
+{
+	auto gBufferProgram = GetInternalProgram("G_Buffer_Program");
+
+	if (gBufferProgram == nullptr) {
+		Logger::LogError("The g buffer program is not registered");
+		return false;
+	}
+
+	if (CreateGBufferRenderPass() == false || CreateGBufferTargets() == false) {
+		Logger::LogError("Failed to create the render targets of the g buffer");
+		return false;
+	}
+
+	Rasterization::RasterizationPipelineProperties properties;
+	properties.renderTargetFormats.assign(std::begin(s_gBufferFormats), std::end(s_gBufferFormats));
+
+	std::string error;
+	m_gBufferPipeline = m_pipelineFactory->CreateRasterizationPipeline(gBufferProgram.get(), m_gBufferRenderPass, properties, error);
+
+	if (m_gBufferPipeline == nullptr) {
+		Logger::LogError("Failed to create the g buffer pipeline: " + error);
+		return false;
+	}
+
+	if (m_gBufferPipeline->Initialize((UInt32)m_gBufferEntityGPUList.size()) == false) {
+		Logger::LogError("Failed to create the descriptors of the g buffer pipeline");
+		m_gBufferPipeline.reset();
+		return false;
+	}
+
+	m_gBufferPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+
+	for (auto& entityGPU : m_gBufferEntityGPUList) {
+		auto mesh = entityGPU.gameEntity->GetRenderer()->GetMesh();
+
+		if (mesh == nullptr)
+			continue;
+
+		auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(mesh->GetGPUHandle());
+
+		if (meshController == nullptr)
+			continue;
+
+		GameEntity* entity = entityGPU.gameEntity.get();
+
+		m_gBufferPipeline->SetEntityDescriptor(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffers[entityGPU.index].buffer);
+		m_gBufferPipeline->SetEntityGeometry(entity, meshController->GetVertexBuffer(), meshController->GetIndexBuffer(), mesh->GetIndexCount());
+	}
+
+	return true;
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferRenderPass()
+{
+	VkAttachmentDescription attachments[GBufferTargetCount + 1] = {};
+	VkAttachmentReference colorRefs[GBufferTargetCount] = {};
+
+	for (UInt32 i = 0; i < GBufferTargetCount; i++) {
+		attachments[i] = {
+			.format = s_gBufferFormats[i],
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		};
+
+		colorRefs[i] = { i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+	}
+
+	attachments[GBufferTargetCount] = {
+		.format = m_depthFormat,
+		.samples = VK_SAMPLE_COUNT_1_BIT,
+		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+		.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+	};
+
+	VkAttachmentReference depthAttachmentRef{
+		.attachment = GBufferTargetCount,
+		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+	};
+
+	VkSubpassDescription subpass = {
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.colorAttachmentCount = GBufferTargetCount,
+		.pColorAttachments = colorRefs,
+		.pDepthStencilAttachment = &depthAttachmentRef,
+	};
+
+	VkRenderPassCreateInfo renderPassInfo = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		.attachmentCount = GBufferTargetCount + 1,
+		.pAttachments = attachments,
+		.subpassCount = 1,
+		.pSubpasses = &subpass,
+	};
+
+	return vkCreateRenderPass(m_logicDevice, &renderPassInfo, nullptr, &m_gBufferRenderPass) == VK_SUCCESS;
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferTargets()
+{
+	UInt32 width = m_swapChainCapability.currentExtent.width;
+	UInt32 height = m_swapChainCapability.currentExtent.height;
+
+	VkImageView views[GBufferTargetCount + 1];
+
+	for (UInt32 i = 0; i < GBufferTargetCount; i++) {
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.format = s_gBufferFormats[i];
+		imageInfo.extent = { width, height, 1 };
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+		auto& target = m_gBufferTargets[i];
+
+		if (m_bufferFactory->CreateImage(&imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &target.image, &target.memory) == false)
+			return false;
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = target.image;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = s_gBufferFormats[i];
+		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &target.view) != VK_SUCCESS)
+			return false;
+
+		views[i] = target.view;
+	}
+
+	views[GBufferTargetCount] = m_depthImageView;
+
+	VkFramebufferCreateInfo frameBufferInfo = {
+		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+		.renderPass = m_gBufferRenderPass,
+		.attachmentCount = GBufferTargetCount + 1,
+		.pAttachments = views,
+		.width = width,
+		.height = height,
+		.layers = 1
+	};
+
+	return vkCreateFramebuffer(m_logicDevice, &frameBufferInfo, nullptr, &m_gBufferFrameBuffer) == VK_SUCCESS;
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroyGBufferTargets()
+{
+	if (m_gBufferFrameBuffer != VK_NULL_HANDLE)
+		vkDestroyFramebuffer(m_logicDevice, m_gBufferFrameBuffer, nullptr);
+
+	m_gBufferFrameBuffer = VK_NULL_HANDLE;
+
+	for (auto& target : m_gBufferTargets) {
+		if (target.view != VK_NULL_HANDLE)
+			vkDestroyImageView(m_logicDevice, target.view, nullptr);
+
+		if (target.image != VK_NULL_HANDLE)
+			vkDestroyImage(m_logicDevice, target.image, nullptr);
+
+		if (target.memory != VK_NULL_HANDLE)
+			vkFreeMemory(m_logicDevice, target.memory, nullptr);
+
+		target = GBufferTarget();
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::RenderGBuffer(VkCommandBuffer commandBuffer)
+{
+	VkExtent2D extent = m_swapChainCapability.currentExtent;
+
+	VkClearValue clearValues[GBufferTargetCount + 1];
+	clearValues[GBufferPosition].color = { {1.0f, 1.0f, 1.0f, 1.0f} };
+	clearValues[GBufferNormal].color = { {1.0f, 1.0f, 1.0f, 1.0f} };
+	clearValues[GBufferMask].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+	clearValues[GBufferTargetCount].depthStencil = { 1.0f, 0 };
+
+	VkRenderPassBeginInfo renderPassInfo{
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		.pNext = nullptr,
+		.renderPass = m_gBufferRenderPass,
+		.framebuffer = m_gBufferFrameBuffer,
+		.renderArea = {
+			.offset = { 0, 0 },
+			.extent = extent,
+		},
+		.clearValueCount = GBufferTargetCount + 1,
+		.pClearValues = clearValues,
+	};
+
+	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport viewport{
+		.x = 0.0f,
+		.y = 0.0f,
+		.width = (float)extent.width,
+		.height = (float)extent.height,
+		.minDepth = 0.0f,
+		.maxDepth = 1.0f,
+	};
+
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+	VkRect2D scissor{
+		.offset = { 0, 0 },
+		.extent = extent,
+	};
+
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+	m_gBufferPipeline->Draw(commandBuffer);
+
+	vkCmdEndRenderPass(commandBuffer);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities)

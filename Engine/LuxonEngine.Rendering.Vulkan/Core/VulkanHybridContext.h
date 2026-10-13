@@ -15,7 +15,6 @@ namespace LuxonEngine {
 }
 
 namespace LuxonEngine::Rendering::Vulkan {
-	class VulkanGBufferPipelineModule;
 
 	namespace Rasterization {
 		class VulkanRasterizationPipelineModule;
@@ -57,6 +56,11 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
 			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
+		bool InitializeGBufferPass();
+		bool CreateGBufferRenderPass();
+		bool CreateGBufferTargets();
+		void DestroyGBufferTargets();
+		void RenderGBuffer(VkCommandBuffer commandBuffer);
 		void CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities);
 		void UpdateSplines();
 		void DestroySplineBuffers();
@@ -99,7 +103,25 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<SplineGPUData> m_splines;
 		ref<Compute::VulkanComputePipelineModule> m_splineComputeModule;
 
-		ref<VulkanGBufferPipelineModule> m_gbufferModule = nullptr;
+		enum GBufferTargetIndex {
+			GBufferPosition,
+			GBufferNormal,
+			GBufferMask,
+			GBufferTargetCount,
+		};
+
+		struct GBufferTarget {
+			VkImage image = VK_NULL_HANDLE;
+			VkDeviceMemory memory = VK_NULL_HANDLE;
+			VkImageView view = VK_NULL_HANDLE;
+		};
+
+		static constexpr VkFormat s_gBufferFormats[GBufferTargetCount] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_UNORM, VK_FORMAT_R32_UINT };
+
+		VkRenderPass m_gBufferRenderPass = VK_NULL_HANDLE;
+		VkFramebuffer m_gBufferFrameBuffer = VK_NULL_HANDLE;
+		GBufferTarget m_gBufferTargets[GBufferTargetCount];
+		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_gBufferRasterizationModules;
 

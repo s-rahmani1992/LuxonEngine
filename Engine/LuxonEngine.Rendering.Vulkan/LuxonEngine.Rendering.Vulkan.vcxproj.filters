@@ -83,7 +83,6 @@
     <ClInclude Include="RayTracing\VulkanRayTracingPipelineBuilder.h">
       <Filter>RayTracing</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanGBufferPipelineModule.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="Core\VulkanEditorGraphicContext.h">
       <Filter>Core</Filter>
@@ -172,7 +171,6 @@
     <ClCompile Include="RayTracing\VulkanRayTracingPipelineBuilder.cpp">
       <Filter>RayTracing</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanGBufferPipelineModule.cpp" />
     <ClCompile Include="VulkanAPI.cpp" />
     <ClCompile Include="Core\VulkanEditorGraphicContext.cpp">
       <Filter>Core</Filter>

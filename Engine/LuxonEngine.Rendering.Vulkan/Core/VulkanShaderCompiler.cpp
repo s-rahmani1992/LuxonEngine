@@ -83,6 +83,7 @@ namespace LuxonEngine::Rendering::Vulkan
 				auto options = baseOptions;
 				options.entryPoint = CharToString(entryPoint.c_str());
 				options.targetProfile = s_validStages.at(ShaderProgramType::Rasterization).at(stage);
+				options.arguments.push_back(L"-fspv-preserve-interface");
 
 				auto spirvShader = CompileShaderStageData(shaderCode, codeLength, options, stageError);
 
