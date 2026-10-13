@@ -15,7 +15,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	namespace Rasterization {
 		class VulkanRasterizationPipelineModule;
-		class VulkanRasterizationMaterial;
 	}
 
 	namespace MeshShading {
@@ -67,11 +66,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<VKEntityGPUData> m_entityGPUList;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_rasterizationModules;
 
-		ref<Rasterization::VulkanRasterizationMaterial> m_sharedRasterMaterial;
 		ref<Material> m_overrideMaterial;
 		ref<Scene> m_scene;
-
-		VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
 		ref<VulkanPipelineFactory> m_pipelineFactory;
 		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;

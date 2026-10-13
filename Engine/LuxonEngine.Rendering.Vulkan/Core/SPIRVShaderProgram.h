@@ -16,10 +16,14 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 	class SPIRVShaderProgram : public ShaderProgram {
 	public:
+		static constexpr UInt32 GlobalSetIndex = 0;
+		static constexpr UInt32 EntitySetIndex = 1;
+
 		virtual ~SPIRVShaderProgram() = default;
 		inline SPIRVReflection& GetReflection() { return m_reflection; }
 	protected:
 		void InitializeSampler();
+		static bool RemapDescriptorSets(SpvReflectShaderModule& reflectionModule);
 		VkDevice m_device;
 		VkSampler m_sampler;
 		SPIRVReflection m_reflection;

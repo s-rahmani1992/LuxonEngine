@@ -8,13 +8,6 @@
 
 ref<LuxonEngine::Rendering::Material> LuxonEngine::Rendering::Vulkan::VulkanMaterialFactory::CreateMaterial(const ref<ShaderProgram>& program)
 {
-	ref<Rasterization::SPIRVRasterizationProgram> rasterProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>(program);
-	
-	if (rasterProgram != nullptr) {
-		auto matReflection = rasterProgram->GetReflection().CreateMaterialReflection();
-		return std::make_shared<Material>(program, &matReflection);
-	}
-
 	ref<RayTracing::SPIRVRayTracingProgram> rayTracingProgram = std::dynamic_pointer_cast<RayTracing::SPIRVRayTracingProgram>(program);
 	
 	if (rayTracingProgram != nullptr) {

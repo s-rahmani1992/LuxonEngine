@@ -1,6 +1,5 @@
 #include "vulkan-pch.h"
 #include "SPIRVMeshProgram.h"
-#include "Rendering/ShaderInternalNames.h"
 
 namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 	SPIRVMeshProgram::SPIRVMeshProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device)
@@ -106,27 +105,6 @@ namespace LuxonEngine::Rendering::Vulkan::MeshShading {
 
 		spvReflectDestroyShaderModule(&reflectionModule);
 		return module;
-	}
-
-	bool SPIRVMeshProgram::RemapDescriptorSets(SpvReflectShaderModule& reflectionModule)
-	{
-		// only the set changes. the binding numbers come from the declaration order of the whole file,
-		// so they are unique in both sets and the same in every stage
-		for (UInt32 i = 0; i < reflectionModule.descriptor_binding_count; i++) {
-			auto& descriptor = reflectionModule.descriptor_bindings[i];
-
-			bool isPerEntity = descriptor.name != nullptr && ShaderInternalNames::IsPerEntity(descriptor.name);
-			UInt32 targetSet = isPerEntity ? EntitySetIndex : GlobalSetIndex;
-
-			if (descriptor.set == targetSet)
-				continue;
-
-			if (spvReflectChangeDescriptorBindingNumbers(&reflectionModule, &descriptor,
-				(UInt32)SPV_REFLECT_BINDING_NUMBER_DONT_CHANGE, targetSet) != SPV_REFLECT_RESULT_SUCCESS)
-				return false;
-		}
-
-		return true;
 	}
 
 	bool SPIRVMeshProgram::InitializePipelineLayout(std::string& error)

@@ -1,6 +1,5 @@
 #include "vulkan-pch.h"
 #include "SPIRVRasterizationProgram.h"
-#include "Rendering/ShaderInternalNames.h"
 
 namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	SPIRVRasterizationProgram::SPIRVRasterizationProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device)
@@ -84,30 +83,17 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 
 		VkShaderModule module = VK_NULL_HANDLE;
 
-		if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &module) == VK_SUCCESS)
+		if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &module) == VK_SUCCESS) {
+			if (shader.shaderType == VK_SHADER_STAGE_VERTEX_BIT)
+				SPIRVVariableReflection::FillInputAssemblyReflection(m_inputAssemblyReflection, &reflectionModule);
+			else if (shader.shaderType == VK_SHADER_STAGE_FRAGMENT_BIT)
+				SPIRVVariableReflection::FillRenderTargetReflection(m_renderTargetReflection, &reflectionModule);
+
 			SPIRVVariableReflection::AddShaderReflection(m_variableReflection, &reflectionModule);
+		}
 
 		spvReflectDestroyShaderModule(&reflectionModule);
 		return module;
-	}
-
-	bool SPIRVRasterizationProgram::RemapDescriptorSets(SpvReflectShaderModule& reflectionModule)
-	{
-		for (UInt32 i = 0; i < reflectionModule.descriptor_binding_count; i++) {
-			auto& descriptor = reflectionModule.descriptor_bindings[i];
-
-			bool isPerEntity = descriptor.name != nullptr && ShaderInternalNames::IsPerEntity(descriptor.name);
-			UInt32 targetSet = isPerEntity ? EntitySetIndex : GlobalSetIndex;
-
-			if (descriptor.set == targetSet)
-				continue;
-
-			if (spvReflectChangeDescriptorBindingNumbers(&reflectionModule, &descriptor,
-				(UInt32)SPV_REFLECT_BINDING_NUMBER_DONT_CHANGE, targetSet) != SPV_REFLECT_RESULT_SUCCESS)
-				return false;
-		}
-
-		return true;
 	}
 
 	bool SPIRVRasterizationProgram::InitializePipelineLayout(std::string& error)

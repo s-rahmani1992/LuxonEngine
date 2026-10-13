@@ -1,5 +1,6 @@
 #include "vulkan-pch.h"
 #include "SPIRVShaderProgram.h"
+#include "Rendering/ShaderInternalNames.h"
 
 void LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram::InitializeSampler()
 {
@@ -25,4 +26,23 @@ void LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram::InitializeSampler()
 	};
 
 	auto result = vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_sampler);
+}
+
+bool LuxonEngine::Rendering::Vulkan::SPIRVShaderProgram::RemapDescriptorSets(SpvReflectShaderModule& reflectionModule)
+{
+	for (UInt32 i = 0; i < reflectionModule.descriptor_binding_count; i++) {
+		auto& descriptor = reflectionModule.descriptor_bindings[i];
+
+		bool isPerEntity = descriptor.name != nullptr && ShaderInternalNames::IsPerEntity(descriptor.name);
+		UInt32 targetSet = isPerEntity ? EntitySetIndex : GlobalSetIndex;
+
+		if (descriptor.set == targetSet)
+			continue;
+
+		if (spvReflectChangeDescriptorBindingNumbers(&reflectionModule, &descriptor,
+			(UInt32)SPV_REFLECT_BINDING_NUMBER_DONT_CHANGE, targetSet) != SPV_REFLECT_RESULT_SUCCESS)
+			return false;
+	}
+
+	return true;
 }

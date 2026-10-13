@@ -524,6 +524,78 @@ void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::FillThreadGroupRef
 	reflection.zThread = localSize.z;
 }
 
+void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::FillRenderTargetReflection(RenderTargetReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule)
+{
+	std::vector<const SpvReflectInterfaceVariable*> outputs;
+
+	for (UInt32 i = 0; i < shaderReflectionModule->output_variable_count; i++) {
+		auto* output = shaderReflectionModule->output_variables[i];
+
+		if ((output->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) == 0)
+			outputs.push_back(output);
+	}
+
+	std::sort(outputs.begin(), outputs.end(), [](const SpvReflectInterfaceVariable* a, const SpvReflectInterfaceVariable* b) {
+		return a->location < b->location;
+		});
+
+	reflection.formats.clear();
+
+	for (auto* output : outputs) {
+		VkFormat format = VK_FORMAT_UNDEFINED;
+		SpvReflectTypeFlags typeFlags = output->type_description == nullptr ? 0 : output->type_description->type_flags;
+
+		switch (ToScalarType(typeFlags, output->numeric)) {
+		case ShaderScalarType::UInt:
+			format = VK_FORMAT_R32_UINT;
+			break;
+		case ShaderScalarType::Int:
+			format = VK_FORMAT_R32_SINT;
+			break;
+		case ShaderScalarType::Half:
+		case ShaderScalarType::Float:
+		case ShaderScalarType::Double:
+			format = VK_FORMAT_R8G8B8A8_UNORM;
+			break;
+		}
+
+		reflection.formats.push_back(format);
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::FillInputAssemblyReflection(InputAssemblyReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule)
+{
+	std::vector<const SpvReflectInterfaceVariable*> inputs;
+
+	for (UInt32 i = 0; i < shaderReflectionModule->input_variable_count; i++) {
+		auto* input = shaderReflectionModule->input_variables[i];
+
+		if ((input->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) == 0 && input->format != SPV_REFLECT_FORMAT_UNDEFINED)
+			inputs.push_back(input);
+	}
+
+	std::sort(inputs.begin(), inputs.end(), [](const SpvReflectInterfaceVariable* a, const SpvReflectInterfaceVariable* b) {
+		return a->location < b->location;
+		});
+
+	reflection.attributes.clear();
+	reflection.stride = 0;
+
+	for (auto* input : inputs) {
+		UInt32 componentCount = input->numeric.vector.component_count == 0 ? 1 : input->numeric.vector.component_count;
+		UInt32 size = (input->numeric.scalar.width / 8) * componentCount;
+
+		reflection.attributes.push_back(VkVertexInputAttributeDescription{
+			.location = input->location,
+			.binding = 0,
+			.format = (VkFormat)input->format,
+			.offset = reflection.stride,
+			});
+
+		reflection.stride += size;
+	}
+}
+
 VkDescriptorType LuxonEngine::Rendering::Vulkan::SPIRVVariableReflection::ToDescriptorType(ShaderResourceKind kind)
 {
 	switch (kind) {

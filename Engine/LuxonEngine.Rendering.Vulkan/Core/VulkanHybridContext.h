@@ -1,6 +1,8 @@
 #pragma once
 #include "vulkan-pch.h"
 #include "VulkanGraphicContext.h"
+#include <map>
+#include <vector>
 
 namespace LuxonEngine {
 	namespace Rendering
@@ -8,6 +10,7 @@ namespace LuxonEngine {
 		class SplineRenderer;
 		class ShaderRegistery;
 		class ShaderProgram;
+		class Material;
 	}
 }
 
@@ -49,6 +52,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		void UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities);
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
+		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
+			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
 
 		// not owned. programs retrieved from it are wrapped in non-owning refs
 		ShaderRegistery* m_shaderProgramRegistery;

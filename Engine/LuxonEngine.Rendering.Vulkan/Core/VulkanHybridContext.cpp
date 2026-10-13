@@ -128,6 +128,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 
 	std::map<ref<Material>, ref<Rasterization::VulkanRasterizationMaterial>> usedMaterials;
+	std::map<ref<Material>, std::vector<VKEntityGPUData>> rasterizationEntityMap;
+	std::map<ref<Material>, std::vector<VKEntityGPUData>> gBufferEntityMap;
 	UInt32 index = 0;
 	m_entityGPUList.reserve(scene->entities.size());
 
@@ -141,7 +143,12 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 			std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entity->GetRenderer()) != nullptr)
 			continue;
 
-		auto material = entity->GetRenderer()->GetMaterial();
+		auto splineRenderer = std::dynamic_pointer_cast<SplineRenderer>(entity->GetRenderer());
+
+		if (splineRenderer == nullptr)
+			continue;
+
+		auto material = splineRenderer->GetMaterial();
 		auto matIT = usedMaterials.find(material);
 
 		if (matIT == usedMaterials.end()) {
@@ -178,12 +185,12 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 	poolSizes.push_back(VkDescriptorPoolSize{
 				.type = VK_DESCRIPTOR_TYPE_SAMPLER,
-				.descriptorCount = (UInt32)usedMaterials.size(),
+				.descriptorCount = std::max<UInt32>(1, (UInt32)usedMaterials.size()),
 		});
 
 	poolSizes.push_back(VkDescriptorPoolSize{
 				.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-				.descriptorCount = (UInt32)m_entityGPUList.size(),
+				.descriptorCount = std::max<UInt32>(1, (UInt32)m_entityGPUList.size()),
 		});
 
 	VkDescriptorPoolCreateInfo poolCreateInfo{
@@ -205,15 +212,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(Renderer);
 
 		if (meshRenderer != nullptr) {
-			auto& gpuMateiral = usedMaterials[meshRenderer->GetMaterial()];
-			ref<Rasterization::VulkanRasterizationPipelineModule> rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-			if (rasterizationModule->Initialize(meshRenderer->GetMesh(), gpuMateiral, m_renderPass)) {
-				m_rasterizationModules.push_back(rasterizationModule);
-				rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
-				rasterizationModule->SetDescriptorOffset(HLSL_CAMERA_DATA_NAME, 0);
-				rasterizationModule->SetDescriptorOffset(HLSL_LIGHT_DATA_NAME, 0);
-			}
-
+			rasterizationEntityMap[meshRenderer->GetMaterial()].push_back(entityGPU);
 			continue;
 		}
 
@@ -243,14 +242,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		if (gBufferRenderer != nullptr) {
 			m_gBufferEntityGPUList.push_back(entityGPU);
 
-			auto& gpuMateiral = usedMaterials[gBufferRenderer->GetMaterial()];
-			ref<Rasterization::VulkanRasterizationPipelineModule> rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-			if (rasterizationModule->Initialize(gBufferRenderer->GetMesh(), gpuMateiral, m_renderPass)) {
-				m_gBufferRasterizationModules.push_back(rasterizationModule);
-				rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
-				rasterizationModule->SetDescriptorOffset(HLSL_CAMERA_DATA_NAME, 0);
-				rasterizationModule->SetDescriptorOffset(HLSL_LIGHT_DATA_NAME, 0);
-			}
+			gBufferEntityMap[gBufferRenderer->GetMaterial()].push_back(entityGPU);
 		}
 	}
 
@@ -261,6 +253,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		matPair.second->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
 		matPair.second->WriteBuffer(HLSL_LIGHT_DATA_NAME, m_lightBuffer, m_lightStride);
 	}
+
+	CreateRasterizationModules(rasterizationEntityMap, m_rasterizationModules);
+	CreateRasterizationModules(gBufferEntityMap, m_gBufferRasterizationModules);
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
@@ -288,11 +283,11 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		m_rayTracingModule->SetImage("_MaskTexture", m_gbufferModule->GetMaskImageView());
 		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 
-		for(auto& [material, rasterMaterial] : usedMaterials) {
-			rasterMaterial->SetImageView("_PositionTexture", m_gbufferModule->GetPositionImageView());
-			rasterMaterial->SetImageView("_NormalTexture", m_gbufferModule->GetNormalImageView());
-			rasterMaterial->SetImageView("_MaskTexture", m_gbufferModule->GetMaskImageView());
-			rasterMaterial->SetImageView(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+		for (auto& rasterModule : m_gBufferRasterizationModules) {
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gbufferModule->GetPositionImageView());
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gbufferModule->GetNormalImageView());
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gbufferModule->GetMaskImageView());
+			rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 		}
 	}
 
@@ -457,7 +452,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	// Render Objects here
 	for (auto& module : m_rasterizationModules) {
-		module->RenderCommand(m_commandBuffer);
+		module->Draw(m_commandBuffer);
 	}
 
 	for (auto& module : m_splineModues) {
@@ -465,7 +460,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	}
 
 	for(auto& module : m_gBufferRasterizationModules) {
-		module->RenderCommand(m_commandBuffer);
+		module->Draw(m_commandBuffer);
 	}
 
 	for (auto& meshShadingPipeline : m_meshShadingPipelines)
@@ -581,11 +576,10 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 		
 		
 			for (auto& rasterModule : m_gBufferRasterizationModules) {
-				auto rasterMaterial = rasterModule->GetMaterial();
-				rasterMaterial->SetImageView("_PositionTexture", m_gbufferModule->GetPositionImageView());
-				rasterMaterial->SetImageView("_NormalTexture", m_gbufferModule->GetNormalImageView());
-				rasterMaterial->SetImageView("_MaskTexture", m_gbufferModule->GetMaskImageView());
-				rasterMaterial->SetImageView(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gbufferModule->GetPositionImageView());
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gbufferModule->GetNormalImageView());
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gbufferModule->GetMaskImageView());
+				rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
 			}
 		}
 	}
@@ -734,6 +728,50 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms
 	}
 
 	vkUnmapMemory(m_logicDevice, m_transformBufferMemory);
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
+	std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules)
+{
+	std::string error;
+	Rasterization::RasterizationPipelineProperties properties;
+
+	for (auto& [material, entityList] : entityMap) {
+		auto rasterizationModule = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_renderPass, properties, error);
+
+		if (rasterizationModule == nullptr) {
+			Logger::LogError("Failed to create the rasterization pipeline: " + error);
+			continue;
+		}
+
+		if (rasterizationModule->Initialize((UInt32)entityList.size()) == false) {
+			Logger::LogError("Failed to create the descriptors of the rasterization pipeline");
+			continue;
+		}
+
+		rasterizationModule->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+		rasterizationModule->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer, 0, m_lightStride);
+
+		for (auto& entityGPU : entityList) {
+			auto mesh = entityGPU.gameEntity->GetRenderer()->GetMesh();
+
+			if (mesh == nullptr)
+				continue;
+
+			auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(mesh->GetGPUHandle());
+
+			if (meshController == nullptr)
+				continue;
+
+			GameEntity* entity = entityGPU.gameEntity.get();
+
+			rasterizationModule->SetEntityDescriptor(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
+				(VkDeviceSize)entityGPU.index * m_transformStride, m_transformStride);
+			rasterizationModule->SetEntityGeometry(entity, meshController->GetVertexBuffer(), meshController->GetIndexBuffer(), mesh->GetIndexCount());
+		}
+
+		modules.push_back(rasterizationModule);
+	}
 }
 
 ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanHybridContext::GetInternalProgram(const std::string& identifier) const

@@ -26,6 +26,9 @@
     <ClInclude Include="Core\VulkanAssetManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanMaterialResourceManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanMeshController.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -111,6 +114,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanAssetManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanMaterialResourceManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanMeshController.cpp">

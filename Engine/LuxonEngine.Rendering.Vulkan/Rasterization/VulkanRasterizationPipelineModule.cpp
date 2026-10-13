@@ -1,199 +1,133 @@
 #include "vulkan-pch.h"
 #include "VulkanRasterizationPipelineModule.h"
-#include "Core/Mesh.h"
-#include "../Core/VulkanMeshController.h"
-#include "Core/GameEntity.h"
-#include "SPIRVRasterizationProgram.h"
-#include "Rendering/Renderer.h"
-#include "Rendering/Material.h"
-#include "VulkanRasterizationMaterial.h"
 #include "SPIRVRasterizationProgram.h"
 
-VkVertexInputBindingDescription LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_bindingDescriptions = {
-	.binding = 0,
-	.stride = sizeof(Vertex),
-	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-};
-
-VkVertexInputAttributeDescription LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_attributeDescriptions[3] = {
-	{ .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(Vertex, position) },
-	{ .location = 1, .binding = 0, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(Vertex, uv) },
-	{ .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(Vertex, normal) },
-};
-
-VkPipelineVertexInputStateCreateInfo LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::s_vertexInputInfo = {
-	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-	.pNext = nullptr,
-	.flags = 0,
-	.vertexBindingDescriptionCount = 1,
-	.pVertexBindingDescriptions = &s_bindingDescriptions,
-	.vertexAttributeDescriptionCount = 3,
-	.pVertexAttributeDescriptions = s_attributeDescriptions,
-};
-
-LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::VulkanRasterizationPipelineModule(const VkDevice device)
-	:m_device(device)
-{
-}
-
-LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::~VulkanRasterizationPipelineModule()
-{
-	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-}
-
-void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::RenderCommand(VkCommandBuffer commandBuffer)
-{
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-	VkDeviceSize offsets[] = { 0 };
-	auto indexBuffer = m_meshController->GetIndexBuffer();
-	auto vertexBuffer = m_meshController->GetVertexBuffer();
-	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
-	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	m_material->BindValues(commandBuffer);
-	m_material->BindDynamicValues(commandBuffer, m_offset.data(), (UInt32)m_offset.size());
-	vkCmdDrawIndexed(commandBuffer, m_mesh->GetIndexCount(), 1, 0, 0, 0);
-}
-
-bool LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::Initialize(const ref<Mesh>& mesh, ref<VulkanRasterizationMaterial> material, const VkRenderPass renderPass)
-{
-	m_mesh = mesh;
-
-	if(m_mesh == nullptr || material == nullptr)
-		return false;
-
-	m_program = material->GetProgram();
-	m_offset = std::vector<UInt32>(m_program->GetReflection().GetDynamicDescriptorCount(), 0);
-	m_meshController = std::dynamic_pointer_cast<VulkanMeshController>(m_mesh->GetGPUHandle());
-	m_material = material;
-
-	VkPipelineInputAssemblyStateCreateInfo pInputAssemblyInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		.primitiveRestartEnable = VK_FALSE,
-	};
-
-	VkPipelineViewportStateCreateInfo viewportStateInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.viewportCount = 1,
-		.pViewports = nullptr,
-		.scissorCount = 1,
-		.pScissors = nullptr,
-	};
-
-	VkPipelineRasterizationStateCreateInfo rasterizationStateInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.depthClampEnable = VK_FALSE,
-		.rasterizerDiscardEnable = VK_FALSE,
-		.polygonMode = VK_POLYGON_MODE_FILL,
-		.cullMode = VK_CULL_MODE_NONE,
-		.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-		.depthBiasEnable = VK_FALSE,
-		.lineWidth = 1.0f,
-	};
-
-	VkPipelineMultisampleStateCreateInfo multisampleStateInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-		.sampleShadingEnable = VK_FALSE,
-		.minSampleShading = 1.0f,
-		.pSampleMask = nullptr,
-		.alphaToCoverageEnable = VK_FALSE,
-		.alphaToOneEnable = VK_FALSE,
-	};
-
-	VkPipelineDepthStencilStateCreateInfo depthStencilState{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.depthTestEnable = VK_TRUE,
-		.depthWriteEnable = VK_TRUE,
-		.depthCompareOp = VK_COMPARE_OP_LESS,
-		.depthBoundsTestEnable = VK_FALSE,
-		.stencilTestEnable = VK_FALSE,
-		.front = {},
-		.back = {},
-		.minDepthBounds = -1.0f,
-		.maxDepthBounds = 1.0f,
-	};
-
-	VkPipelineColorBlendAttachmentState colorBlendAttachmentState{
-		.blendEnable = VK_FALSE,
-		.srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
-		.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-		.colorBlendOp = VK_BLEND_OP_ADD,
-		.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-		.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-		.alphaBlendOp = VK_BLEND_OP_ADD,
-		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-	};
-
-	VkPipelineColorBlendStateCreateInfo colorBlendStateInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.logicOpEnable = VK_FALSE,
-		.logicOp = VK_LOGIC_OP_COPY,
-		.attachmentCount = 1,
-		.pAttachments = &colorBlendAttachmentState,
-		.blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
-	};
-
-	std::vector<VkDynamicState> dynamicStates = {
-	VK_DYNAMIC_STATE_VIEWPORT,
-	VK_DYNAMIC_STATE_SCISSOR,
-	};
-
-	VkPipelineDynamicStateCreateInfo dynamicStateInfo{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-		.dynamicStateCount = (UInt32)dynamicStates.size(),
-		.pDynamicStates = dynamicStates.data(),
-	};
-
-	auto& stages = m_program->GetStageInfos();
-
-	VkGraphicsPipelineCreateInfo pipelineCreateInfo{
-		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.stageCount = (UInt32)stages.size(),
-		.pStages = stages.data(),
-		.pVertexInputState = &s_vertexInputInfo,
-		.pInputAssemblyState = &pInputAssemblyInfo,
-		.pTessellationState = nullptr,
-		.pViewportState = &viewportStateInfo,
-		.pRasterizationState = &rasterizationStateInfo,
-		.pMultisampleState = &multisampleStateInfo,
-		.pDepthStencilState = &depthStencilState,
-		.pColorBlendState = &colorBlendStateInfo,
-		.pDynamicState = &dynamicStateInfo,
-		.layout = m_program->GetPipelineLayout(),
-		.renderPass = renderPass,
-		.subpass = 0,
-		.basePipelineHandle = VK_NULL_HANDLE,
-		.basePipelineIndex = -1,
-
-	};
-
-	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
-		return false;
+namespace LuxonEngine::Rendering::Vulkan::Rasterization {
+	VulkanRasterizationPipelineModule::VulkanRasterizationPipelineModule(VkDevice device, VkPipeline pipeline, const SPIRVRasterizationProgram* program, Material* material)
+		:m_device(device), m_pipeline(pipeline), m_program(program), m_material(material)
+	{
+		m_resourceManager = std::make_unique<VulkanMaterialResourceManager>(device, material, program->GetVariableReflection(),
+			program->GetDescriptorSetLayouts(), program->GetPipelineLayout(), SPIRVRasterizationProgram::StageFlags, VK_PIPELINE_BIND_POINT_GRAPHICS);
 	}
 
-	return true;
-}
-void LuxonEngine::Rendering::Vulkan::Rasterization::VulkanRasterizationPipelineModule::SetDescriptorOffset(const std::string& name, UInt32 offset)
-{
-	auto descriptorData = m_program->GetReflection().GetDescriptorData(name);
+	VulkanRasterizationPipelineModule::~VulkanRasterizationPipelineModule()
+	{
+		if (m_pipeline != VK_NULL_HANDLE)
+			vkDestroyPipeline(m_device, m_pipeline, nullptr);
+	}
 
-	if (descriptorData == nullptr)
-		return;
+	bool VulkanRasterizationPipelineModule::Initialize(UInt32 entityCount)
+	{
+		if (m_resourceManager->Initialize(entityCount) == false)
+			return false;
 
-	m_offset[descriptorData->offsetIndex] = offset;
+		m_entityGeometries.resize(entityCount);
+		return true;
+	}
+
+	void VulkanRasterizationPipelineModule::UpdateModifiedTextures()
+	{
+		m_resourceManager->UpdateModifiedTextures();
+	}
+
+	bool VulkanRasterizationPipelineModule::SetDescriptor(const char* name, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+	{
+		return m_resourceManager->SetDescriptor(name, buffer, offset, range);
+	}
+
+	bool VulkanRasterizationPipelineModule::SetDescriptor(const char* name, VkImageView imageView, VkImageLayout imageLayout)
+	{
+		return m_resourceManager->SetDescriptor(name, imageView, imageLayout);
+	}
+
+	bool VulkanRasterizationPipelineModule::SetEntityDescriptor(GameEntity* entity, const char* name, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+	{
+		return m_resourceManager->SetEntityDescriptor(entity, name, buffer, offset, range);
+	}
+
+	bool VulkanRasterizationPipelineModule::SetEntityDescriptor(GameEntity* entity, const char* name, VkImageView imageView, VkImageLayout imageLayout)
+	{
+		return m_resourceManager->SetEntityDescriptor(entity, name, imageView, imageLayout);
+	}
+
+	bool VulkanRasterizationPipelineModule::SetEntityGeometry(GameEntity* entity, VkBuffer vertexBuffer, VkBuffer indexBuffer, UInt32 indexCount)
+	{
+		UInt32 slot = m_resourceManager->RegisterEntity(entity);
+
+		if (slot == VulkanMaterialResourceManager::InvalidEntityIndex)
+			return false;
+
+		if (m_entityGeometries.size() <= slot)
+			m_entityGeometries.resize(slot + 1);
+
+		m_entityGeometries[slot] = EntityGeometry{ vertexBuffer, indexBuffer, indexCount, 0 };
+		return true;
+	}
+
+	bool VulkanRasterizationPipelineModule::SetEntityGeometry(GameEntity* entity, VkBuffer vertexBuffer, UInt32 vertexCount)
+	{
+		UInt32 slot = m_resourceManager->RegisterEntity(entity);
+
+		if (slot == VulkanMaterialResourceManager::InvalidEntityIndex)
+			return false;
+
+		if (m_entityGeometries.size() <= slot)
+			m_entityGeometries.resize(slot + 1);
+
+		m_entityGeometries[slot] = EntityGeometry{ vertexBuffer, VK_NULL_HANDLE, 0, vertexCount };
+		return true;
+	}
+
+	void VulkanRasterizationPipelineModule::BindGlobal(VkCommandBuffer commandBuffer)
+	{
+		m_resourceManager->UpdateModifiedTextures();
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+		m_resourceManager->BindGlobal(commandBuffer);
+	}
+
+	bool VulkanRasterizationPipelineModule::DrawSlot(VkCommandBuffer commandBuffer, UInt32 slot)
+	{
+		if (slot >= m_entityGeometries.size() || m_resourceManager->GetEntity(slot) == nullptr)
+			return false;
+
+		auto& geometry = m_entityGeometries[slot];
+
+		if (geometry.vertexBuffer == VK_NULL_HANDLE || (geometry.indexCount == 0 && geometry.vertexCount == 0))
+			return false;
+
+		m_resourceManager->BindEntity(commandBuffer, slot);
+
+		VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &geometry.vertexBuffer, &offset);
+
+		if (geometry.indexCount > 0) {
+			vkCmdBindIndexBuffer(commandBuffer, geometry.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, geometry.indexCount, 1, 0, 0, 0);
+		}
+		else {
+			vkCmdDraw(commandBuffer, geometry.vertexCount, 1, 0, 0);
+		}
+
+		return true;
+	}
+
+	bool VulkanRasterizationPipelineModule::DrawEntity(VkCommandBuffer commandBuffer, GameEntity* entity)
+	{
+		UInt32 slot = m_resourceManager->FindEntity(entity);
+
+		if (slot == VulkanMaterialResourceManager::InvalidEntityIndex)
+			return false;
+
+		return DrawSlot(commandBuffer, slot);
+	}
+
+	void VulkanRasterizationPipelineModule::Draw(VkCommandBuffer commandBuffer)
+	{
+		BindGlobal(commandBuffer);
+
+		for (UInt32 slot = 0; slot < m_resourceManager->GetEntitySlotCount(); slot++)
+			DrawSlot(commandBuffer, slot);
+	}
 }

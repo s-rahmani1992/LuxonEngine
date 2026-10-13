@@ -186,6 +186,7 @@
     <ClInclude Include="Core\VulkanGraphicContext.h" />
     <ClInclude Include="Core\VulkanHybridContext.h" />
     <ClInclude Include="Core\VulkanMaterialFactory.h" />
+    <ClInclude Include="Core\VulkanMaterialResourceManager.h" />
     <ClInclude Include="Core\VulkanMeshController.h" />
     <ClInclude Include="Core\VulkanPipelineFactory.h" />
     <ClInclude Include="Core\VulkanShaderCompiler.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="Core\VulkanGraphicContext.cpp" />
     <ClCompile Include="Core\VulkanHybridContext.cpp" />
     <ClCompile Include="Core\VulkanMaterialFactory.cpp" />
+    <ClCompile Include="Core\VulkanMaterialResourceManager.cpp" />
     <ClCompile Include="Core\VulkanMeshController.cpp" />
     <ClCompile Include="Core\VulkanPipelineFactory.cpp" />
     <ClCompile Include="Core\VulkanShaderCompiler.cpp" />

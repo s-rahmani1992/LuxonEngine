@@ -62,9 +62,7 @@ LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::~VulkanEditorGraphic
 	if (m_renderPass != VK_NULL_HANDLE)
 		vkDestroyRenderPass(m_logicDevice, m_renderPass, nullptr);
 
-	if (m_descriptorPool != VK_NULL_HANDLE)
-		vkDestroyDescriptorPool(m_logicDevice, m_descriptorPool, nullptr);
-
+	m_rasterizationModules.clear();
 	m_meshShadingPipelines.clear();
 	DestroyMeshStorageBuffers();
 }
@@ -189,7 +187,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Render()
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 
 	for (auto& module : m_rasterizationModules)
-		module->RenderCommand(m_commandBuffer);
+		module->Draw(m_commandBuffer);
 
 	for (auto& meshShadingPipeline : m_meshShadingPipelines)
 		meshShadingPipeline->Dispatch(m_commandBuffer);
@@ -405,14 +403,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::UpdateEntityTra
 void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializePipelines(const ref<Material>& overrideMaterial)
 {
 	m_rasterizationModules.clear();
-	m_sharedRasterMaterial.reset();
 	m_meshShadingPipelines.clear();
 	DestroyMeshStorageBuffers();
-
-	if (m_descriptorPool != VK_NULL_HANDLE) {
-		vkDestroyDescriptorPool(m_logicDevice, m_descriptorPool, nullptr);
-		m_descriptorPool = VK_NULL_HANDLE;
-	}
 
 	// spike and surface instance entities use their own material, so they do not depend on the override material
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
@@ -420,69 +412,58 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializePipel
 	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
 	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
 
-	if (m_entityGPUList.empty() || overrideMaterial == nullptr)
+	if (m_entityGPUList.empty() || m_pipelineFactory == nullptr)
 		return;
 
-	// Build pool sizes from the override material's shader reflection
-	auto program = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>(overrideMaterial->GetProgram());
-	auto& reflection = program->GetReflection();
-	auto& descriptors = reflection.GetDescriptors();
+	std::map<ref<Material>, std::vector<VKEntityGPUData>> materialMap;
 
-	std::vector<VkDescriptorPoolSize> poolSizes;
-	UInt32 setCount = reflection.GetDescriptorLayoutCount();
+	for (auto& entityGPU : m_entityGPUList) {
+		ref<Material> material = overrideMaterial;
+		auto meshRenderer = std::dynamic_pointer_cast<MeshRenderer>(entityGPU.gameEntity->GetRenderer());
 
-	for (auto& descriptor : descriptors) {
-		auto it = std::find_if(poolSizes.begin(), poolSizes.end(), [&descriptor](const VkDescriptorPoolSize& ps) {
-			return ps.type == descriptor.descriptorType;
-			});
+		if (meshRenderer != nullptr && meshRenderer->GetMaterial() != nullptr)
+			material = meshRenderer->GetMaterial();
 
-		if (it != poolSizes.end())
-			it->descriptorCount++;
-		else
-			poolSizes.push_back(VkDescriptorPoolSize{ .type = descriptor.descriptorType, .descriptorCount = 1 });
+		if (material != nullptr)
+			materialMap[material].push_back(entityGPU);
 	}
 
-	// One storage buffer slot per entity for transforms
-	setCount += static_cast<UInt32>(m_entityGPUList.size());
-	poolSizes.push_back(VkDescriptorPoolSize{
-		.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-		.descriptorCount = static_cast<UInt32>(m_entityGPUList.size()),
-		});
+	std::string error;
+	Rasterization::RasterizationPipelineProperties properties;
 
-	VkDescriptorPoolCreateInfo poolCreateInfo{
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.maxSets = setCount,
-		.poolSizeCount = static_cast<UInt32>(poolSizes.size()),
-		.pPoolSizes = poolSizes.data(),
-	};
+	for (auto& [material, entityList] : materialMap) {
+		auto rasterizationModule = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_renderPass, properties, error);
 
-	if (vkCreateDescriptorPool(m_logicDevice, &poolCreateInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-		return;
-
-	// Create a single shared VulkanRasterizationMaterial for the override material
-	m_sharedRasterMaterial = std::make_shared<Rasterization::VulkanRasterizationMaterial>(overrideMaterial, m_logicDevice);
-	if (m_sharedRasterMaterial->Initialize(m_descriptorPool) == false)
-		return;
-
-	m_sharedRasterMaterial->WriteBuffer(HLSL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer, m_transformStride);
-	m_sharedRasterMaterial->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
-	m_sharedRasterMaterial->WriteBuffer(HLSL_LIGHT_DATA_NAME, m_lightBuffer, m_lightStride);
-
-	// Build a pipeline module per mesh-renderer entity using the shared material
-	for (auto& entityGPU : m_entityGPUList) {
-		auto mesh = ExtractMeshFromGameEntity(entityGPU.gameEntity);
-		if (mesh == nullptr)
+		if (rasterizationModule == nullptr) {
+			Logger::LogError("Failed to create the rasterization pipeline: " + error);
 			continue;
+		}
 
-		auto rasterizationModule = std::make_shared<Rasterization::VulkanRasterizationPipelineModule>(m_logicDevice);
-		if (rasterizationModule->Initialize(mesh, m_sharedRasterMaterial, m_renderPass) == false)
+		if (rasterizationModule->Initialize((UInt32)entityList.size()) == false) {
+			Logger::LogError("Failed to create the descriptors of the rasterization pipeline");
 			continue;
+		}
 
-		rasterizationModule->SetDescriptorOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
-		rasterizationModule->SetDescriptorOffset(HLSL_CAMERA_DATA_NAME, 0);
-		rasterizationModule->SetDescriptorOffset(HLSL_LIGHT_DATA_NAME, 0);
+		rasterizationModule->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+		rasterizationModule->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer, 0, m_lightStride);
+
+		for (auto& entityGPU : entityList) {
+			auto mesh = ExtractMeshFromGameEntity(entityGPU.gameEntity);
+
+			if (mesh == nullptr)
+				continue;
+
+			auto meshController = std::dynamic_pointer_cast<VulkanMeshController>(mesh->GetGPUHandle());
+
+			if (meshController == nullptr)
+				continue;
+
+			GameEntity* entity = entityGPU.gameEntity.get();
+
+			rasterizationModule->SetEntityDescriptor(entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
+				(VkDeviceSize)entityGPU.index * m_transformStride, m_transformStride);
+			rasterizationModule->SetEntityGeometry(entity, meshController->GetVertexBuffer(), meshController->GetIndexBuffer(), mesh->GetIndexCount());
+		}
 
 		m_rasterizationModules.push_back(rasterizationModule);
 	}

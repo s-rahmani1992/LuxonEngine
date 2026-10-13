@@ -4,6 +4,15 @@
 #include <Rendering/ShaderReflection.h>
 
 namespace LuxonEngine::Rendering::Vulkan {
+	struct RenderTargetReflection {
+		std::vector<VkFormat> formats;
+	};
+
+	struct InputAssemblyReflection {
+		std::vector<VkVertexInputAttributeDescription> attributes;
+		UInt32 stride = 0;
+	};
+
 	class SPIRVVariableReflection {
 	public:
 		SPIRVVariableReflection() = delete;
@@ -19,6 +28,10 @@ namespace LuxonEngine::Rendering::Vulkan {
 		static void AddShaderReflection(ShaderVariableReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
 
 		static void FillThreadGroupReflection(ShaderThreadGroupReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
+
+		static void FillRenderTargetReflection(RenderTargetReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
+
+		static void FillInputAssemblyReflection(InputAssemblyReflection& reflection, const SpvReflectShaderModule* shaderReflectionModule);
 
 		static VkDescriptorType ToDescriptorType(ShaderResourceKind kind);
 

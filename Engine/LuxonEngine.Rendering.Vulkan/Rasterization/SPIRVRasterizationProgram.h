@@ -9,8 +9,6 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 	class SPIRVRasterizationProgram : public SPIRVShaderProgram
 	{
 	public:
-		static constexpr UInt32 GlobalSetIndex = 0;
-		static constexpr UInt32 EntitySetIndex = 1;
 		static constexpr VkShaderStageFlags StageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
 
 		SPIRVRasterizationProgram(const std::vector<SPIRVShaderData>& shaders, const VkDevice device);
@@ -26,11 +24,11 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_stageInfos; }
 		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
 		inline const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+		inline const InputAssemblyReflection& GetInputAssemblyReflection() const { return m_inputAssemblyReflection; }
+		inline const RenderTargetReflection& GetRenderTargetReflection() const { return m_renderTargetReflection; }
 
 	private:
 		VkShaderModule CreateStage(const SPIRVShaderData& shader, std::string& entryPoint);
-
-		static bool RemapDescriptorSets(SpvReflectShaderModule& reflectionModule);
 
 		VkShaderModule m_vertexShader = VK_NULL_HANDLE;
 		VkShaderModule m_geometryShader = VK_NULL_HANDLE;
@@ -41,6 +39,9 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 		std::string m_pixelEntryPoint;
 
 		std::vector<VkPipelineShaderStageCreateInfo> m_stageInfos;
+
+		InputAssemblyReflection m_inputAssemblyReflection;
+		RenderTargetReflection m_renderTargetReflection;
 
 		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
