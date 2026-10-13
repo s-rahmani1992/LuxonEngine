@@ -81,7 +81,7 @@ bool LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Prepar
 
 	BindRayTracingBuffers(*m_rayTracingModule, scene->entities, m_transformBuffers, m_meshStorageBuffers);
 
-	m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
+	m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputTexture->GetView());
 
 	return true;
 }
@@ -124,7 +124,7 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
     imageBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
     imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    imageBarrier.image = m_outputImage;
+    imageBarrier.image = m_outputTexture->GetImage();
     imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     imageBarrier.subresourceRange.baseMipLevel = 0;
     imageBarrier.subresourceRange.levelCount = 1;
@@ -144,7 +144,7 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
     rtToSrc.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
     rtToSrc.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // typical RT output layout
     rtToSrc.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-    rtToSrc.image = m_outputImage;
+    rtToSrc.image = m_outputTexture->GetImage();
     rtToSrc.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
     vkCmdPipelineBarrier(
@@ -188,7 +188,7 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Render
 
     vkCmdBlitImage(
         m_commandBuffer,
-        m_outputImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        m_outputTexture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         m_swapChainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &blit,
         VK_FILTER_LINEAR
@@ -258,7 +258,7 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Resize
 
     if (m_rayTracingModule != nullptr) {
         m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
-        m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputImageView);
+        m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_outputTexture->GetView());
     }
 }
 
@@ -289,34 +289,15 @@ void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::Update
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::CreateOutputImage()
 {
-    VkImageCreateInfo imgInfo{};
-    imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imgInfo.imageType = VK_IMAGE_TYPE_2D;
-    imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
-    imgInfo.mipLevels = 1;
-    imgInfo.arrayLayers = 1;
-    imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-    m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_outputImage, &m_outputImageMemory);
-
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = m_outputImage;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = imgInfo.format;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_outputImageView);
+    m_outputTexture = m_bufferFactory->CreateTexture(VulkanTextureDesc{
+        .width = m_swapChainCapability.currentExtent.width,
+        .height = m_swapChainCapability.currentExtent.height,
+        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+        .usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+    });
 }
 
 void LuxonEngine::Rendering::Vulkan::RayTracing::VulkanRayTracingContext::DestroyOutputImage()
 {
-    vkDestroyImageView(m_logicDevice, m_outputImageView, nullptr);
-    vkDestroyImage(m_logicDevice, m_outputImage, nullptr);
-    vkFreeMemory(m_logicDevice, m_outputImageMemory, nullptr);
+    m_outputTexture.reset();
 }

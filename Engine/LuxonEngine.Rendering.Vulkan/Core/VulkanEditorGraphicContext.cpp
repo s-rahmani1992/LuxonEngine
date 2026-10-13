@@ -42,9 +42,6 @@ LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::VulkanEditorGraphicC
 	, m_transformBuffer(VK_NULL_HANDLE)
 	, m_transformBufferMemory(VK_NULL_HANDLE)
 	, m_renderPass(VK_NULL_HANDLE)
-	, m_depthImage(VK_NULL_HANDLE)
-	, m_depthMemory(VK_NULL_HANDLE)
-	, m_depthImageView(VK_NULL_HANDLE)
 {
 	m_swapChainUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
@@ -54,11 +51,6 @@ LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::~VulkanEditorGraphic
 	if (m_transformBuffer != VK_NULL_HANDLE) {
 		vkDestroyBuffer(m_logicDevice, m_transformBuffer, nullptr);
 		vkFreeMemory(m_logicDevice, m_transformBufferMemory, nullptr);
-	}
-
-	if (m_depthImage != VK_NULL_HANDLE) {
-		vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
-		vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
 	}
 
 	for (auto framebuffer : m_swapChainFramebuffers)
@@ -251,10 +243,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Render()
 
 void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Resize(UInt32 width, UInt32 height)
 {
-	if (m_depthImage != VK_NULL_HANDLE) {
-		vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
-		vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
-	}
+	m_depthTexture.reset();
 
 	for (auto framebuffer : m_swapChainFramebuffers)
 		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
@@ -265,7 +254,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::Resize(UInt32 w
 
 	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
 	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
-		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthImageView };
+		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthTexture->GetAttachmentView() };
 
 		VkFramebufferCreateInfo fbInfo{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -304,32 +293,13 @@ void LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::UploadMeshesToG
 
 bool LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializeDepthBuffer()
 {
-	VkImageCreateInfo imgInfo{
-		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-		.imageType = VK_IMAGE_TYPE_2D,
+	m_depthTexture = m_bufferFactory->CreateDepthTexture(VulkanTextureDesc{
+		.width = m_swapChainCapability.currentExtent.width,
+		.height = m_swapChainCapability.currentExtent.height,
 		.format = m_depthFormat,
-		.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 },
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.tiling = VK_IMAGE_TILING_OPTIMAL,
-		.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-	};
+	});
 
-	m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_depthImage, &m_depthMemory);
-
-	VkImageViewCreateInfo viewInfo{};
-	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = m_depthImage;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.format = m_depthFormat;
-	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-	viewInfo.subresourceRange.levelCount = 1;
-	viewInfo.subresourceRange.layerCount = 1;
-
-	vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_depthImageView);
-	return true;
+	return m_depthTexture != nullptr;
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializeRenderPass()
@@ -388,7 +358,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanEditorGraphicContext::InitializeRende
 
 	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
 	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
-		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthImageView };
+		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthTexture->GetAttachmentView() };
 
 		VkFramebufferCreateInfo fbInfo{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

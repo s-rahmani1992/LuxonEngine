@@ -50,6 +50,15 @@
     <ClInclude Include="Core\VulkanBuffer.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanTexture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VulkanRenderTexture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VulkanDepthTexture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanBufferFactory.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -139,6 +148,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanBuffer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanTexture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanBufferFactory.cpp">

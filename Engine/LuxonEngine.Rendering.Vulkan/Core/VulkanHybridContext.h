@@ -34,6 +34,9 @@ namespace LuxonEngine::Rendering::Vulkan {
 	}
 
 	class VulkanBuffer;
+	class VulkanTexture;
+	class VulkanRenderTexture;
+	class VulkanDepthTexture;
 	class VulkanPipelineFactory;
 
 	struct VKEntityGPUData {
@@ -93,9 +96,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
 		VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
-		VkImage m_depthImage;
-		VkDeviceMemory m_depthMemory;
-		VkImageView m_depthImageView;
+		Ptr<VulkanDepthTexture> m_depthTexture;
 
 		std::vector<VKEntityGPUData> m_entityGPUList;
 		std::vector<VKEntityGPUData> m_gBufferEntityGPUList;
@@ -110,24 +111,16 @@ namespace LuxonEngine::Rendering::Vulkan {
 			GBufferTargetCount,
 		};
 
-		struct GBufferTarget {
-			VkImage image = VK_NULL_HANDLE;
-			VkDeviceMemory memory = VK_NULL_HANDLE;
-			VkImageView view = VK_NULL_HANDLE;
-		};
-
 		static constexpr VkFormat s_gBufferFormats[GBufferTargetCount] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_UNORM, VK_FORMAT_R32_UINT };
 
 		VkRenderPass m_gBufferRenderPass = VK_NULL_HANDLE;
 		VkFramebuffer m_gBufferFrameBuffer = VK_NULL_HANDLE;
-		GBufferTarget m_gBufferTargets[GBufferTargetCount];
+		Ptr<VulkanRenderTexture> m_gBufferTargets[GBufferTargetCount];
 		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_gBufferRasterizationModules;
 
-		VkImage m_rtOutputImage;
-		VkDeviceMemory m_rtOutputImageMemory;
-		VkImageView m_rtOutputImageView;
+		Ptr<VulkanTexture> m_rtOutputTexture;
 
 		VkClearValue m_clearValues[2];
 

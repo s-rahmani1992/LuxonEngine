@@ -1,6 +1,9 @@
 #pragma once
 #include "vulkan-pch.h"
 #include "VulkanBuffer.h"
+#include "VulkanTexture.h"
+#include "VulkanRenderTexture.h"
+#include "VulkanDepthTexture.h"
 
 namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanBufferFactory {
@@ -13,12 +16,19 @@ namespace LuxonEngine::Rendering::Vulkan {
 		template<typename T>
 		Ptr<VulkanBuffer> CreateConstantBuffer(const VulkanBufferDesc& desc);
 
+		Ptr<VulkanTexture> CreateTexture(const VulkanTextureDesc& desc);
+		Ptr<VulkanRenderTexture> CreateRenderTexture(const VulkanTextureDesc& desc);
+		Ptr<VulkanDepthTexture> CreateDepthTexture(const VulkanTextureDesc& desc);
+
 		bool CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffers, VkDeviceMemory* memory);
 		bool CreateBuffer(UInt32 size, UInt32 amount, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer* buffers, VkDeviceMemory* memory, UInt32* stride);
 		bool CreateBuffer(UInt32 size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, const void* pAllocNext, VkBuffer* buffers, VkDeviceMemory* memory);
-		bool CreateImage(const VkImageCreateInfo* imageCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkImage* image, VkDeviceMemory* memory);
 	private:
 		Ptr<VulkanBuffer> CreateBuffer(const VulkanBufferDesc& desc, UInt32 size, VkBufferUsageFlags usage);
+		bool CreateImage(const VkImageCreateInfo* imageCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkImage* image, VkDeviceMemory* memory);
+
+		bool CreateTextureResource(const VulkanTextureDesc& desc, VkImageUsageFlags usage, VkImageAspectFlags viewAspect, VkImage& image, VkDeviceMemory& memory, VkImageView& view);
+		bool CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect, UInt32 mipLevels, VkImageView& view);
 
 		static UInt32 GetMemoryTypeIndex(const VkMemoryRequirements* memoryRequirement, VkMemoryPropertyFlags targetFlags, const VkPhysicalDeviceMemoryProperties* memoryProperties);
 		

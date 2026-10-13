@@ -59,9 +59,6 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 
 	DestroyEntityTransformBuffers(m_transformBuffers);
 
-	vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
-	vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
-
 	for (auto framebuffer : m_swapChainFramebuffers) {
 		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
 	}
@@ -89,30 +86,15 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
 	if(InitializeFencesAndSemaphores() == false)
 		return false;
 
-	VkImageCreateInfo imgInfo{};
-	imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imgInfo.imageType = VK_IMAGE_TYPE_2D;
-	imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
-	imgInfo.mipLevels = 1;
-	imgInfo.arrayLayers = 1; 
-	imgInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	m_rtOutputTexture = m_bufferFactory->CreateTexture(VulkanTextureDesc{
+		.width = m_swapChainCapability.currentExtent.width,
+		.height = m_swapChainCapability.currentExtent.height,
+		.format = VK_FORMAT_R32G32B32A32_SFLOAT,
+		.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+	});
 
-	m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_rtOutputImage, &m_rtOutputImageMemory);
-
-	VkImageViewCreateInfo viewInfo{};
-	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = m_rtOutputImage;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.format = imgInfo.format;
-	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	viewInfo.subresourceRange.levelCount = 1;
-	viewInfo.subresourceRange.layerCount = 1;
-
-	vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_rtOutputImageView);
+	if (m_rtOutputTexture == nullptr)
+		return false;
 
 	return true;
 }
@@ -206,16 +188,16 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 		BindRayTracingBuffers(*m_rayTracingModule, scene->entities, m_transformBuffers, m_meshStorageBuffers);
 
-		m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition].view);
-		m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal].view);
-		m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask].view);
-		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+		m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition]->GetView());
+		m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal]->GetView());
+		m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask]->GetView());
+		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetView());
 
 		for (auto& rasterModule : m_gBufferRasterizationModules) {
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition].view);
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal].view);
-			rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask].view);
-			rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition]->GetView());
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal]->GetView());
+			rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask]->GetView());
+			rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetView());
 		}
 	}
 
@@ -282,7 +264,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 		gBufferBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
 		gBufferBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		gBufferBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		gBufferBarriers[0].image = m_gBufferTargets[GBufferPosition].image;
+		gBufferBarriers[0].image = m_gBufferTargets[GBufferPosition]->GetImage();
 		gBufferBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		gBufferBarriers[0].subresourceRange.baseMipLevel = 0;
 		gBufferBarriers[0].subresourceRange.levelCount = 1;
@@ -291,11 +273,11 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 		// Normal image
 		gBufferBarriers[1] = gBufferBarriers[0];
-		gBufferBarriers[1].image = m_gBufferTargets[GBufferNormal].image;
+		gBufferBarriers[1].image = m_gBufferTargets[GBufferNormal]->GetImage();
 
 		// Mask image
 		gBufferBarriers[2] = gBufferBarriers[0];
-		gBufferBarriers[2].image = m_gBufferTargets[GBufferMask].image;
+		gBufferBarriers[2].image = m_gBufferTargets[GBufferMask]->GetImage();
 
 		vkCmdPipelineBarrier(
 			m_commandBuffer,
@@ -315,7 +297,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 		rtOutImageBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 		rtOutImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		rtOutImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		rtOutImageBarrier.image = m_rtOutputImage;
+		rtOutImageBarrier.image = m_rtOutputTexture->GetImage();
 		rtOutImageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		rtOutImageBarrier.subresourceRange.baseMipLevel = 0;
 		rtOutImageBarrier.subresourceRange.levelCount = 1;
@@ -438,10 +420,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, UInt32 height)
 {
-	if (m_depthImage != VK_NULL_HANDLE) {
-		vkDestroyImage(m_logicDevice, m_depthImage, nullptr);
-		vkFreeMemory(m_logicDevice, m_depthMemory, nullptr);
-	}
+	m_depthTexture.reset();
 
 	for (auto framebuffer : m_swapChainFramebuffers)
 		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
@@ -452,7 +431,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 
 	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
 	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
-		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthImageView };
+		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthTexture->GetAttachmentView() };
 
 		VkFramebufferCreateInfo fbInfo{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -473,49 +452,27 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 	}
 
 	if (m_rayTracingModule != nullptr) {
-		vkDestroyImageView(m_logicDevice, m_rtOutputImageView, nullptr);
-		vkDestroyImage(m_logicDevice, m_rtOutputImage, nullptr);
-		vkFreeMemory(m_logicDevice, m_rtOutputImageMemory, nullptr);
-
-		VkImageCreateInfo imgInfo{};
-		imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imgInfo.imageType = VK_IMAGE_TYPE_2D;
-		imgInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		imgInfo.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 };
-		imgInfo.mipLevels = 1;
-		imgInfo.arrayLayers = 1;
-		imgInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imgInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-		m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_rtOutputImage, &m_rtOutputImageMemory);
-
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = m_rtOutputImage;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = imgInfo.format;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.layerCount = 1;
-
-		vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_rtOutputImageView);
+		m_rtOutputTexture = m_bufferFactory->CreateTexture(VulkanTextureDesc{
+			.width = m_swapChainCapability.currentExtent.width,
+			.height = m_swapChainCapability.currentExtent.height,
+			.format = VK_FORMAT_R32G32B32A32_SFLOAT,
+			.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		});
 
 		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
-		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+		m_rayTracingModule->SetImage(HLSL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetView());
 	
 		if (m_gBufferPipeline != nullptr) {
-			m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition].view);
-			m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal].view);
-			m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask].view);
+			m_rayTracingModule->SetImage("_PositionTexture", m_gBufferTargets[GBufferPosition]->GetView());
+			m_rayTracingModule->SetImage("_NormalTexture", m_gBufferTargets[GBufferNormal]->GetView());
+			m_rayTracingModule->SetImage("_MaskTexture", m_gBufferTargets[GBufferMask]->GetView());
 		
 		
 			for (auto& rasterModule : m_gBufferRasterizationModules) {
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition].view);
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal].view);
-				rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask].view);
-				rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputImageView);
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_POSITION_TEXTURE_NAME, m_gBufferTargets[GBufferPosition]->GetView());
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_NORMAL_TEXTURE_NAME, m_gBufferTargets[GBufferNormal]->GetView());
+				rasterModule->SetDescriptor(INTERNAL_GBUFFER_MASK_TEXTURE_NAME, m_gBufferTargets[GBufferMask]->GetView());
+				rasterModule->SetDescriptor(INTERNAL_RT_OUTPUT_TEXTURE_NAME, m_rtOutputTexture->GetView());
 			}
 		}
 	}
@@ -542,35 +499,13 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(cons
 
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeDepthBuffer()
 {
-	// Create depth image
-	VkImageCreateInfo imgInfo{
-	.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-	.imageType = VK_IMAGE_TYPE_2D,
-	.format = m_depthFormat,
-	.extent = { m_swapChainCapability.currentExtent.width, m_swapChainCapability.currentExtent.height, 1 },
-	.mipLevels = 1,
-	.arrayLayers = 1,
-	.samples = VK_SAMPLE_COUNT_1_BIT,
-	.tiling = VK_IMAGE_TILING_OPTIMAL,
-	.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-	.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-	};
+	m_depthTexture = m_bufferFactory->CreateDepthTexture(VulkanTextureDesc{
+		.width = m_swapChainCapability.currentExtent.width,
+		.height = m_swapChainCapability.currentExtent.height,
+		.format = m_depthFormat,
+	});
 
-	m_bufferFactory->CreateImage(&imgInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_depthImage, &m_depthMemory);
-
-	// Create depth image view
-	VkImageViewCreateInfo viewInfo{};
-	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = m_depthImage;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.format = m_depthFormat;
-	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-	viewInfo.subresourceRange.levelCount = 1;
-	viewInfo.subresourceRange.layerCount = 1;
-
-	vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &m_depthImageView);
-
-	return true;
+	return m_depthTexture != nullptr;
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
@@ -633,7 +568,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
 	VkFramebuffer* framebuffer = m_swapChainFramebuffers.data();
 
 	for (auto view : m_swapChainImageViews) {
-		VkImageView imageViews[2] = { view, m_depthImageView };
+		VkImageView imageViews[2] = { view, m_depthTexture->GetAttachmentView() };
 
 		VkFramebufferCreateInfo fbInfo{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -817,39 +752,20 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferTargets()
 	VkImageView views[GBufferTargetCount + 1];
 
 	for (UInt32 i = 0; i < GBufferTargetCount; i++) {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.format = s_gBufferFormats[i];
-		imageInfo.extent = { width, height, 1 };
-		imageInfo.mipLevels = 1;
-		imageInfo.arrayLayers = 1;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		m_gBufferTargets[i] = m_bufferFactory->CreateRenderTexture(VulkanTextureDesc{
+			.width = width,
+			.height = height,
+			.format = s_gBufferFormats[i],
+			.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		});
 
-		auto& target = m_gBufferTargets[i];
-
-		if (m_bufferFactory->CreateImage(&imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &target.image, &target.memory) == false)
+		if (m_gBufferTargets[i] == nullptr)
 			return false;
 
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = target.image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = s_gBufferFormats[i];
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.layerCount = 1;
-
-		if (vkCreateImageView(m_logicDevice, &viewInfo, nullptr, &target.view) != VK_SUCCESS)
-			return false;
-
-		views[i] = target.view;
+		views[i] = m_gBufferTargets[i]->GetAttachmentView();
 	}
 
-	views[GBufferTargetCount] = m_depthImageView;
+	views[GBufferTargetCount] = m_depthTexture->GetAttachmentView();
 
 	VkFramebufferCreateInfo frameBufferInfo = {
 		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -871,18 +787,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroyGBufferTargets(
 
 	m_gBufferFrameBuffer = VK_NULL_HANDLE;
 
-	for (auto& target : m_gBufferTargets) {
-		if (target.view != VK_NULL_HANDLE)
-			vkDestroyImageView(m_logicDevice, target.view, nullptr);
-
-		if (target.image != VK_NULL_HANDLE)
-			vkDestroyImage(m_logicDevice, target.image, nullptr);
-
-		if (target.memory != VK_NULL_HANDLE)
-			vkFreeMemory(m_logicDevice, target.memory, nullptr);
-
-		target = GBufferTarget();
-	}
+	for (auto& target : m_gBufferTargets)
+		target.reset();
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::RenderGBuffer(VkCommandBuffer commandBuffer)

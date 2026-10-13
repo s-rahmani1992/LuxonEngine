@@ -79,9 +79,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
 		VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
-		VkImage m_depthImage;
-		VkDeviceMemory m_depthMemory;
-		VkImageView m_depthImageView;
+		Ptr<VulkanDepthTexture> m_depthTexture;
 
 		std::vector<VKEntityGPUData> m_entityGPUList;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_rasterizationModules;

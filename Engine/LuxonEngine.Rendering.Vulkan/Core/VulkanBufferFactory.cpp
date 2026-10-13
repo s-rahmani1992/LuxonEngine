@@ -157,6 +157,144 @@ Ptr<LuxonEngine::Rendering::Vulkan::VulkanBuffer> LuxonEngine::Rendering::Vulkan
 	return std::make_unique<VulkanBuffer>(m_device, buffer, memory);
 }
 
+namespace {
+	bool GetDepthAspect(VkFormat format, VkImageAspectFlags& aspect)
+	{
+		switch (format) {
+		case VK_FORMAT_D16_UNORM:
+		case VK_FORMAT_X8_D24_UNORM_PACK32:
+		case VK_FORMAT_D32_SFLOAT:
+			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+			return true;
+		case VK_FORMAT_D16_UNORM_S8_UINT:
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			return true;
+		default:
+			return false;
+		}
+	}
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect, UInt32 mipLevels, VkImageView& view)
+{
+	VkImageViewCreateInfo viewInfo{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = image,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.subresourceRange = {
+			.aspectMask = aspect,
+			.baseMipLevel = 0,
+			.levelCount = mipLevels,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		},
+	};
+
+	return vkCreateImageView(m_device, &viewInfo, nullptr, &view) == VK_SUCCESS;
+}
+
+bool LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateTextureResource(const VulkanTextureDesc& desc, VkImageUsageFlags usage, VkImageAspectFlags viewAspect, VkImage& image, VkDeviceMemory& memory, VkImageView& view)
+{
+	image = VK_NULL_HANDLE;
+	memory = VK_NULL_HANDLE;
+	view = VK_NULL_HANDLE;
+
+	VkImageCreateInfo imageInfo{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.imageType = VK_IMAGE_TYPE_2D,
+		.format = desc.format,
+		.extent = { desc.width, desc.height, 1 },
+		.mipLevels = desc.mipLevels,
+		.arrayLayers = 1,
+		.samples = VK_SAMPLE_COUNT_1_BIT,
+		.tiling = VK_IMAGE_TILING_OPTIMAL,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+	};
+
+	CreateImage(&imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &image, &memory);
+
+	bool success = image != VK_NULL_HANDLE && memory != VK_NULL_HANDLE;
+
+	if (success && (usage & (VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT)))
+		success = CreateImageView(image, desc.format, viewAspect, desc.mipLevels, view);
+
+	if (!success) {
+		VulkanTexture cleanup(m_device, image, memory, view, desc.width, desc.height, desc.format);
+		image = VK_NULL_HANDLE;
+		memory = VK_NULL_HANDLE;
+		view = VK_NULL_HANDLE;
+	}
+
+	return success;
+}
+
+Ptr<LuxonEngine::Rendering::Vulkan::VulkanTexture> LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateTexture(const VulkanTextureDesc& desc)
+{
+	if (desc.width == 0 || desc.height == 0 || desc.format == VK_FORMAT_UNDEFINED)
+		return nullptr;
+
+	VkImage image;
+	VkDeviceMemory memory;
+	VkImageView view;
+	if (!CreateTextureResource(desc, desc.usage, VK_IMAGE_ASPECT_COLOR_BIT, image, memory, view))
+		return nullptr;
+
+	return std::make_unique<VulkanTexture>(m_device, image, memory, view, desc.width, desc.height, desc.format);
+}
+
+Ptr<LuxonEngine::Rendering::Vulkan::VulkanRenderTexture> LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateRenderTexture(const VulkanTextureDesc& desc)
+{
+	if (desc.width == 0 || desc.height == 0 || desc.format == VK_FORMAT_UNDEFINED)
+		return nullptr;
+
+	VkImage image;
+	VkDeviceMemory memory;
+	VkImageView view;
+	if (!CreateTextureResource(desc, desc.usage | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_ASPECT_COLOR_BIT, image, memory, view))
+		return nullptr;
+
+	VkImageView attachmentView;
+	if (!CreateImageView(image, desc.format, VK_IMAGE_ASPECT_COLOR_BIT, 1, attachmentView)) {
+		VulkanTexture cleanup(m_device, image, memory, view, desc.width, desc.height, desc.format);
+		return nullptr;
+	}
+
+	return std::make_unique<VulkanRenderTexture>(m_device, image, memory, view, desc.width, desc.height, desc.format, attachmentView);
+}
+
+Ptr<LuxonEngine::Rendering::Vulkan::VulkanDepthTexture> LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::CreateDepthTexture(const VulkanTextureDesc& desc)
+{
+	if (desc.width == 0 || desc.height == 0)
+		return nullptr;
+
+	VkImageAspectFlags attachmentAspect;
+	if (!GetDepthAspect(desc.format, attachmentAspect))
+		return nullptr;
+
+	// A depth stencil cannot also be a color attachment or storage image. Sampling reads the depth aspect only.
+	const VkImageUsageFlags usage = (desc.usage | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		& ~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+
+	VkImage image;
+	VkDeviceMemory memory;
+	VkImageView view;
+	if (!CreateTextureResource(desc, usage, VK_IMAGE_ASPECT_DEPTH_BIT, image, memory, view))
+		return nullptr;
+
+	VkImageView attachmentView;
+	if (!CreateImageView(image, desc.format, attachmentAspect, 1, attachmentView)) {
+		VulkanTexture cleanup(m_device, image, memory, view, desc.width, desc.height, desc.format);
+		return nullptr;
+	}
+
+	return std::make_unique<VulkanDepthTexture>(m_device, image, memory, view, desc.width, desc.height, desc.format, attachmentView);
+}
+
 UInt32 LuxonEngine::Rendering::Vulkan::VulkanBufferFactory::GetMemoryTypeIndex(const VkMemoryRequirements* memoryRequirement, VkMemoryPropertyFlags targetFlags, const VkPhysicalDeviceMemoryProperties* memoryProperties)
 {
 	for (UInt32 i = 0; i < memoryProperties->memoryTypeCount; i++) {

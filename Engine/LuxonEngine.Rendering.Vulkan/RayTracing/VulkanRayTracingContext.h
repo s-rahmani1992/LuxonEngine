@@ -3,6 +3,8 @@
 #include "Core/VulkanGraphicContext.h"
 
 namespace LuxonEngine::Rendering::Vulkan {
+	class VulkanTexture;
+	class VulkanDepthTexture;
 	class VulkanPipelineFactory;
 }
 
@@ -33,9 +35,7 @@ namespace LuxonEngine::Rendering::Vulkan::RayTracing {
 		std::vector<VkBuffer> m_meshStorageBuffers;
 		TransformGPU m_transformData;
 
-		VkImage m_outputImage;
-		VkDeviceMemory m_outputImageMemory;
-		VkImageView m_outputImageView;
+		Ptr<VulkanTexture> m_outputTexture;
 
 		std::vector<VKEntityGPUData> m_entityGPUList;
 
