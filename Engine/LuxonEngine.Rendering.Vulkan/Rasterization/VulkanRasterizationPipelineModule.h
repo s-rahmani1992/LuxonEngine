@@ -71,7 +71,7 @@ namespace LuxonEngine::Rendering::Vulkan::Rasterization {
 		const SPIRVRasterizationProgram* m_program;
 		Material* m_material;
 
-		std::unique_ptr<VulkanMaterialResourceManager> m_resourceManager;
+		Ptr<VulkanMaterialResourceManager> m_resourceManager;
 		std::vector<EntityGeometry> m_entityGeometries;
 	};
 }

@@ -31,9 +31,17 @@ namespace LuxonEngine::Rendering::Vulkan {
 		};
 	}
 
+	namespace Compute {
+		class VulkanComputePipelineModule;
+		class SPIRVComputeProgram;
+	}
+
 	class VulkanPipelineFactory {
 	public:
 		VulkanPipelineFactory(VkDevice device);
+
+		ref<Compute::VulkanComputePipelineModule> CreateComputePipeline(Material* material, std::string& error);
+		ref<Compute::VulkanComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, std::string& error);
 
 		ref<Rasterization::VulkanRasterizationPipelineModule> CreateRasterizationPipeline(Material* material, VkRenderPass renderPass, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
 		ref<Rasterization::VulkanRasterizationPipelineModule> CreateRasterizationPipeline(const ShaderProgram* program, VkRenderPass renderPass, const Rasterization::RasterizationPipelineProperties& properties, std::string& error);
@@ -42,6 +50,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<MeshShading::VulkanMeshPipelineModule> CreateMeshPipeline(const ShaderProgram* program, VkRenderPass renderPass, const MeshShading::MeshPipelineProperties& properties, std::string& error);
 
 	private:
+		ref<Compute::VulkanComputePipelineModule> CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error);
+
 		struct GraphicsPipelineState {
 			const std::vector<VkPipelineShaderStageCreateInfo>* stages = nullptr;
 			VkPipelineLayout layout = VK_NULL_HANDLE;

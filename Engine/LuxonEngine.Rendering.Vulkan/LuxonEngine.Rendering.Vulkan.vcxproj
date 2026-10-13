@@ -177,6 +177,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Compute\SPIRVComputeProgram.h" />
+    <ClInclude Include="Compute\VulkanComputePipelineModule.h" />
     <ClInclude Include="Core\SPIRVReflection.h" />
     <ClInclude Include="Core\SPIRVShaderProgram.h" />
     <ClInclude Include="Core\VulkanAssetManager.h" />
@@ -187,6 +188,7 @@
     <ClInclude Include="Core\VulkanHybridContext.h" />
     <ClInclude Include="Core\VulkanMaterialFactory.h" />
     <ClInclude Include="Core\VulkanMaterialResourceManager.h" />
+    <ClInclude Include="Core\VulkanSplineVertex.h" />
     <ClInclude Include="Core\VulkanMeshController.h" />
     <ClInclude Include="Core\VulkanPipelineFactory.h" />
     <ClInclude Include="Core\VulkanShaderCompiler.h" />
@@ -195,7 +197,6 @@
     <ClInclude Include="Mesh\SPIRVMeshProgram.h" />
     <ClInclude Include="Mesh\VulkanMeshPipelineModule.h" />
     <ClInclude Include="Rasterization\SPIRVRasterizationProgram.h" />
-    <ClInclude Include="Rasterization\VulkanRasterizationMaterial.h" />
     <ClInclude Include="Rasterization\VulkanRasterizationPipelineModule.h" />
     <ClInclude Include="RayTracing\SPIRVRayTracingProgram.h" />
     <ClInclude Include="RayTracing\SPIRVRayTracingProgramVariant.h" />
@@ -206,10 +207,10 @@
     <ClInclude Include="vulkan-pch.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanGBufferPipelineModule.h" />
-    <ClInclude Include="VulkanSplinePipelineModule.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compute\SPIRVComputeProgram.cpp" />
+    <ClCompile Include="Compute\VulkanComputePipelineModule.cpp" />
     <ClCompile Include="Core\SPIRVReflection.cpp" />
     <ClCompile Include="Core\SPIRVShaderProgram.cpp" />
     <ClCompile Include="Core\spirv_reflect.c">
@@ -234,7 +235,6 @@
     <ClCompile Include="Mesh\SPIRVMeshProgram.cpp" />
     <ClCompile Include="Mesh\VulkanMeshPipelineModule.cpp" />
     <ClCompile Include="Rasterization\SPIRVRasterizationProgram.cpp" />
-    <ClCompile Include="Rasterization\VulkanRasterizationMaterial.cpp" />
     <ClCompile Include="Rasterization\VulkanRasterizationPipelineModule.cpp" />
     <ClCompile Include="RayTracing\SPIRVRayTracingProgram.cpp" />
     <ClCompile Include="RayTracing\SPIRVRayTracingProgramVariant.cpp" />
@@ -255,7 +255,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VulkanGBufferPipelineModule.cpp" />
-    <ClCompile Include="VulkanSplinePipelineModule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LuxonEngine.Rendering.DXC\LuxonEngine.Rendering.DXC.vcxproj">

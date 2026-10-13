@@ -1,25 +1,37 @@
 #pragma once
 #include "vulkan-pch.h"
+#include <string>
+#include <vector>
 #include "Core/SPIRVShaderProgram.h"
 
 namespace LuxonEngine::Rendering::Vulkan::Compute {
 	class SPIRVComputeProgram : public SPIRVShaderProgram {
 	public:
-		SPIRVComputeProgram(Byte* bytecode, UInt64 codeSize, VkDevice device);
-		~SPIRVComputeProgram();
-		virtual ShaderProgramType GetType() override { return ShaderProgramType::Compute; }
-		inline VkPipelineShaderStageCreateInfo& GetComputeStageInfo() { return m_computeStageInfo; }
-		inline std::vector<VkDescriptorSetLayout>& GetDiscriptorLayouts() { return m_descriptorSetLayout; }
-		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
-	private:
-		Byte* m_bytecode;
-		UInt64 m_codeSize; 
-		
-		VkShaderModule m_computeModule;
-		VkPipelineShaderStageCreateInfo m_computeStageInfo;
-		SpvReflectShaderModule m_reflectionModule;
+		static constexpr VkShaderStageFlags StageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-		VkPipelineLayout m_pipelineLayout;
-		std::vector<VkDescriptorSetLayout> m_descriptorSetLayout;
+		SPIRVComputeProgram(const SPIRVShaderData& shader, const VkDevice device);
+		virtual ~SPIRVComputeProgram() override;
+
+		SPIRVComputeProgram(const SPIRVComputeProgram&) = delete;
+		SPIRVComputeProgram& operator=(const SPIRVComputeProgram&) = delete;
+
+		virtual ShaderProgramType GetType() override { return ShaderProgramType::Compute; }
+
+		bool InitializePipelineLayout(std::string& error);
+
+		inline const VkPipelineShaderStageCreateInfo& GetStageInfo() const { return m_stageInfo; }
+		inline VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
+		inline const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+		inline const ShaderThreadGroupReflection& GetThreadGroupReflection() const { return m_threadGroupReflection; }
+
+	private:
+		VkShaderModule m_computeShader = VK_NULL_HANDLE;
+		std::string m_entryPoint;
+		VkPipelineShaderStageCreateInfo m_stageInfo{};
+
+		ShaderThreadGroupReflection m_threadGroupReflection{};
+
+		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
 	};
 }

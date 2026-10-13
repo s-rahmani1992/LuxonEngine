@@ -140,7 +140,19 @@ namespace LuxonEngine::Rendering::Vulkan
 				return nullptr;
 			}
 
-			finalProgram = new Compute::SPIRVComputeProgram((Byte*)spirvShader.byteCode->GetBufferPointer(), spirvShader.byteCode->GetBufferSize(), m_device);
+			spirvShader.shaderType = (VkShaderStageFlagBits)stage;
+			spirvShader.entryPoint = entryPoint;
+
+			auto computeProgram = new Compute::SPIRVComputeProgram(spirvShader, m_device);
+			std::string layoutError;
+
+			if (computeProgram->InitializePipelineLayout(layoutError) == false) {
+				error = "Error in Creating Pipeline Layout: " + layoutError;
+				delete computeProgram;
+				return nullptr;
+			}
+
+			finalProgram = computeProgram;
 		}
 
 		else {

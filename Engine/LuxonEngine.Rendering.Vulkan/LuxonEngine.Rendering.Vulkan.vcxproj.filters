@@ -26,6 +26,9 @@
     <ClInclude Include="Core\VulkanAssetManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanSplineVertex.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanMaterialResourceManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -44,9 +47,6 @@
     <ClInclude Include="Core\VulkanMaterialFactory.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Rasterization\VulkanRasterizationMaterial.h">
-      <Filter>Rasterization</Filter>
-    </ClInclude>
     <ClInclude Include="Core\VulkanBufferFactory.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -59,7 +59,9 @@
     <ClInclude Include="Compute\SPIRVComputeProgram.h">
       <Filter>Compute</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanSplinePipelineModule.h" />
+    <ClInclude Include="Compute\VulkanComputePipelineModule.h">
+      <Filter>Compute</Filter>
+    </ClInclude>
     <ClInclude Include="RayTracing\VulkanRayTracingPipelineModule.h">
       <Filter>RayTracing</Filter>
     </ClInclude>
@@ -134,9 +136,6 @@
     <ClCompile Include="Core\VulkanMaterialFactory.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Rasterization\VulkanRasterizationMaterial.cpp">
-      <Filter>Rasterization</Filter>
-    </ClCompile>
     <ClCompile Include="Core\VulkanBufferFactory.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -149,7 +148,9 @@
     <ClCompile Include="Compute\SPIRVComputeProgram.cpp">
       <Filter>Compute</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanSplinePipelineModule.cpp" />
+    <ClCompile Include="Compute\VulkanComputePipelineModule.cpp">
+      <Filter>Compute</Filter>
+    </ClCompile>
     <ClCompile Include="RayTracing\VulkanRayTracingPipelineModule.cpp">
       <Filter>RayTracing</Filter>
     </ClCompile>

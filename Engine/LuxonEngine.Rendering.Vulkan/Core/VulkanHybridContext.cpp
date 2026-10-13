@@ -14,9 +14,9 @@
 #include <Rendering/ShaderRegistery.h>
 #include "VulkanBufferFactory.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
-#include "Rasterization/VulkanRasterizationMaterial.h"
 #include "Rasterization/VulkanRasterizationPipelineModule.h"
-#include "VulkanSplinePipelineModule.h"
+#include "Compute/VulkanComputePipelineModule.h"
+#include "VulkanSplineVertex.h"
 #include "Compute/SPIRVComputeProgram.h"
 #include "VulkanGBufferPipelineModule.h"
 #include "RayTracing/VulkanRayTracingPipelineModule.h"
@@ -42,9 +42,14 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::VulkanHybridContext(const V
 
 LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 {
-	// the mesh pipelines are destroyed before the storage buffers they use
+	// the pipelines are destroyed before the buffers they use
 	m_meshShadingPipelines.clear();
 	DestroyMeshStorageBuffers();
+
+	m_rasterizationModules.clear();
+	m_gBufferRasterizationModules.clear();
+	m_splineComputeModule.reset();
+	DestroySplineBuffers();
 
 	vkDestroyBuffer(m_logicDevice, m_transformBuffer, nullptr);
 	vkFreeMemory(m_logicDevice, m_transformBufferMemory, nullptr);
@@ -127,83 +132,17 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &m_transformBuffer, &m_transformBufferMemory, &m_transformStride);
 
 
-	std::map<ref<Material>, ref<Rasterization::VulkanRasterizationMaterial>> usedMaterials;
 	std::map<ref<Material>, std::vector<VKEntityGPUData>> rasterizationEntityMap;
 	std::map<ref<Material>, std::vector<VKEntityGPUData>> gBufferEntityMap;
+	std::vector<VKEntityGPUData> splineEntities;
 	UInt32 index = 0;
 	m_entityGPUList.reserve(scene->entities.size());
-
 
 	for (auto& entity : scene->entities) {
 		m_entityGPUList.push_back({ entity, index });
 		index++;
 
-		// spike and surface instance entities use mesh programs, they are drawn by the mesh pipelines instead of a rasterization material
-		if (std::dynamic_pointer_cast<SpikeMeshRenderer>(entity->GetRenderer()) != nullptr ||
-			std::dynamic_pointer_cast<SurfaceInstanceRenderer>(entity->GetRenderer()) != nullptr)
-			continue;
-
-		auto splineRenderer = std::dynamic_pointer_cast<SplineRenderer>(entity->GetRenderer());
-
-		if (splineRenderer == nullptr)
-			continue;
-
-		auto material = splineRenderer->GetMaterial();
-		auto matIT = usedMaterials.find(material);
-
-		if (matIT == usedMaterials.end()) {
-			usedMaterials.emplace(material, std::make_shared<Rasterization::VulkanRasterizationMaterial>(material, m_logicDevice)).first;
-		}
 	}
-
-	std::vector<VkDescriptorPoolSize> poolSizes;
-	poolSizes.reserve(20);
-	UInt32 setcount = 0;
-
-	for (auto& matPair : usedMaterials) {
-		auto program = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>(matPair.first->GetProgram());
-		auto& reflection = program->GetReflection();
-		setcount += reflection.GetDescriptorLayoutCount();
-		auto& descriptors = reflection.GetDescriptors();
-
-		for (auto& descriptor : descriptors) {
-			auto it = std::find_if(poolSizes.begin(), poolSizes.end(), [descriptor](const VkDescriptorPoolSize& poolSize) {
-				return descriptor.descriptorType == poolSize.type;
-				});
-
-			if (it != poolSizes.end())
-				(*it).descriptorCount++;
-			else
-				poolSizes.push_back(VkDescriptorPoolSize{
-				.type = descriptor.descriptorType,
-				.descriptorCount = 1,
-					});
-		}
-	}
-
-	setcount += m_entityGPUList.size();
-
-	poolSizes.push_back(VkDescriptorPoolSize{
-				.type = VK_DESCRIPTOR_TYPE_SAMPLER,
-				.descriptorCount = std::max<UInt32>(1, (UInt32)usedMaterials.size()),
-		});
-
-	poolSizes.push_back(VkDescriptorPoolSize{
-				.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-				.descriptorCount = std::max<UInt32>(1, (UInt32)m_entityGPUList.size()),
-		});
-
-	VkDescriptorPoolCreateInfo poolCreateInfo{
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.maxSets = setcount,
-		.poolSizeCount = (UInt32)poolSizes.size(),
-		.pPoolSizes = poolSizes.data(),
-	};
-
-	if (vkCreateDescriptorPool(m_logicDevice, &poolCreateInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-		return false;
 
 	for (auto& entityGPU : m_entityGPUList) {
 		auto& entity = entityGPU.gameEntity;
@@ -219,21 +158,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		auto splineRenderer = std::dynamic_pointer_cast<SplineRenderer>(Renderer);
 
 		if (splineRenderer != nullptr) {
-			auto& gpuMateiral = usedMaterials[splineRenderer->GetMaterial()];
-			ref<VulkanSplinePipelineModule> splineModule = std::make_shared<VulkanSplinePipelineModule>(m_logicDevice);
-			SplineEntityData splineEntityData{
-				.splineRenderer = splineRenderer,
-				.material = gpuMateiral,
-				.computeProgram = std::dynamic_pointer_cast<Compute::SPIRVComputeProgram>(GetInternalProgram("Bezier_Curve_Compute_Program")),
-			};
-			if (splineModule->Initialize(splineEntityData, m_renderPass, m_descriptorPool)) {
-				m_splineModues.push_back(splineModule);
-				splineModule->WriteOffset(HLSL_OBJECT_TRANSFORM_DATA_NAME, entityGPU.index * m_transformStride);
-				splineModule->WriteOffset(HLSL_CAMERA_DATA_NAME, 0);
-				splineModule->WriteOffset(HLSL_LIGHT_DATA_NAME, 0);
-				splineRenderer->SetDirty();
-			}
-
+			splineEntities.push_back(entityGPU);
 			continue;
 		}
 
@@ -246,16 +171,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		}
 	}
 
-	for (auto& matPair : usedMaterials) {
-		if (matPair.second->Initialize(m_descriptorPool) == false)
-			continue;
-		matPair.second->WriteBuffer(HLSL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer, m_transformStride);
-		matPair.second->WriteBuffer(HLSL_CAMERA_DATA_NAME, m_cameraBuffer, m_cameraStride);
-		matPair.second->WriteBuffer(HLSL_LIGHT_DATA_NAME, m_lightBuffer, m_lightStride);
-	}
-
 	CreateRasterizationModules(rasterizationEntityMap, m_rasterizationModules);
 	CreateRasterizationModules(gBufferEntityMap, m_gBufferRasterizationModules);
+	CreateSplinePipelines(splineEntities);
 
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
@@ -324,8 +242,19 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	vkBeginCommandBuffer(m_commandBuffer, &beginInfo);
 
-	for (auto& m_splineModues : m_splineModues) {
-		m_splineModues->ComputeCommand(m_commandBuffer);
+	if (m_splineComputeModule != nullptr) {
+		UpdateSplines();
+		m_splineComputeModule->Dispatch(m_commandBuffer);
+
+		VkMemoryBarrier splineBarrier{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			.pNext = nullptr,
+			.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+		};
+
+		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+			0, 1, &splineBarrier, 0, nullptr, 0, nullptr);
 	}
 
 	if (m_gbufferModule != nullptr) {
@@ -453,10 +382,6 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	// Render Objects here
 	for (auto& module : m_rasterizationModules) {
 		module->Draw(m_commandBuffer);
-	}
-
-	for (auto& module : m_splineModues) {
-		module->RenderCommand(m_commandBuffer);
 	}
 
 	for(auto& module : m_gBufferRasterizationModules) {
@@ -772,6 +697,140 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationMod
 
 		modules.push_back(rasterizationModule);
 	}
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities)
+{
+	for (auto& entityGPU : splineEntities) {
+		auto splineRenderer = std::static_pointer_cast<SplineRenderer>(entityGPU.gameEntity->GetRenderer());
+
+		if (splineRenderer->GetSegments() <= 0)
+			continue;
+
+		if (splineRenderer->GetMaterial() == nullptr) {
+			Logger::LogWarning("The spline renderer of " + entityGPU.gameEntity->GetName() + " has no material and is not drawn");
+			continue;
+		}
+
+		SplineGPUData spline;
+		spline.renderer = splineRenderer;
+		spline.entity = entityGPU.gameEntity.get();
+		spline.transformIndex = entityGPU.index;
+		spline.vertexCount = (UInt32)splineRenderer->GetSegments() + 1;
+
+		if (m_bufferFactory->CreateBuffer(sizeof(SplineVertex) * spline.vertexCount, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &spline.vertexBuffer, &spline.vertexMemory) == false) {
+			Logger::LogError("Failed to create the vertex buffer of " + entityGPU.gameEntity->GetName());
+			continue;
+		}
+
+		m_splines.push_back(spline);
+	}
+
+	if (m_splines.empty())
+		return;
+
+	auto computeProgram = GetInternalProgram("Bezier_Curve_Compute_Program");
+
+	if (computeProgram == nullptr) {
+		Logger::LogError("The spline compute program is not registered, the splines are not drawn");
+		DestroySplineBuffers();
+		return;
+	}
+
+	std::string error;
+	m_splineComputeModule = m_pipelineFactory->CreateComputePipeline(computeProgram.get(), error);
+
+	if (m_splineComputeModule == nullptr) {
+		Logger::LogError("Failed to create the spline compute pipeline: " + error);
+		DestroySplineBuffers();
+		return;
+	}
+
+	if (m_splineComputeModule->Initialize((UInt32)m_splines.size()) == false) {
+		Logger::LogError("Failed to create the descriptors of the spline compute pipeline");
+		m_splineComputeModule.reset();
+		DestroySplineBuffers();
+		return;
+	}
+
+	UInt32 threadsPerGroup = std::max<UInt32>(1, m_splineComputeModule->GetProgram()->GetThreadGroupReflection().xThread);
+	std::map<ref<Material>, std::vector<size_t>> materialMap;
+
+	for (size_t i = 0; i < m_splines.size(); i++) {
+		auto& spline = m_splines[i];
+
+		m_splineComputeModule->SetEntityDescriptor(spline.entity, INTERNAL_VERTEX_BUFFER_NAME, spline.vertexBuffer);
+		m_splineComputeModule->SetEntityThreadGroupCount(spline.entity, (spline.vertexCount + threadsPerGroup - 1) / threadsPerGroup);
+		spline.renderer->SetDirty();
+
+		materialMap[spline.renderer->GetMaterial()].push_back(i);
+	}
+
+	Rasterization::RasterizationPipelineProperties properties;
+	properties.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+	properties.cullMode = VK_CULL_MODE_NONE;
+
+	for (auto& [material, splineIndices] : materialMap) {
+		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_renderPass, properties, error);
+
+		if (pipeline == nullptr) {
+			Logger::LogError("Failed to create the spline rasterization pipeline: " + error);
+			continue;
+		}
+
+		if (pipeline->Initialize((UInt32)splineIndices.size()) == false) {
+			Logger::LogError("Failed to create the descriptors of the spline rasterization pipeline");
+			continue;
+		}
+
+		pipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+		pipeline->SetDescriptor(INTERNAL_LIGHT_DATA_NAME, m_lightBuffer, 0, m_lightStride);
+
+		for (auto splineIndex : splineIndices) {
+			auto& spline = m_splines[splineIndex];
+
+			pipeline->SetEntityDescriptor(spline.entity, INTERNAL_OBJECT_TRANSFORM_DATA_NAME, m_transformBuffer,
+				(VkDeviceSize)spline.transformIndex * m_transformStride, m_transformStride);
+			pipeline->SetEntityGeometry(spline.entity, spline.vertexBuffer, spline.vertexCount);
+			spline.rasterModule = pipeline;
+		}
+
+		m_rasterizationModules.push_back(pipeline);
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateSplines()
+{
+	for (auto& spline : m_splines) {
+		if (spline.renderer->IsDirty() == false)
+			continue;
+
+		auto& curve = spline.renderer->GetCurve();
+		float tileFactor = spline.renderer->GetTileFactor();
+		float length = curve.InterpolateLength(1.0f);
+
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_startPoint", curve.m_point1);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_midPoint", curve.m_point2);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_endPoint", curve.m_point3);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_tileFactor", tileFactor);
+		m_splineComputeModule->SetEntityConstant(spline.entity, "_length", length);
+
+		if (spline.rasterModule != nullptr) {
+			float width = spline.renderer->GetWidth();
+			spline.rasterModule->SetEntityConstant(spline.entity, INTERNAL_SPLINE_WIDTH_NAME, width);
+		}
+	}
+}
+
+void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroySplineBuffers()
+{
+	for (auto& spline : m_splines) {
+		vkDestroyBuffer(m_logicDevice, spline.vertexBuffer, nullptr);
+		vkFreeMemory(m_logicDevice, spline.vertexMemory, nullptr);
+	}
+
+	m_splines.clear();
 }
 
 ref<LuxonEngine::Rendering::ShaderProgram> LuxonEngine::Rendering::Vulkan::VulkanHybridContext::GetInternalProgram(const std::string& identifier) const

@@ -35,18 +35,18 @@ void Interpolate(float3 startPoint, float3 midPoint, float3 endPoint, float t, o
 }
 
 CONSTANT_VARIABLES_BEGIN
-    float3 startPoint;
-    float tileFactor;
-    float3 midPoint;
-    float length;
-    float3 endPoint;
+    float3 _startPoint;
+    float _tileFactor;
+    float3 _midPoint;
+    float _length;
+    float3 _endPoint;
 CONSTANT_VARIABLES_END(CurveProps, b1)
 
-#define _startPoint CurveProps.startPoint
-#define _tileFactor CurveProps.tileFactor
-#define _midPoint CurveProps.midPoint
-#define _length CurveProps.length
-#define _endPoint CurveProps.endPoint
+#define _startPoint CurveProps._startPoint
+#define _tileFactor CurveProps._tileFactor
+#define _midPoint CurveProps._midPoint
+#define _length CurveProps._length
+#define _endPoint CurveProps._endPoint
 
 RWStructuredBuffer<SplineVertex> _vertexBuffer : register(u0);
 

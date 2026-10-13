@@ -4,6 +4,8 @@
 #include "Mesh/SPIRVMeshProgram.h"
 #include "Rasterization/VulkanRasterizationPipelineModule.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
+#include "Compute/VulkanComputePipelineModule.h"
+#include "Compute/SPIRVComputeProgram.h"
 #include "Rendering/Material.h"
 #include <vector>
 
@@ -12,6 +14,55 @@ namespace LuxonEngine::Rendering::Vulkan {
 		:m_device(device)
 	{
 
+	}
+
+	ref<Compute::VulkanComputePipelineModule> VulkanPipelineFactory::CreateComputePipeline(Material* material, std::string& error)
+	{
+		if (material == nullptr) {
+			error = "Material is null";
+			return nullptr;
+		}
+
+		return CreateComputePipeline(material->GetProgram().get(), material, error);
+	}
+
+	ref<Compute::VulkanComputePipelineModule> VulkanPipelineFactory::CreateComputePipeline(const ShaderProgram* program, std::string& error)
+	{
+		return CreateComputePipeline(program, nullptr, error);
+	}
+
+	ref<Compute::VulkanComputePipelineModule> VulkanPipelineFactory::CreateComputePipeline(const ShaderProgram* program, Material* material, std::string& error)
+	{
+		auto computeProgram = dynamic_cast<const Compute::SPIRVComputeProgram*>(program);
+
+		if (computeProgram == nullptr) {
+			error = "Program is not a compute shader program";
+			return nullptr;
+		}
+
+		if (computeProgram->GetPipelineLayout() == VK_NULL_HANDLE) {
+			error = "Pipeline layout of the compute program is not created";
+			return nullptr;
+		}
+
+		VkComputePipelineCreateInfo pipelineCreateInfo{
+			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.stage = computeProgram->GetStageInfo(),
+			.layout = computeProgram->GetPipelineLayout(),
+			.basePipelineHandle = VK_NULL_HANDLE,
+			.basePipelineIndex = -1,
+		};
+
+		VkPipeline pipeline = VK_NULL_HANDLE;
+
+		if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS) {
+			error = "Failed to create compute pipeline";
+			return nullptr;
+		}
+
+		return std::make_shared<Compute::VulkanComputePipelineModule>(m_device, pipeline, computeProgram, material);
 	}
 
 	ref<Rasterization::VulkanRasterizationPipelineModule> VulkanPipelineFactory::CreateRasterizationPipeline(Material* material, VkRenderPass renderPass, const Rasterization::RasterizationPipelineProperties& properties, std::string& error)

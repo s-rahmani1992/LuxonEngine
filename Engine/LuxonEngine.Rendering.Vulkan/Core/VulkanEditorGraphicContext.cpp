@@ -10,7 +10,6 @@
 #include "VulkanUtilities.h"
 #include "VulkanBufferFactory.h"
 #include "Rasterization/SPIRVRasterizationProgram.h"
-#include "Rasterization/VulkanRasterizationMaterial.h"
 #include "Rasterization/VulkanRasterizationPipelineModule.h"
 #include "Core/VulkanMaterialFactory.h"
 #include "Core/VulkanPipelineFactory.h"

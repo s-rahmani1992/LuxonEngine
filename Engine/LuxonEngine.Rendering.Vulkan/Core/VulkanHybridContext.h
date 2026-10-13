@@ -15,11 +15,14 @@ namespace LuxonEngine {
 }
 
 namespace LuxonEngine::Rendering::Vulkan {
-	class VulkanSplinePipelineModule;
 	class VulkanGBufferPipelineModule;
 
 	namespace Rasterization {
 		class VulkanRasterizationPipelineModule;
+	}
+
+	namespace Compute {
+		class VulkanComputePipelineModule;
 	}
 
 	namespace RayTracing {
@@ -54,6 +57,19 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
 		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
 			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
+		void CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities);
+		void UpdateSplines();
+		void DestroySplineBuffers();
+
+		struct SplineGPUData {
+			ref<SplineRenderer> renderer;
+			GameEntity* entity = nullptr;
+			UInt32 transformIndex = 0;
+			UInt32 vertexCount = 0;
+			VkBuffer vertexBuffer = VK_NULL_HANDLE;
+			VkDeviceMemory vertexMemory = VK_NULL_HANDLE;
+			ref<Rasterization::VulkanRasterizationPipelineModule> rasterModule;
+		};
 
 		// not owned. programs retrieved from it are wrapped in non-owning refs
 		ShaderRegistery* m_shaderProgramRegistery;
@@ -82,7 +98,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<VKEntityGPUData> m_entityGPUList;
 		std::vector<VKEntityGPUData> m_gBufferEntityGPUList;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_rasterizationModules;
-		std::vector<ref<VulkanSplinePipelineModule>> m_splineModues;
+		std::vector<SplineGPUData> m_splines;
+		ref<Compute::VulkanComputePipelineModule> m_splineComputeModule;
 
 		ref<VulkanGBufferPipelineModule> m_gbufferModule = nullptr;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
@@ -91,8 +108,6 @@ namespace LuxonEngine::Rendering::Vulkan {
 		VkImage m_rtOutputImage;
 		VkDeviceMemory m_rtOutputImageMemory;
 		VkImageView m_rtOutputImageView;
-
-		VkDescriptorPool m_descriptorPool;
 
 		VkClearValue m_clearValues[2];
 
