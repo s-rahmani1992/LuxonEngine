@@ -32,6 +32,8 @@
 #include "VulkanComputePass.h"
 #include "VulkanRenderTexture.h"
 #include "VulkanDepthTexture.h"
+#include "VulkanBuffer.h"
+#include "VulkanResourceState.h"
 #include "Core/Texture2D.h"
 #include "Rendering/ShaderInternalNames.h"
 #include <map>
@@ -162,9 +164,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	CreateRasterizationModules(gBufferEntityMap, m_gBufferRasterizationModules);
 	CreateSplinePipelines(splineEntities);
 
-	m_computePass = std::make_unique<VulkanComputePass>();
-	m_computePass->AddPipeline(m_splineComputeModule.get());
-
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
 	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
@@ -197,8 +196,6 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 			return false;
 		}
 
-		m_computePass->AddPipeline(m_rayTracingModule.get());
-
 		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
 
 		BindRayTracingBuffers(*m_rayTracingModule, scene->entities, m_transformBuffers, m_meshStorageBuffers);
@@ -216,7 +213,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		}
 	}
 
-	return true;
+	return BuildPassSequence();
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
@@ -252,113 +249,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	if (m_splineComputeModule != nullptr)
 		UpdateSplines();
 
-	if (m_gBufferPipeline != nullptr) {
-		m_gBufferPass->Execute(m_commandBuffer);
-
-		// Transition G-Buffer images from SHADER_READ_ONLY_OPTIMAL -> GENERAL for ray tracing usage.
-		// The ray tracing descriptors were created with VK_IMAGE_LAYOUT_GENERAL, so we must match that layout before tracing.
-		VkImageMemoryBarrier gBufferBarriers[3]{};
-
-		// Position image
-		gBufferBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		gBufferBarriers[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-		gBufferBarriers[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-		gBufferBarriers[0].oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		gBufferBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-		gBufferBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		gBufferBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		gBufferBarriers[0].image = m_gBufferTargets[GBufferPosition]->GetImage();
-		gBufferBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		gBufferBarriers[0].subresourceRange.baseMipLevel = 0;
-		gBufferBarriers[0].subresourceRange.levelCount = 1;
-		gBufferBarriers[0].subresourceRange.baseArrayLayer = 0;
-		gBufferBarriers[0].subresourceRange.layerCount = 1;
-
-		// Normal image
-		gBufferBarriers[1] = gBufferBarriers[0];
-		gBufferBarriers[1].image = m_gBufferTargets[GBufferNormal]->GetImage();
-
-		// Mask image
-		gBufferBarriers[2] = gBufferBarriers[0];
-		gBufferBarriers[2].image = m_gBufferTargets[GBufferMask]->GetImage();
-
-		vkCmdPipelineBarrier(
-			m_commandBuffer,
-			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			0,
-			0, nullptr,
-			0, nullptr,
-			3, gBufferBarriers);
-
-		// Prepare ray tracing output image for writes
-		VkImageMemoryBarrier rtOutImageBarrier{};
-		rtOutImageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		rtOutImageBarrier.srcAccessMask = 0;
-		rtOutImageBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		rtOutImageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		rtOutImageBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-		rtOutImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		rtOutImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		rtOutImageBarrier.image = m_rtOutputTexture->GetImage();
-		rtOutImageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		rtOutImageBarrier.subresourceRange.baseMipLevel = 0;
-		rtOutImageBarrier.subresourceRange.levelCount = 1;
-		rtOutImageBarrier.subresourceRange.baseArrayLayer = 0;
-		rtOutImageBarrier.subresourceRange.layerCount = 1;
-
-		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			0, 0, nullptr, 0, nullptr, 1, &rtOutImageBarrier);
-
-
-		m_computePass->Execute(m_commandBuffer);
-
-		// Transition ray tracing output to SHADER_READ_ONLY_OPTIMAL for later sampling in rasterization
-		rtOutImageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		rtOutImageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		rtOutImageBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-		rtOutImageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &rtOutImageBarrier);
-
-		// Transition G-Buffer images back from GENERAL -> SHADER_READ_ONLY_OPTIMAL
-		// so further graphics/fragment sampling sees the expected layout.
-		for (int i = 0; i < 3; ++i) {
-			gBufferBarriers[i].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-			gBufferBarriers[i].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			gBufferBarriers[i].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-			gBufferBarriers[i].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		}
-
-		vkCmdPipelineBarrier(
-			m_commandBuffer,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			3, gBufferBarriers);
-
-	}
-	else {
-		m_computePass->Execute(m_commandBuffer);
-	}
-
-	if (m_splineComputeModule != nullptr) {
-		VkMemoryBarrier splineBarrier{
-			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
-		};
-
-		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-			0, 1, &splineBarrier, 0, nullptr, 0, nullptr);
-	}
-
 	m_mainPass->SetImageIndex(imageIndex);
-	m_mainPass->Execute(m_commandBuffer);
+	m_passSequence.Execute(m_commandBuffer, imageIndex);
 	vkEndCommandBuffer(m_commandBuffer);
 
 	VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -433,7 +325,48 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 			}
 		}
 	}
+
+	BuildPassSequence();
 }
+
+bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::BuildPassSequence()
+{
+	m_computePass = std::make_unique<VulkanComputePass>();
+	m_computePass->AddPipeline(m_splineComputeModule.get());
+	m_computePass->AddPipeline(m_rayTracingModule.get());
+
+	for (auto& spline : m_splines) {
+		m_computePass->Use(spline.vertexBuffer.get(), VulkanStates::Storage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT));
+		m_mainPass->Use(spline.vertexBuffer.get(), VulkanStates::VertexInput());
+	}
+
+	if (m_rayTracingModule != nullptr) {
+		for (auto& target : m_gBufferTargets) {
+			m_computePass->Use(target.get(), VulkanStates::Storage(VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR));
+			m_mainPass->Use(target.get(), VulkanStates::Sampled(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT));
+		}
+
+		m_computePass->Use(m_rtOutputTexture.get(), VulkanStates::Storage(VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR));
+		m_mainPass->Use(m_rtOutputTexture.get(), VulkanStates::Sampled(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT));
+	}
+
+	m_passSequence.Clear();
+	m_passSequence.SetBackBuffers(m_swapChainImages);
+
+	if (m_gBufferPipeline != nullptr)
+		m_passSequence.AddPass(m_gBufferPass.get());
+
+	m_passSequence.AddPass(m_computePass.get());
+	m_passSequence.AddPass(m_mainPass.get());
+
+	if (m_passSequence.Compile() == false) {
+		Logger::LogError("Failed to create the resource barriers of the passes");
+		return false;
+	}
+
+	return true;
+}
+
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities)
 {
 	std::set<ref<Mesh>> uniqueMeshes;

@@ -44,6 +44,12 @@
     <ClInclude Include="Core\VulkanPass.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanPassSequence.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VulkanResourceState.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Rasterization\VulkanRasterizationPipelineModule.h">
       <Filter>Rasterization</Filter>
     </ClInclude>
@@ -127,6 +133,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanComputePass.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanPass.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanPassSequence.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanRenderPass.cpp">

@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan-pch.h"
 #include "VulkanGraphicContext.h"
+#include "VulkanPassSequence.h"
 #include <map>
 #include <vector>
 
@@ -63,6 +64,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
 			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
 		bool InitializeGBufferPass();
+		bool BuildPassSequence();
 		bool CreateGBufferTargets();
 		void DestroyGBufferTargets();
 		void CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities);
@@ -117,6 +119,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
 		Ptr<VulkanComputePass> m_computePass;
+		VulkanPassSequence m_passSequence;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_gBufferRasterizationModules;
 
 		Ptr<VulkanTexture> m_rtOutputTexture;

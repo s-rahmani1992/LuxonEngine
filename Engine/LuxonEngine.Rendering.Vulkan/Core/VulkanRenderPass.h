@@ -52,7 +52,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 	private:
 		void Reset();
 
-		bool CreateRenderPass(const std::vector<VkFormat>& colorFormats, VkImageLayout colorFinalLayout, const VulkanRenderPassParams& params);
+		bool CreateRenderPass(const std::vector<VkFormat>& colorFormats, const VulkanRenderPassParams& params);
 		bool CreateFramebuffer(const std::vector<VkImageView>& colorViews, const VulkanRenderPassParams& params);
 		void BuildClearValues(size_t colorCount, const VulkanRenderPassParams& params);
 

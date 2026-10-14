@@ -32,6 +32,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		m_device = VK_NULL_HANDLE;
 		m_extent = {};
 		m_imageIndex = 0;
+		ClearUsages();
 	}
 
 	bool VulkanRenderPass::Initialize(VkDevice device, VkFormat format, VkExtent2D extent, const std::vector<VkImageView>& imageViews, const VulkanRenderPassParams& params)
@@ -43,7 +44,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		m_device = device;
 		m_extent = extent;
 
-		if (CreateRenderPass({ format }, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, params) == false) {
+		if (CreateRenderPass({ format }, params) == false) {
 			Reset();
 			return false;
 		}
@@ -54,6 +55,9 @@ namespace LuxonEngine::Rendering::Vulkan {
 				return false;
 			}
 		}
+
+		UseBackBuffer(VulkanStates::ColorAttachment());
+		Use(params.depthTarget, VulkanStates::DepthAttachment());
 
 		BuildClearValues(1, params);
 		return true;
@@ -88,16 +92,21 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		m_device = device;
 
-		if (CreateRenderPass(colorFormats, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, params) == false || CreateFramebuffer(colorViews, params) == false) {
+		if (CreateRenderPass(colorFormats, params) == false || CreateFramebuffer(colorViews, params) == false) {
 			Reset();
 			return false;
 		}
+
+		for (VulkanRenderTexture* target : renderTargets)
+			Use(target, VulkanStates::ColorAttachment());
+
+		Use(params.depthTarget, VulkanStates::DepthAttachment());
 
 		BuildClearValues(colorViews.size(), params);
 		return true;
 	}
 
-	bool VulkanRenderPass::CreateRenderPass(const std::vector<VkFormat>& colorFormats, VkImageLayout colorFinalLayout, const VulkanRenderPassParams& params)
+	bool VulkanRenderPass::CreateRenderPass(const std::vector<VkFormat>& colorFormats, const VulkanRenderPassParams& params)
 	{
 		std::vector<VkAttachmentDescription> attachments;
 		std::vector<VkAttachmentReference> colorRefs;
@@ -112,8 +121,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 				.storeOp = params.colorStoreOp,
 				.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 				.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = params.colorLoadOp == VK_ATTACHMENT_LOAD_OP_LOAD ? colorFinalLayout : VK_IMAGE_LAYOUT_UNDEFINED,
-				.finalLayout = colorFinalLayout,
+				.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 			});
 		}
 
@@ -129,7 +138,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 				.storeOp = params.depthStoreOp,
 				.stencilLoadOp = hasStencil ? params.depthLoadOp : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 				.stencilStoreOp = hasStencil ? params.depthStoreOp : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				.initialLayout = params.depthLoadOp == VK_ATTACHMENT_LOAD_OP_LOAD ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED,
+				.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 				.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			});
 		}
