@@ -199,6 +199,13 @@
     <ClInclude Include="Core\VulkanPassSequence.h" />
     <ClInclude Include="Core\VulkanResourceState.h" />
     <ClInclude Include="Core\VulkanRenderPass.h" />
+    <ClInclude Include="Core\VulkanRendererSetup.h" />
+    <ClInclude Include="Core\VulkanRendererSetupRegistry.h" />
+    <ClInclude Include="RendererSetup\VulkanGBufferRendererSetup.h" />
+    <ClInclude Include="RendererSetup\VulkanMeshRendererSetup.h" />
+    <ClInclude Include="RendererSetup\VulkanSplineRendererSetup.h" />
+    <ClInclude Include="RendererSetup\VulkanSpikeMeshRendererSetup.h" />
+    <ClInclude Include="RendererSetup\VulkanSurfaceInstanceRendererSetup.h" />
     <ClInclude Include="Core\VulkanPipelineFactory.h" />
     <ClInclude Include="Core\VulkanShaderCompiler.h" />
     <ClInclude Include="Core\VulkanTexture2DController.h" />
@@ -243,6 +250,12 @@
     <ClCompile Include="Core\VulkanPass.cpp" />
     <ClCompile Include="Core\VulkanPassSequence.cpp" />
     <ClCompile Include="Core\VulkanRenderPass.cpp" />
+    <ClCompile Include="Core\VulkanRendererSetupRegistry.cpp" />
+    <ClCompile Include="RendererSetup\VulkanGBufferRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\VulkanMeshRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\VulkanSplineRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\VulkanSpikeMeshRendererSetup.cpp" />
+    <ClCompile Include="RendererSetup\VulkanSurfaceInstanceRendererSetup.cpp" />
     <ClCompile Include="Core\VulkanShaderCompiler.cpp" />
     <ClCompile Include="Core\VulkanTexture2DController.cpp" />
     <ClCompile Include="Core\VulkanUtilities.cpp" />

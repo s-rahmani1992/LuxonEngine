@@ -41,6 +41,27 @@
     <ClInclude Include="Core\VulkanRenderPass.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanRendererSetup.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\VulkanRendererSetupRegistry.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\VulkanGBufferRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\VulkanMeshRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\VulkanSplineRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\VulkanSpikeMeshRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSetup\VulkanSurfaceInstanceRendererSetup.h">
+      <Filter>RendererSetup</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanPass.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -144,6 +165,24 @@
     <ClCompile Include="Core\VulkanRenderPass.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\VulkanRendererSetupRegistry.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\VulkanGBufferRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\VulkanMeshRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\VulkanSplineRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\VulkanSpikeMeshRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSetup\VulkanSurfaceInstanceRendererSetup.cpp">
+      <Filter>RendererSetup</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh\SPIRVMeshProgram.cpp">
       <Filter>Mesh</Filter>
     </ClCompile>
@@ -222,6 +261,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="RendererSetup">
+      <UniqueIdentifier>{aed30ac7-5d3a-45b0-aaf0-5a16aa0a20e2}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{b475a5a1-816c-4043-af04-96d3ccd2718b}</UniqueIdentifier>
     </Filter>

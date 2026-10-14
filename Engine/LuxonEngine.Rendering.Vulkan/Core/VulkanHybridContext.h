@@ -2,41 +2,18 @@
 #include "vulkan-pch.h"
 #include "VulkanGraphicContext.h"
 #include "VulkanPassSequence.h"
-#include <map>
+#include "VulkanRendererSetupRegistry.h"
 #include <vector>
 
 namespace LuxonEngine {
 	namespace Rendering
 	{
-		class SplineRenderer;
 		class ShaderRegistery;
 		class ShaderProgram;
-		class Material;
 	}
 }
 
 namespace LuxonEngine::Rendering::Vulkan {
-
-	namespace Rasterization {
-		class VulkanRasterizationPipelineModule;
-	}
-
-	namespace Compute {
-		class VulkanComputePipelineModule;
-	}
-
-	namespace RayTracing {
-		class SpirvrayTracingProgram;
-		class VulkanRayTracingPipelineModule;
-	}
-
-	namespace MeshShading {
-		class VulkanMeshPipelineModule;
-	}
-
-	class VulkanBuffer;
-	class VulkanTexture;
-	class VulkanRenderTexture;
 	class VulkanDepthTexture;
 	class VulkanRenderPass;
 	class VulkanComputePass;
@@ -55,30 +32,16 @@ namespace LuxonEngine::Rendering::Vulkan {
 		~VulkanHybridContext();
 		bool Initialize();
 		virtual bool PrepareScene(const ref<Scene>& scene) override;
-		virtual void Render() override;		
+		virtual void Render() override;
 		virtual void Resize(UInt32 width, UInt32 height) override;
 	private:
 
 		void UploadMeshesToGPU(const std::vector<ref<GameEntity>>& entities);
-		ref<ShaderProgram> GetInternalProgram(const std::string& identifier) const;
-		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
-			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
-		bool InitializeGBufferPass();
+		ShaderProgram* GetInternalProgram(const std::string& identifier) const;
+		bool InitializePasses();
+		void RunRendererSetups();
 		bool BuildPassSequence();
-		bool CreateGBufferTargets();
-		void DestroyGBufferTargets();
-		void CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities);
-		void UpdateSplines();
-		void DestroySplineBuffers();
-
-		struct SplineGPUData {
-			ref<SplineRenderer> renderer;
-			GameEntity* entity = nullptr;
-			UInt32 transformIndex = 0;
-			UInt32 vertexCount = 0;
-			Ptr<VulkanBuffer> vertexBuffer;
-			ref<Rasterization::VulkanRasterizationPipelineModule> rasterModule;
-		};
+		void DestroyMeshStorageBuffers();
 
 		// not owned. programs retrieved from it are wrapped in non-owning refs
 		ShaderRegistery* m_shaderProgramRegistery;
@@ -87,47 +50,26 @@ namespace LuxonEngine::Rendering::Vulkan {
 		bool InitializeRenderPass();
 		void UpdateEntityTransforms();
 
-		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSpikeMeshPipelines();
-
-		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> CreateSurfaceInstancePipelines();
-		void DestroyMeshStorageBuffers();
 		std::vector<EntityTransformBuffer> m_transformBuffers;
 		TransformGPU m_transformData;
 
 		Ptr<VulkanRenderPass> m_mainPass;
+		Ptr<VulkanComputePass> m_computePass;
+		VulkanPassSequence m_passSequence;
 
 		VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
 		Ptr<VulkanDepthTexture> m_depthTexture;
 
+		std::vector<ref<GameEntity>> m_sceneEntities;
 		std::vector<VKEntityGPUData> m_entityGPUList;
-		std::vector<VKEntityGPUData> m_gBufferEntityGPUList;
-		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_rasterizationModules;
-		std::vector<SplineGPUData> m_splines;
-		ref<Compute::VulkanComputePipelineModule> m_splineComputeModule;
+		std::vector<VulkanRendererEntity> m_rendererEntities;
 
-		enum GBufferTargetIndex {
-			GBufferPosition,
-			GBufferNormal,
-			GBufferMask,
-			GBufferTargetCount,
-		};
-
-		static constexpr VkFormat s_gBufferFormats[GBufferTargetCount] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_UNORM, VK_FORMAT_R32_UINT };
-
-		Ptr<VulkanRenderPass> m_gBufferPass;
-		Ptr<VulkanRenderTexture> m_gBufferTargets[GBufferTargetCount];
-		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
-		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
-		Ptr<VulkanComputePass> m_computePass;
-		VulkanPassSequence m_passSequence;
-		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_gBufferRasterizationModules;
-
-		Ptr<VulkanTexture> m_rtOutputTexture;
+		VulkanRendererSetupRegistry m_setupRegistry;
+		VulkanPassSetupContext m_setupContext;
 
 		VkClearValue m_clearColor = {};
 
 		ref<VulkanPipelineFactory> m_pipelineFactory;
-		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;
-		std::vector<VkBuffer> m_meshStorageBuffers; // storage buffer views of the spike meshes, they share the memory of the mesh buffers
+		std::vector<VkBuffer> m_meshStorageBuffers; // storage buffer views of the meshes, they share the memory of the mesh buffers
 	};
 }
