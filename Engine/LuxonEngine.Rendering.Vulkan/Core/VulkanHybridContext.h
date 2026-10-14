@@ -38,6 +38,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanRenderTexture;
 	class VulkanDepthTexture;
 	class VulkanRenderPass;
+	class VulkanComputePass;
 	class VulkanPipelineFactory;
 
 	struct VKEntityGPUData {
@@ -115,6 +116,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		Ptr<VulkanRenderTexture> m_gBufferTargets[GBufferTargetCount];
 		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
+		Ptr<VulkanComputePass> m_computePass;
 		std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>> m_gBufferRasterizationModules;
 
 		Ptr<VulkanTexture> m_rtOutputTexture;

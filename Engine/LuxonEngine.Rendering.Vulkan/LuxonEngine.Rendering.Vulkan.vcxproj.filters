@@ -35,6 +35,9 @@
     <ClInclude Include="Core\VulkanMeshController.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\VulkanComputePass.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\VulkanRenderPass.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -121,6 +124,9 @@
       <Filter>Mesh</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanPipelineFactory.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\VulkanComputePass.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\VulkanRenderPass.cpp">

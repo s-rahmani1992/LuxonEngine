@@ -194,6 +194,7 @@
     <ClInclude Include="Core\VulkanMaterialResourceManager.h" />
     <ClInclude Include="Core\VulkanSplineVertex.h" />
     <ClInclude Include="Core\VulkanMeshController.h" />
+    <ClInclude Include="Core\VulkanComputePass.h" />
     <ClInclude Include="Core\VulkanPass.h" />
     <ClInclude Include="Core\VulkanRenderPass.h" />
     <ClInclude Include="Core\VulkanPipelineFactory.h" />
@@ -236,6 +237,7 @@
     <ClCompile Include="Core\VulkanMaterialResourceManager.cpp" />
     <ClCompile Include="Core\VulkanMeshController.cpp" />
     <ClCompile Include="Core\VulkanPipelineFactory.cpp" />
+    <ClCompile Include="Core\VulkanComputePass.cpp" />
     <ClCompile Include="Core\VulkanRenderPass.cpp" />
     <ClCompile Include="Core\VulkanShaderCompiler.cpp" />
     <ClCompile Include="Core\VulkanTexture2DController.cpp" />

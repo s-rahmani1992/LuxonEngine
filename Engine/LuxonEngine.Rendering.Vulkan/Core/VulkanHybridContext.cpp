@@ -29,6 +29,7 @@
 #include "Rendering/SurfaceInstanceRenderer.h"
 #include "Core/VulkanTexture2DController.h"
 #include "VulkanRenderPass.h"
+#include "VulkanComputePass.h"
 #include "VulkanRenderTexture.h"
 #include "VulkanDepthTexture.h"
 #include "Core/Texture2D.h"
@@ -50,6 +51,7 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 
 	m_rasterizationModules.clear();
 	m_gBufferRasterizationModules.clear();
+	m_computePass.reset();
 	m_splineComputeModule.reset();
 	DestroySplineBuffers();
 
@@ -160,6 +162,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	CreateRasterizationModules(gBufferEntityMap, m_gBufferRasterizationModules);
 	CreateSplinePipelines(splineEntities);
 
+	m_computePass = std::make_unique<VulkanComputePass>();
+	m_computePass->AddPipeline(m_splineComputeModule.get());
+
 	m_meshShadingPipelines = CreateSpikeMeshPipelines();
 
 	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
@@ -191,6 +196,8 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 			Logger::LogError("Failed to create the ray tracing pipeline: " + rayTracingError);
 			return false;
 		}
+
+		m_computePass->AddPipeline(m_rayTracingModule.get());
 
 		m_rayTracingModule->SetExtent(m_swapChainCapability.currentExtent);
 
@@ -242,20 +249,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	vkBeginCommandBuffer(m_commandBuffer, &beginInfo);
 
-	if (m_splineComputeModule != nullptr) {
+	if (m_splineComputeModule != nullptr)
 		UpdateSplines();
-		m_splineComputeModule->Dispatch(m_commandBuffer);
-
-		VkMemoryBarrier splineBarrier{
-			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-			.pNext = nullptr,
-			.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
-		};
-
-		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-			0, 1, &splineBarrier, 0, nullptr, 0, nullptr);
-	}
 
 	if (m_gBufferPipeline != nullptr) {
 		m_gBufferPass->Execute(m_commandBuffer);
@@ -316,8 +311,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 			0, 0, nullptr, 0, nullptr, 1, &rtOutImageBarrier);
 
 
-		m_rayTracingModule->UpdateTLAS(m_commandBuffer);
-		m_rayTracingModule->RenderCommand(m_commandBuffer);
+		m_computePass->Execute(m_commandBuffer);
 
 		// Transition ray tracing output to SHADER_READ_ONLY_OPTIMAL for later sampling in rasterization
 		rtOutImageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -346,6 +340,21 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 			0, nullptr,
 			3, gBufferBarriers);
 
+	}
+	else {
+		m_computePass->Execute(m_commandBuffer);
+	}
+
+	if (m_splineComputeModule != nullptr) {
+		VkMemoryBarrier splineBarrier{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			.pNext = nullptr,
+			.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+		};
+
+		vkCmdPipelineBarrier(m_commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+			0, 1, &splineBarrier, 0, nullptr, 0, nullptr);
 	}
 
 	m_mainPass->SetImageIndex(imageIndex);
