@@ -28,6 +28,9 @@
 #include "Rendering/SpikeMeshRenderer.h"
 #include "Rendering/SurfaceInstanceRenderer.h"
 #include "Core/VulkanTexture2DController.h"
+#include "VulkanRenderPass.h"
+#include "VulkanRenderTexture.h"
+#include "VulkanDepthTexture.h"
 #include "Core/Texture2D.h"
 #include "Rendering/ShaderInternalNames.h"
 #include <map>
@@ -52,18 +55,12 @@ LuxonEngine::Rendering::Vulkan::VulkanHybridContext::~VulkanHybridContext()
 
 	DestroyEntityTransformBuffers(m_transformBuffers);
 	m_gBufferPipeline.reset();
+	m_gBufferPass.reset();
 	DestroyGBufferTargets();
-
-	if (m_gBufferRenderPass != VK_NULL_HANDLE)
-		vkDestroyRenderPass(m_logicDevice, m_gBufferRenderPass, nullptr);
 
 	DestroyEntityTransformBuffers(m_transformBuffers);
 
-	for (auto framebuffer : m_swapChainFramebuffers) {
-		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
-	}
-
-	vkDestroyRenderPass(m_logicDevice, m_renderPass, nullptr);
+	m_mainPass.reset();
 }
 
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Initialize()
@@ -110,8 +107,10 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 		return false;
 
 	auto colorArray = scene->hybridBackgroundColor.GetColorArray();
-	m_clearValues[0].color = { colorArray[0], colorArray[1], colorArray[2], colorArray[3] };
-	m_clearValues[1].depthStencil = { 1.0f, 0 };
+	m_clearColor.color = { colorArray[0], colorArray[1], colorArray[2], colorArray[3] };
+
+	if (InitializeRenderPass() == false)
+		return false;
 	
 	// Create Uniform Buffers for Transforms
 	if (CreateEntityTransformBuffers((UInt32)scene->entities.size(), m_transformBuffers) == false)
@@ -166,6 +165,15 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 	auto surfaceInstancePipelines = CreateSurfaceInstancePipelines();
 	m_meshShadingPipelines.insert(m_meshShadingPipelines.end(), surfaceInstancePipelines.begin(), surfaceInstancePipelines.end());
 
+	for (auto& module : m_rasterizationModules)
+		m_mainPass->AddPipeline(module.get());
+
+	for (auto& module : m_gBufferRasterizationModules)
+		m_mainPass->AddPipeline(module.get());
+
+	for (auto& meshShadingPipeline : m_meshShadingPipelines)
+		m_mainPass->AddPipeline(meshShadingPipeline.get());
+
 	if (m_gBufferEntityGPUList.size() > 0) {
 		auto gBufferProgram = std::dynamic_pointer_cast<Rasterization::SPIRVRasterizationProgram>( GetInternalProgram("G_Buffer_Program"));
 		if (InitializeGBufferPass() == false)
@@ -175,7 +183,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::PrepareScene(const ref
 
 		auto materialFactory = VulkanDeviceManager::Instance()->CreateMaterialFactory();
 		auto gBufferGlobalMaterial = materialFactory->CreateMaterial(gBufferGlobalProgram);
-		gBufferGlobalMaterial->SetValue("missColor", &m_clearValues[0], 4 * sizeof(Float));
+		gBufferGlobalMaterial->SetValue("missColor", &m_clearColor, 4 * sizeof(Float));
 		std::string rayTracingError;
 		m_rayTracingModule = m_pipelineFactory->CreateRayTracingPipeline(gBufferGlobalMaterial, scene->entities, rayTracingError);
 
@@ -250,7 +258,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 	}
 
 	if (m_gBufferPipeline != nullptr) {
-		RenderGBuffer(m_commandBuffer);
+		m_gBufferPass->Execute(m_commandBuffer);
 
 		// Transition G-Buffer images from SHADER_READ_ONLY_OPTIMAL -> GENERAL for ray tracing usage.
 		// The ray tracing descriptors were created with VK_IMAGE_LAYOUT_GENERAL, so we must match that layout before tracing.
@@ -340,50 +348,8 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Render()
 
 	}
 
-	VkRenderPassBeginInfo renderPassInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.pNext = nullptr,
-		.renderPass = m_renderPass,
-		.framebuffer = m_swapChainFramebuffers[imageIndex],
-		.renderArea = {
-			.offset = { 0, 0 },
-			.extent = m_swapChainCapability.currentExtent,
-		},
-		.clearValueCount = 2,
-		.pClearValues = m_clearValues,
-	};
-
-	vkCmdBeginRenderPass(m_commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float)m_swapChainCapability.currentExtent.width;
-	viewport.height = (float)m_swapChainCapability.currentExtent.height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-
-	vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
-
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = m_swapChainCapability.currentExtent;
-
-	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
-
-	// Render Objects here
-	for (auto& module : m_rasterizationModules) {
-		module->Draw(m_commandBuffer);
-	}
-
-	for(auto& module : m_gBufferRasterizationModules) {
-		module->Draw(m_commandBuffer);
-	}
-
-	for (auto& meshShadingPipeline : m_meshShadingPipelines)
-		meshShadingPipeline->Dispatch(m_commandBuffer);
-
-	vkCmdEndRenderPass(m_commandBuffer);
+	m_mainPass->SetImageIndex(imageIndex);
+	m_mainPass->Execute(m_commandBuffer);
 	vkEndCommandBuffer(m_commandBuffer);
 
 	VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -422,29 +388,11 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::Resize(UInt32 width, U
 {
 	m_depthTexture.reset();
 
-	for (auto framebuffer : m_swapChainFramebuffers)
-		vkDestroyFramebuffer(m_logicDevice, framebuffer, nullptr);
-
 	RecreateSwapChain(m_swapChainUsageFlags);
 
 	InitializeDepthBuffer();
 
-	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
-	for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
-		VkImageView fbAttachments[2] = { m_swapChainImageViews[i], m_depthTexture->GetAttachmentView() };
-
-		VkFramebufferCreateInfo fbInfo{
-			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-			.renderPass = m_renderPass,
-			.attachmentCount = 2,
-			.pAttachments = fbAttachments,
-			.width = m_swapChainCapability.currentExtent.width,
-			.height = m_swapChainCapability.currentExtent.height,
-			.layers = 1,
-		};
-
-		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, &m_swapChainFramebuffers[i]);
-	}
+	InitializeRenderPass();
 
 	if (m_gBufferPipeline != nullptr) {
 		DestroyGBufferTargets();
@@ -510,79 +458,15 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeDepthBuffer(
 
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeRenderPass()
 {
-	VkAttachmentDescription colorAttachment{
-		.format = m_swapChainFormat.format,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-		.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-	};
+	if (m_mainPass == nullptr)
+		m_mainPass = std::make_unique<VulkanRenderPass>();
 
-	VkAttachmentDescription depthAttachment{
-		.format = m_depthFormat,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-		.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-	};
+	VulkanRenderPassParams params;
+	params.clearColors = { { m_clearColor.color.float32[0], m_clearColor.color.float32[1], m_clearColor.color.float32[2], m_clearColor.color.float32[3] } };
+	params.depthTarget = m_depthTexture.get();
+	params.depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	VkAttachmentDescription attachments[2] = { colorAttachment, depthAttachment };
-
-	VkAttachmentReference colorAttachmentRef{
-		.attachment = 0,
-		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-	};
-
-	VkAttachmentReference depthAttachmentRef{
-		.attachment = 1,
-		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-	};
-
-	VkSubpassDescription colorSubpass{
-		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-		.colorAttachmentCount = 1,
-		.pColorAttachments = &colorAttachmentRef,
-		.pDepthStencilAttachment = &depthAttachmentRef,
-	};
-
-	VkRenderPassCreateInfo rpInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.attachmentCount = 2,
-		.pAttachments = attachments,
-		.subpassCount = 1,
-		.pSubpasses = &colorSubpass,
-	};
-
-	auto result = vkCreateRenderPass(m_logicDevice, &rpInfo, nullptr, &m_renderPass);
-	if (result != VK_SUCCESS)
-		return false;
-
-	// Create Framebuffers for Swap chain images
-	m_swapChainFramebuffers.resize(2);
-	VkFramebuffer* framebuffer = m_swapChainFramebuffers.data();
-
-	for (auto view : m_swapChainImageViews) {
-		VkImageView imageViews[2] = { view, m_depthTexture->GetAttachmentView() };
-
-		VkFramebufferCreateInfo fbInfo{
-			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-			.renderPass = m_renderPass,
-			.attachmentCount = 2,
-			.pAttachments = imageViews,
-			.width = m_swapChainCapability.currentExtent.width,
-			.height = m_swapChainCapability.currentExtent.height,
-			.layers = 1,
-		};
-		vkCreateFramebuffer(m_logicDevice, &fbInfo, nullptr, framebuffer);
-		framebuffer++;
-	}
-	return true;
+	return m_mainPass->Initialize(m_logicDevice, m_swapChainFormat.format, m_swapChainCapability.currentExtent, m_swapChainImageViews, params);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::UpdateEntityTransforms()
@@ -603,7 +487,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateRasterizationMod
 	Rasterization::RasterizationPipelineProperties properties;
 
 	for (auto& [material, entityList] : entityMap) {
-		auto rasterizationModule = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_renderPass, properties, error);
+		auto rasterizationModule = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_mainPass->GetRenderPass(), properties, error);
 
 		if (rasterizationModule == nullptr) {
 			Logger::LogError("Failed to create the rasterization pipeline: " + error);
@@ -648,7 +532,9 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeGBufferPass(
 		return false;
 	}
 
-	if (CreateGBufferRenderPass() == false || CreateGBufferTargets() == false) {
+	m_gBufferPass = std::make_unique<VulkanRenderPass>();
+
+	if (CreateGBufferTargets() == false) {
 		Logger::LogError("Failed to create the render targets of the g buffer");
 		return false;
 	}
@@ -657,7 +543,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeGBufferPass(
 	properties.renderTargetFormats.assign(std::begin(s_gBufferFormats), std::end(s_gBufferFormats));
 
 	std::string error;
-	m_gBufferPipeline = m_pipelineFactory->CreateRasterizationPipeline(gBufferProgram.get(), m_gBufferRenderPass, properties, error);
+	m_gBufferPipeline = m_pipelineFactory->CreateRasterizationPipeline(gBufferProgram.get(), m_gBufferPass->GetRenderPass(), properties, error);
 
 	if (m_gBufferPipeline == nullptr) {
 		Logger::LogError("Failed to create the g buffer pipeline: " + error);
@@ -671,6 +557,7 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeGBufferPass(
 	}
 
 	m_gBufferPipeline->SetDescriptor(INTERNAL_CAMERA_DATA_NAME, m_cameraBuffer, 0, m_cameraStride);
+	m_gBufferPass->AddPipeline(m_gBufferPipeline.get());
 
 	for (auto& entityGPU : m_gBufferEntityGPUList) {
 		auto mesh = entityGPU.gameEntity->GetRenderer()->GetMesh();
@@ -692,64 +579,12 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::InitializeGBufferPass(
 	return true;
 }
 
-bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferRenderPass()
-{
-	VkAttachmentDescription attachments[GBufferTargetCount + 1] = {};
-	VkAttachmentReference colorRefs[GBufferTargetCount] = {};
-
-	for (UInt32 i = 0; i < GBufferTargetCount; i++) {
-		attachments[i] = {
-			.format = s_gBufferFormats[i],
-			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-		};
-
-		colorRefs[i] = { i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-	}
-
-	attachments[GBufferTargetCount] = {
-		.format = m_depthFormat,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-		.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-	};
-
-	VkAttachmentReference depthAttachmentRef{
-		.attachment = GBufferTargetCount,
-		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-	};
-
-	VkSubpassDescription subpass = {
-		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-		.colorAttachmentCount = GBufferTargetCount,
-		.pColorAttachments = colorRefs,
-		.pDepthStencilAttachment = &depthAttachmentRef,
-	};
-
-	VkRenderPassCreateInfo renderPassInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.attachmentCount = GBufferTargetCount + 1,
-		.pAttachments = attachments,
-		.subpassCount = 1,
-		.pSubpasses = &subpass,
-	};
-
-	return vkCreateRenderPass(m_logicDevice, &renderPassInfo, nullptr, &m_gBufferRenderPass) == VK_SUCCESS;
-}
-
 bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferTargets()
 {
 	UInt32 width = m_swapChainCapability.currentExtent.width;
 	UInt32 height = m_swapChainCapability.currentExtent.height;
 
-	VkImageView views[GBufferTargetCount + 1];
+	std::vector<VulkanRenderTexture*> targets;
 
 	for (UInt32 i = 0; i < GBufferTargetCount; i++) {
 		m_gBufferTargets[i] = m_bufferFactory->CreateRenderTexture(VulkanTextureDesc{
@@ -762,81 +597,21 @@ bool LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateGBufferTargets()
 		if (m_gBufferTargets[i] == nullptr)
 			return false;
 
-		views[i] = m_gBufferTargets[i]->GetAttachmentView();
+		targets.push_back(m_gBufferTargets[i].get());
 	}
 
-	views[GBufferTargetCount] = m_depthTexture->GetAttachmentView();
+	VulkanRenderPassParams params;
+	params.clearColors = { { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } };
+	params.depthTarget = m_depthTexture.get();
+	params.depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	VkFramebufferCreateInfo frameBufferInfo = {
-		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-		.renderPass = m_gBufferRenderPass,
-		.attachmentCount = GBufferTargetCount + 1,
-		.pAttachments = views,
-		.width = width,
-		.height = height,
-		.layers = 1
-	};
-
-	return vkCreateFramebuffer(m_logicDevice, &frameBufferInfo, nullptr, &m_gBufferFrameBuffer) == VK_SUCCESS;
+	return m_gBufferPass->Initialize(m_logicDevice, targets, params);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::DestroyGBufferTargets()
 {
-	if (m_gBufferFrameBuffer != VK_NULL_HANDLE)
-		vkDestroyFramebuffer(m_logicDevice, m_gBufferFrameBuffer, nullptr);
-
-	m_gBufferFrameBuffer = VK_NULL_HANDLE;
-
 	for (auto& target : m_gBufferTargets)
 		target.reset();
-}
-
-void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::RenderGBuffer(VkCommandBuffer commandBuffer)
-{
-	VkExtent2D extent = m_swapChainCapability.currentExtent;
-
-	VkClearValue clearValues[GBufferTargetCount + 1];
-	clearValues[GBufferPosition].color = { {1.0f, 1.0f, 1.0f, 1.0f} };
-	clearValues[GBufferNormal].color = { {1.0f, 1.0f, 1.0f, 1.0f} };
-	clearValues[GBufferMask].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
-	clearValues[GBufferTargetCount].depthStencil = { 1.0f, 0 };
-
-	VkRenderPassBeginInfo renderPassInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.pNext = nullptr,
-		.renderPass = m_gBufferRenderPass,
-		.framebuffer = m_gBufferFrameBuffer,
-		.renderArea = {
-			.offset = { 0, 0 },
-			.extent = extent,
-		},
-		.clearValueCount = GBufferTargetCount + 1,
-		.pClearValues = clearValues,
-	};
-
-	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	VkViewport viewport{
-		.x = 0.0f,
-		.y = 0.0f,
-		.width = (float)extent.width,
-		.height = (float)extent.height,
-		.minDepth = 0.0f,
-		.maxDepth = 1.0f,
-	};
-
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-	VkRect2D scissor{
-		.offset = { 0, 0 },
-		.extent = extent,
-	};
-
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-	m_gBufferPipeline->Draw(commandBuffer);
-
-	vkCmdEndRenderPass(commandBuffer);
 }
 
 void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities)
@@ -916,7 +691,7 @@ void LuxonEngine::Rendering::Vulkan::VulkanHybridContext::CreateSplinePipelines(
 	properties.cullMode = VK_CULL_MODE_NONE;
 
 	for (auto& [material, splineIndices] : materialMap) {
-		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_renderPass, properties, error);
+		auto pipeline = m_pipelineFactory->CreateRasterizationPipeline(material.get(), m_mainPass->GetRenderPass(), properties, error);
 
 		if (pipeline == nullptr) {
 			Logger::LogError("Failed to create the spline rasterization pipeline: " + error);
@@ -1025,7 +800,7 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 	MeshShading::MeshPipelineProperties properties;
 
 	for (auto& [material, spikeList] : spikeMap) {
-		auto spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_renderPass, properties, error);
+		auto spikeMeshPipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_mainPass->GetRenderPass(), properties, error);
 
 		if (spikeMeshPipeline == nullptr) {
 			Logger::LogError("Failed to create the spike mesh pipeline: " + error);
@@ -1120,7 +895,7 @@ std::vector<ref<LuxonEngine::Rendering::Vulkan::MeshShading::VulkanMeshPipelineM
 	MeshShading::MeshPipelineProperties properties;
 
 	for (auto& [material, surfaceInstanceList] : surfaceInstanceMap) {
-		auto surfaceInstancePipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_renderPass, properties, error);
+		auto surfaceInstancePipeline = m_pipelineFactory->CreateMeshPipeline(material.get(), m_mainPass->GetRenderPass(), properties, error);
 
 		if (surfaceInstancePipeline == nullptr) {
 			Logger::LogError("Failed to create the surface instance pipeline: " + error);

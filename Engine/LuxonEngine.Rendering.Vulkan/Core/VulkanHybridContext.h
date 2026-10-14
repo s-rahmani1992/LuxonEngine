@@ -37,6 +37,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 	class VulkanTexture;
 	class VulkanRenderTexture;
 	class VulkanDepthTexture;
+	class VulkanRenderPass;
 	class VulkanPipelineFactory;
 
 	struct VKEntityGPUData {
@@ -61,10 +62,8 @@ namespace LuxonEngine::Rendering::Vulkan {
 		void CreateRasterizationModules(const std::map<ref<Material>, std::vector<VKEntityGPUData>>& entityMap,
 			std::vector<ref<Rasterization::VulkanRasterizationPipelineModule>>& modules);
 		bool InitializeGBufferPass();
-		bool CreateGBufferRenderPass();
 		bool CreateGBufferTargets();
 		void DestroyGBufferTargets();
-		void RenderGBuffer(VkCommandBuffer commandBuffer);
 		void CreateSplinePipelines(const std::vector<VKEntityGPUData>& splineEntities);
 		void UpdateSplines();
 		void DestroySplineBuffers();
@@ -92,8 +91,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 		std::vector<EntityTransformBuffer> m_transformBuffers;
 		TransformGPU m_transformData;
 
-		VkRenderPass m_renderPass;
-		std::vector<VkFramebuffer> m_swapChainFramebuffers;
+		Ptr<VulkanRenderPass> m_mainPass;
 
 		VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
 		Ptr<VulkanDepthTexture> m_depthTexture;
@@ -113,8 +111,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		static constexpr VkFormat s_gBufferFormats[GBufferTargetCount] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_UNORM, VK_FORMAT_R32_UINT };
 
-		VkRenderPass m_gBufferRenderPass = VK_NULL_HANDLE;
-		VkFramebuffer m_gBufferFrameBuffer = VK_NULL_HANDLE;
+		Ptr<VulkanRenderPass> m_gBufferPass;
 		Ptr<VulkanRenderTexture> m_gBufferTargets[GBufferTargetCount];
 		ref<Rasterization::VulkanRasterizationPipelineModule> m_gBufferPipeline;
 		ref<RayTracing::VulkanRayTracingPipelineModule> m_rayTracingModule;
@@ -122,7 +119,7 @@ namespace LuxonEngine::Rendering::Vulkan {
 
 		Ptr<VulkanTexture> m_rtOutputTexture;
 
-		VkClearValue m_clearValues[2];
+		VkClearValue m_clearColor = {};
 
 		ref<VulkanPipelineFactory> m_pipelineFactory;
 		std::vector<ref<MeshShading::VulkanMeshPipelineModule>> m_meshShadingPipelines;
